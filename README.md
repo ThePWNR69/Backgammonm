@@ -1,40 +1,47 @@
-# Backgammon Android — v0.1
+# Backgammon Android — v0.2 Visual Polish Build
 
-A simple native Android backgammon prototype built as a clean base for expansion.
+A native Android backgammon prototype focused on a polished top-down wooden-board presentation and a safer, reversible turn flow.
 
-## Included
+## v0.2 changes
+- Premium top-down walnut + dark leather board styling
+- Ivory and walnut checker styling with depth/highlights
+- Blue glow around the selected checker
+- Green glowing rings only on legal landing positions for that selected checker
+- Brief red X feedback when a selected checker is tapped toward an illegal destination
+- Dice rendered directly on the board
+- Symmetrical Player 1 / Player 2 header panels
+- New **Undo** button for moves made during the current unconfirmed turn
+- New **End Turn** confirmation button
+- A move is provisional until End Turn is pressed
+- Multiple moves in the current turn can be undone one-by-one
+- End Turn is rules-safe: it only enables once all legally required dice have been used or no legal move remains
+- A final bear-off can still be undone until End Turn commits the win
+
+## Existing game rules
 - Standard 24-point starting layout
-- Local two-player/pass-and-play
+- Local two-player / pass-and-play
 - Dice rolls and doubles
 - Legal move filtering
 - Forced bar re-entry
 - Hitting blots
-- Bearing off, including oversized-die rule
-- Uses as many dice as legally possible; when only one of two different dice can be played, uses the higher die
-- Win detection
-- Tap a checker, then tap a green legal destination
-- Tap the OFF tray on the right to bear off
+- Bearing off including oversized-die rule
+- Maximum-dice rule and higher-die rule when only one die can be played
+- Win detection after turn confirmation
+
+## Interaction
+1. Tap **Roll Dice**.
+2. Tap a checker that has a legal move. It gets a blue glow.
+3. Legal destinations for that checker appear as green glowing rings.
+4. Tap a green destination to make the provisional move.
+5. Continue until all legally required dice have been used.
+6. Tap **Undo** to reverse provisional moves if you want to change the turn.
+7. Tap **End Turn** to commit the turn and hand play to the other player.
 
 ## Build
-Open the folder in Android Studio and choose **Build > Build APK(s)**.
+Push the project to GitHub and run **Actions → Build Android APK**. The included workflow uploads an artifact named `Backgammon-v0.2-APK` containing `app-debug.apk`.
 
 Project settings:
 - Package: `com.george.backgammon`
 - minSdk 24
 - target/compileSdk 35
 - Landscape orientation
-
-## Good next additions
-1. Single-player AI with difficulty levels
-2. Opening-roll rule and doubling cube
-3. Match scoring / Crawford rule
-4. Undo and move confirmation
-5. Animations, sound and haptics
-6. Portrait/tablet responsive layout
-7. Online multiplayer
-8. Player profiles, stats and achievements
-9. Board/checker themes
-10. Rule/tutorial overlay
-
-## Automated APK build
-A GitHub Actions workflow is included at `.github/workflows/build-apk.yml`. When the project is pushed to a GitHub repository, it can build and upload `app-debug.apk` as a workflow artifact.

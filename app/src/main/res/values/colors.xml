@@ -1,6 +1,9 @@
 <resources>
-    <color name="app_background">#17130F</color>
-    <color name="panel">#241D17</color>
-    <color name="text_primary">#FFF8EC</color>
-    <color name="accent">#D4A85A</color>
+    <color name="app_background">#160E09</color>
+    <color name="panel">#21150D</color>
+    <color name="text_primary">#FFF5E5</color>
+    <color name="text_secondary">#CDB894</color>
+    <color name="button_text">#FFF5E5</color>
+    <color name="accent">#D5A85E</color>
+    <color name="green_accent">#15845F</color>
 </resources>

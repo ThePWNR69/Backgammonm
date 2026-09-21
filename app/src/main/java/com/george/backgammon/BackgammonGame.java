@@ -1,7 +1,9 @@
 package com.george.backgammon;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -45,10 +47,21 @@ public class BackgammonGame {
         }
     }
 
+    private static class TurnSnapshot {
+        final State state;
+        final List<Integer> diceRemaining;
+
+        TurnSnapshot(State state, List<Integer> diceRemaining) {
+            this.state = state.copy();
+            this.diceRemaining = new ArrayList<>(diceRemaining);
+        }
+    }
+
     private final Random random = new Random();
     private State state = new State();
     private int currentPlayer = WHITE;
     private final List<Integer> diceRemaining = new ArrayList<>();
+    private final Deque<TurnSnapshot> undoHistory = new ArrayDeque<>();
     private int dieOne = 0, dieTwo = 0;
     private boolean rolled = false;
     private int winner = 0;
@@ -69,6 +82,7 @@ public class BackgammonGame {
         state.points[19] = -5;
         currentPlayer = WHITE;
         diceRemaining.clear();
+        undoHistory.clear();
         dieOne = dieTwo = 0;
         rolled = false;
         winner = 0;
@@ -85,12 +99,15 @@ public class BackgammonGame {
     public int getWhiteOff() { return state.whiteOff; }
     public int getBlackOff() { return state.blackOff; }
     public int getPoint(int point) { return state.points[point]; }
+    public int getMovesMadeThisTurn() { return undoHistory.size(); }
+    public boolean canUndo() { return rolled && !undoHistory.isEmpty() && winner == 0; }
 
     public void rollDice() {
         if (winner != 0 || rolled) return;
         dieOne = random.nextInt(6) + 1;
         dieTwo = random.nextInt(6) + 1;
         diceRemaining.clear();
+        undoHistory.clear();
         diceRemaining.add(dieOne);
         diceRemaining.add(dieTwo);
         if (dieOne == dieTwo) {
@@ -98,7 +115,7 @@ public class BackgammonGame {
             diceRemaining.add(dieOne);
         }
         rolled = true;
-        if (getAllowedFirstMoves().isEmpty()) endTurn();
+        // Important: do not auto-finish the turn. The player confirms with End Turn.
     }
 
     public List<Move> getAllowedFirstMoves() {
@@ -131,33 +148,58 @@ public class BackgammonGame {
     }
 
     public boolean applyMove(Move requested) {
-        if (requested == null) return false;
+        if (requested == null || winner != 0) return false;
         Move chosen = null;
         for (Move m : getAllowedFirstMoves()) {
             if (m.from == requested.from && m.to == requested.to && m.die == requested.die) {
-                chosen = m; break;
+                chosen = m;
+                break;
             }
         }
         if (chosen == null) return false;
 
+        // Save the exact provisional state before every move so Undo can walk the turn backwards.
+        undoHistory.push(new TurnSnapshot(state, diceRemaining));
         applyToState(state, currentPlayer, chosen);
         diceRemaining.remove(Integer.valueOf(chosen.die));
-        if (state.whiteOff >= 15) winner = WHITE;
-        if (state.blackOff >= 15) winner = BLACK;
-        if (winner != 0) {
-            rolled = false;
-            diceRemaining.clear();
-            return true;
-        }
-        if (diceRemaining.isEmpty() || getAllowedFirstMoves().isEmpty()) endTurn();
+
+        // A win is not committed here. Even the final bear-off can be undone until End Turn.
         return true;
     }
 
-    private void endTurn() {
+    public boolean undoLastMove() {
+        if (!canUndo()) return false;
+        TurnSnapshot snapshot = undoHistory.pop();
+        state = snapshot.state.copy();
         diceRemaining.clear();
+        diceRemaining.addAll(snapshot.diceRemaining);
+        return true;
+    }
+
+    /**
+     * A turn can only be confirmed when the player has used every die they are legally required
+     * to use, has no remaining legal move, or has provisionally borne off all 15 checkers.
+     */
+    public boolean canEndTurn() {
+        if (!rolled || winner != 0) return false;
+        if (state.whiteOff >= 15 || state.blackOff >= 15) return true;
+        return diceRemaining.isEmpty() || getAllowedFirstMoves().isEmpty();
+    }
+
+    /** Commits the provisional turn. Returns false if legal moves still have to be played. */
+    public boolean endTurn() {
+        if (!canEndTurn()) return false;
+
+        if (state.whiteOff >= 15) winner = WHITE;
+        else if (state.blackOff >= 15) winner = BLACK;
+
+        diceRemaining.clear();
+        undoHistory.clear();
         rolled = false;
         dieOne = dieTwo = 0;
-        currentPlayer = -currentPlayer;
+
+        if (winner == 0) currentPlayer = -currentPlayer;
+        return true;
     }
 
     private static int distinctCount(List<Integer> dice) {
