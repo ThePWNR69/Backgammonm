@@ -1,52 +1,52 @@
-# Backgammon Android — v0.3 Board & Movement Polish
+# Backgammon Android — v0.4 Dice, Opening Roll & AI
 
-A native Android backgammon prototype focused on making the board the main visual focus while improving checker scale, move feedback and turn feel.
+This build keeps the v0.3 board polish and adds the first single-player gameplay layer.
 
-## v0.3 changes
-- Compact interface: thinner player header and a much smaller bottom control strip
-- One central action button now switches **Roll Dice → End Turn → Roll Dice**
-- **New Game** moved into the ☰ menu
-- Larger checkers based on real-board proportions
-- A point shows no more than **5 physical checkers**; stacks of 6+ show a small count badge on the fifth checker
-- Five visible checker positions are fitted to the height of the point/spike
-- Blue glow remains the selected-checker state
-- Empty legal destinations use a green ring
-- Legal destinations containing your own checkers use a translucent **ghost checker** landing preview
-- Full 5+ stacks use a green ring plus a **+1** badge so the landing option cannot be hidden by the stack
-- Single opposing blots use an orange capture highlight
-- Invalid taps briefly show a red X
-- No movement arrows/lines
-- Checker moves now animate with a smooth lift/slide/settle instead of teleporting
-- Hits animate the opposing checker toward the bar
-- Undo animates the move back before restoring the previous provisional state
-- Board drawing keeps a more physical-board-like aspect ratio instead of stretching to fill the entire phone width
+## v0.4 changes
+- Added a visible on-board **dice rolling animation** with tumbling/rotation and a short settling phase
+- Slowed checker movement from the v0.3 speed to a more deliberate **720 ms** default movement
+- Hit animations take slightly longer so both the moving checker and captured checker are readable
+- Added a first-pass **single-player AI**
+- Default game mode is now **You vs AI**; the menu can switch back to **2 Players**
+- AI uses the same legal-move engine as the player and respects bar entry, forced dice usage, higher-die rule, doubles and bearing off
+- AI has a lightweight positional evaluator that favours hits, safe points, home-board strength, fewer blots and efficient racing/bearing off
+- Added the standard **opening roll**:
+  - Player 1/You rolls one die
+  - Player 2/AI rolls one die
+  - Ties roll again
+  - Higher die starts
+  - The two opening dice become the first turn's dice
+- AI turns roll automatically and use the same checker movement animation as human turns
+- Human Undo remains available until End Turn; AI turns are not undoable
 
-## Turn flow
-1. Tap **Roll Dice**. The same centre button becomes **End Turn**.
-2. Select a movable checker. It gets a blue glow.
-3. Legal destinations appear using the appropriate green/ghost/capture indicator.
-4. Tap a legal destination. The checker animates there.
-5. Use **Undo** any time before committing the turn.
-6. **End Turn** only enables once all legally required dice have been used or no legal move remains.
-7. After End Turn, the centre button becomes **Roll Dice** for the next player.
+## Existing v0.3 polish retained
+- Compact interface so the board remains the main visual focus
+- One central action button switches **Roll Dice → End Turn → Roll Dice**
+- New Game is inside the ☰ menu
+- Real-board-inspired checker scale
+- Maximum 5 physically drawn checkers per point; 6+ uses a count badge
+- Blue selected-checker glow
+- Green legal destinations
+- Ghost-checker landing preview for occupied friendly points
+- Orange capture highlight for opponent blots
+- Red invalid-move feedback
+- Animated checker movement, hits and Undo
 
-## Existing rules
-- Standard 24-point starting layout
-- Local two-player / pass-and-play
-- Dice rolls and doubles
-- Legal move filtering
-- Forced bar re-entry
-- Hitting blots
-- Bearing off including oversized-die rule
-- Maximum-dice rule and higher-die rule when only one die can be played
-- Win detection after turn confirmation
+## Game modes
+The ☰ menu contains:
+- **New Game**
+- **Switch to 2 Players / Play vs AI**
+- **About v0.4**
+
+In single player, You are Ivory/White and the AI is Walnut/Black.
 
 ## Build
-Push the project to GitHub and run **Actions → Build Android APK**. The included workflow uploads an artifact named `Backgammon-v0.3-APK` containing `app-debug.apk`.
+Push the project files to GitHub and run **Actions → Build Android APK**.
+The workflow uploads an artifact named `Backgammon-v0.4-APK` containing `app-debug.apk`.
 
 Project settings:
 - Package: `com.george.backgammon`
-- Version: 0.3.0
+- Version: 0.4.0
 - minSdk 24
 - target/compileSdk 35
 - Landscape orientation
