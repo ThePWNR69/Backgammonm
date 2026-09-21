@@ -2,22 +2,23 @@ package com.george.backgammon;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
     private BackgammonGame game;
     private BackgammonBoardView boardView;
     private TextView statusTitle;
-    private TextView statusSubtitle;
     private TextView playerOneSub;
     private TextView playerTwoSub;
     private View playerOnePanel;
     private View playerTwoPanel;
-    private Button rollButton;
+    private Button mainActionButton;
     private Button undoButton;
-    private Button endTurnButton;
+    private Button menuButton;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,46 +28,59 @@ public class MainActivity extends Activity {
         game = new BackgammonGame();
         boardView = findViewById(R.id.boardView);
         statusTitle = findViewById(R.id.statusTitle);
-        statusSubtitle = findViewById(R.id.statusSubtitle);
         playerOneSub = findViewById(R.id.playerOneSub);
         playerTwoSub = findViewById(R.id.playerTwoSub);
         playerOnePanel = findViewById(R.id.playerOnePanel);
         playerTwoPanel = findViewById(R.id.playerTwoPanel);
-        rollButton = findViewById(R.id.rollButton);
+        mainActionButton = findViewById(R.id.mainActionButton);
         undoButton = findViewById(R.id.undoButton);
-        endTurnButton = findViewById(R.id.endTurnButton);
-        Button newGameButton = findViewById(R.id.newGameButton);
+        menuButton = findViewById(R.id.menuButton);
 
         boardView.setGame(game);
         boardView.setOnGameChangedListener(this::refreshUi);
 
-        rollButton.setOnClickListener(v -> {
-            game.rollDice();
-            boardView.clearSelection();
-            refreshUi();
+        mainActionButton.setOnClickListener(v -> {
+            if (boardView.isAnimating()) return;
+            if (!game.hasRolled()) {
+                game.rollDice();
+                boardView.clearSelection();
+                refreshUi();
+            } else if (game.canEndTurn() && game.endTurn()) {
+                boardView.clearSelection();
+                refreshUi();
+            }
         });
 
         undoButton.setOnClickListener(v -> {
-            if (game.undoLastMove()) {
-                boardView.clearSelection();
-                refreshUi();
+            if (!boardView.isAnimating() && game.canUndo()) {
+                boardView.undoLastMoveAnimated(this::refreshUi);
             }
         });
 
-        endTurnButton.setOnClickListener(v -> {
-            if (game.endTurn()) {
-                boardView.clearSelection();
-                refreshUi();
-            }
-        });
-
-        newGameButton.setOnClickListener(v -> {
-            game.reset();
-            boardView.clearSelection();
-            refreshUi();
-        });
-
+        menuButton.setOnClickListener(this::showGameMenu);
         refreshUi();
+    }
+
+    private void showGameMenu(View anchor) {
+        PopupMenu popup = new PopupMenu(this, anchor);
+        popup.getMenu().add("New Game");
+        popup.getMenu().add("About v0.3");
+        popup.setOnMenuItemClickListener((MenuItem item) -> {
+            String title = String.valueOf(item.getTitle());
+            if (title.equals("New Game")) {
+                game.reset();
+                boardView.cancelAnimationsAndReset();
+                refreshUi();
+                return true;
+            }
+            if (title.equals("About v0.3")) {
+                statusTitle.setText("Backgammon v0.3");
+                boardView.postDelayed(this::refreshUi, 1200);
+                return true;
+            }
+            return false;
+        });
+        popup.show();
     }
 
     @Override public void onWindowFocusChanged(boolean hasFocus) {
@@ -91,10 +105,9 @@ public class MainActivity extends Activity {
         if (winner != 0) {
             String name = winner == BackgammonGame.WHITE ? "Player 1" : "Player 2";
             statusTitle.setText(name + " Wins!");
-            statusSubtitle.setText("Start a new game to play again");
-            rollButton.setEnabled(false);
+            mainActionButton.setText("Game Over");
+            mainActionButton.setEnabled(false);
             undoButton.setEnabled(false);
-            endTurnButton.setEnabled(false);
             updatePlayerPanels();
             return;
         }
@@ -103,23 +116,34 @@ public class MainActivity extends Activity {
         String currentName = whiteTurn ? "Player 1" : "Player 2";
 
         if (!game.hasRolled()) {
-            statusTitle.setText(currentName + "'s Turn");
-            statusSubtitle.setText("Roll the dice");
-        } else if (game.canEndTurn()) {
-            statusTitle.setText(game.getMovesMadeThisTurn() > 0 ? "Review Your Move" : "No Legal Move");
-            statusSubtitle.setText(game.getMovesMadeThisTurn() > 0
-                    ? "Undo to change it, or End Turn to confirm"
-                    : "End Turn to pass play");
+            statusTitle.setText(currentName + " • Roll");
+            mainActionButton.setText("⚄  Roll Dice");
+            mainActionButton.setBackgroundResource(R.drawable.button_green_selector);
+            mainActionButton.setEnabled(!boardView.isAnimating());
         } else {
-            statusTitle.setText(currentName + "'s Turn");
-            String remaining = game.getDiceRemaining().toString();
-            statusSubtitle.setText("Select a checker • Remaining dice " + remaining);
+            if (game.canEndTurn()) {
+                statusTitle.setText(game.getMovesMadeThisTurn() > 0 ? "Review Move" : "No Legal Move");
+            } else {
+                statusTitle.setText(currentName + " • " + diceText());
+            }
+            mainActionButton.setText("✓  End Turn");
+            mainActionButton.setBackgroundResource(R.drawable.button_gold_selector);
+            mainActionButton.setEnabled(game.canEndTurn() && !boardView.isAnimating());
         }
 
-        rollButton.setEnabled(!game.hasRolled());
-        undoButton.setEnabled(game.canUndo());
-        endTurnButton.setEnabled(game.canEndTurn());
+        undoButton.setEnabled(game.canUndo() && !boardView.isAnimating());
         updatePlayerPanels();
+    }
+
+    private String diceText() {
+        if (!game.hasRolled()) return "";
+        if (game.getDiceRemaining().isEmpty()) return "Done";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < game.getDiceRemaining().size(); i++) {
+            if (i > 0) sb.append(" · ");
+            sb.append(game.getDiceRemaining().get(i));
+        }
+        return sb.toString();
     }
 
     private void updatePlayerPanels() {

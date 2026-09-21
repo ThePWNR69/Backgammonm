@@ -50,10 +50,14 @@ public class BackgammonGame {
     private static class TurnSnapshot {
         final State state;
         final List<Integer> diceRemaining;
+        final Move move;
+        final boolean hit;
 
-        TurnSnapshot(State state, List<Integer> diceRemaining) {
+        TurnSnapshot(State state, List<Integer> diceRemaining, Move move, boolean hit) {
             this.state = state.copy();
             this.diceRemaining = new ArrayList<>(diceRemaining);
+            this.move = move;
+            this.hit = hit;
         }
     }
 
@@ -101,6 +105,8 @@ public class BackgammonGame {
     public int getPoint(int point) { return state.points[point]; }
     public int getMovesMadeThisTurn() { return undoHistory.size(); }
     public boolean canUndo() { return rolled && !undoHistory.isEmpty() && winner == 0; }
+    public Move peekLastMove() { return undoHistory.isEmpty() ? null : undoHistory.peek().move; }
+    public boolean peekLastMoveWasHit() { return !undoHistory.isEmpty() && undoHistory.peek().hit; }
 
     public void rollDice() {
         if (winner != 0 || rolled) return;
@@ -159,7 +165,8 @@ public class BackgammonGame {
         if (chosen == null) return false;
 
         // Save the exact provisional state before every move so Undo can walk the turn backwards.
-        undoHistory.push(new TurnSnapshot(state, diceRemaining));
+        boolean hit = chosen.to >= 1 && chosen.to <= 24 && state.points[chosen.to] == -currentPlayer;
+        undoHistory.push(new TurnSnapshot(state, diceRemaining, chosen, hit));
         applyToState(state, currentPlayer, chosen);
         diceRemaining.remove(Integer.valueOf(chosen.die));
 
