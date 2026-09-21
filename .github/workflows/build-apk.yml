@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout project
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -24,17 +24,16 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Android SDK packages
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Build debug APK
+      - name: Build Backgammon APK
         run: gradle :app:assembleDebug
 
-      - name: Upload APK
+      - name: Upload Backgammon APK
         uses: actions/upload-artifact@v4
         with:
-          name: backgammon-v0.1-debug-apk
+          name: Backgammon-Android-APK
           path: app/build/outputs/apk/debug/app-debug.apk
