@@ -393,6 +393,51 @@ public class BackgammonBoardView extends View {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(white ? 0x52FFFFFF : 0x40FFFFFF);
         c.drawCircle(cx - r * 0.28f, cy - r * 0.30f, r * 0.18f, paint);
+
+        drawCheckerThemeDetail(c, cx, cy, r, white);
+    }
+
+
+    private void drawCheckerThemeDetail(Canvas c, float cx, float cy, float r, boolean white) {
+        String id = loadout.checkers.id;
+        paint.setShader(null);
+        if ("checkers_marble_bronze".equals(id)) {
+            // Fine marble veins plus a warm metallic edge make the set read differently even at phone size.
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setStrokeWidth(Math.max(1f, r * .035f));
+            paint.setColor(white ? 0x40908B82 : 0x45F0C994);
+            Path vein = new Path();
+            vein.moveTo(cx - r * .62f, cy - r * .18f);
+            vein.cubicTo(cx - r * .18f, cy - r * .58f, cx + r * .12f, cy + r * .42f, cx + r * .62f, cy + r * .08f);
+            c.drawPath(vein, paint);
+            vein.reset();
+            vein.moveTo(cx - r * .48f, cy + r * .44f);
+            vein.cubicTo(cx - r * .12f, cy + r * .16f, cx + r * .18f, cy + r * .55f, cx + r * .54f, cy + r * .34f);
+            c.drawPath(vein, paint);
+            paint.setStrokeCap(Paint.Cap.BUTT);
+            paint.setStrokeWidth(Math.max(1.4f, r * .075f));
+            paint.setColor(white ? 0x99C6A05B : 0xAADAA765);
+            c.drawCircle(cx, cy, r * .73f, paint);
+        } else if ("checkers_obsidian_gold".equals(id)) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(2f, r * .10f));
+            paint.setColor(0xFFD7AD58);
+            c.drawCircle(cx, cy, r * .74f, paint);
+            paint.setStrokeWidth(Math.max(1f, r * .035f));
+            paint.setColor(0x88F3D999);
+            c.drawCircle(cx, cy, r * .55f, paint);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(0xBBDDB760);
+            c.drawCircle(cx, cy, r * .075f, paint);
+        } else {
+            // Fine concentric turnings suggest polished timber / carved ivory.
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(.8f, r * .028f));
+            paint.setColor(white ? 0x36A98D63 : 0x488C5A39);
+            c.drawCircle(cx, cy, r * .60f, paint);
+            c.drawCircle(cx, cy, r * .46f, paint);
+        }
     }
 
     private void drawChecker(Canvas c, float cx, float cy, float r, boolean white, boolean selected, float alpha) {
@@ -880,7 +925,7 @@ public class BackgammonBoardView extends View {
         float x = lerp(start[0], end[0], moveT);
         float y = lerp(start[1], end[1], moveT) - checkerRadius() * loadout.moveAnimation.arcHeightFactor() * easedLift;
         float r = checkerRadius() * (1f + loadout.moveAnimation.scaleLiftFactor() * easedLift);
-        drawChecker(c, x, y, r, animationPlayer == BackgammonGame.WHITE, false, 1f);
+        drawMovingChecker(c, x, y, r, animationPlayer == BackgammonGame.WHITE, moveT);
 
         if (animationHit) {
             int capturedPlayer = -animationPlayer;
@@ -894,6 +939,33 @@ public class BackgammonBoardView extends View {
             if (!animationUndo && animationProgress >= 0.43f || animationUndo) {
                 drawChecker(c, hx, hy, checkerRadius() * 0.90f, capturedPlayer == BackgammonGame.WHITE, false, 1f);
             }
+        }
+    }
+
+
+    private void drawMovingChecker(Canvas c, float x, float y, float r, boolean white, float t) {
+        if (!"roll_and_fall".equals(loadout.moveAnimation.id())) {
+            drawChecker(c, x, y, r, white, false, 1f);
+            return;
+        }
+
+        // Premium preview: the disk rises, turns toward its edge, rolls, then falls flat at the landing.
+        // It stays a 2D top-down illusion so it remains fast on Android while visibly differing from Slide/Snap.
+        float edgePhase = (float)Math.sin(Math.PI * clamp01(t));
+        float widthScale = 1f - edgePhase * .62f;
+        float roll = 900f * t;
+        c.save();
+        c.rotate(roll, x, y);
+        c.scale(widthScale, 1f + edgePhase * .08f, x, y);
+        drawChecker(c, x, y, r, white, false, 1f);
+        c.restore();
+
+        if (t > .82f) {
+            float settle = (t - .82f) / .18f;
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(1.4f, r * .06f));
+            paint.setColor(withAlpha(loadout.board.metalAccent, (int)(90 * (1f - settle))));
+            c.drawCircle(x, y, r * (1f + settle * .18f), paint);
         }
     }
 

@@ -1,4 +1,4 @@
-# Backgammon v0.6 architecture
+# Backgammon v0.7 architecture
 
 The project is now split by responsibility so future content can grow without turning the board view into a monolith.
 
@@ -71,3 +71,7 @@ Adding a checker set should become:
 3. Set its unlock rule (level/coins, achievement or boss).
 
 Adding a board is the same pattern with board layers. Adding a movement animation means implementing `MoveAnimationStyle` (or later a richer renderer-backed effect) and registering it in `AnimationCatalog`.
+
+
+## v0.7 Graphics Lab
+The menu now exposes three boards, three checker sets and three movement styles. The selected IDs are stored in SharedPreferences and rebuilt into `PlayerLoadout` at launch. These are showcase/testing choices; normal progression locks can be re-enabled later without changing the renderer.

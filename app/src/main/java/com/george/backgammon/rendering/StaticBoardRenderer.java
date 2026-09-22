@@ -27,6 +27,7 @@ final class StaticBoardRenderer {
         drawPoints(c, g, theme);
         drawCentralBar(c, g, theme);
         drawOffTrayBackground(c, g, theme);
+        drawThemeDetails(c, g, theme);
     }
 
     private void drawBoardShell(Canvas c, BoardGeometry g, BoardTheme theme) {
@@ -34,6 +35,14 @@ final class StaticBoardRenderer {
         Bitmap asset = textures.get(theme.frameAsset);
         if (asset != null) {
             c.drawBitmap(asset, null, outer, paint);
+            // A soft bevel over the texture gives the frame the depth of a physical case.
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(5f, g.frame * 0.30f));
+            paint.setColor(0x46000000);
+            c.drawRoundRect(new RectF(g.outerLeft + 4, g.outerTop + 4, g.outerRight - 4, g.outerBottom - 4), 16, 16, paint);
+            paint.setStrokeWidth(Math.max(1.5f, g.frame * 0.10f));
+            paint.setColor(withAlpha(theme.trim, 185));
+            c.drawRoundRect(new RectF(g.outerLeft + 3, g.outerTop + 3, g.outerRight - 3, g.outerBottom - 3), 15, 15, paint);
             return;
         }
         paint.setStyle(Paint.Style.FILL);
@@ -64,6 +73,14 @@ final class StaticBoardRenderer {
         RectF field = new RectF(g.fieldLeft, g.fieldTop, g.fieldRight, g.fieldBottom);
         if (asset != null) {
             c.drawBitmap(asset, null, field, paint);
+            // Inset shading keeps the field from looking like a flat wallpaper texture.
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(5f, g.frame * .32f));
+            paint.setColor(0x4C000000);
+            c.drawRect(g.fieldLeft + 2, g.fieldTop + 2, g.fieldRight - 2, g.fieldBottom - 2, paint);
+            paint.setStrokeWidth(1.2f);
+            paint.setColor(withAlpha(lighten(theme.trim, .12f), 115));
+            c.drawRect(g.fieldLeft + 4, g.fieldTop + 4, g.fieldRight - 4, g.fieldBottom - 4, paint);
             return;
         }
         paint.setStyle(Paint.Style.FILL);
@@ -119,6 +136,13 @@ final class StaticBoardRenderer {
         Bitmap asset = textures.get(theme.barAsset);
         if (asset != null) {
             c.drawBitmap(asset, null, new RectF(g.barLeft, g.fieldTop, g.barRight, g.fieldBottom), paint);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(1.4f);
+            paint.setColor(withAlpha(theme.trim, 190));
+            c.drawLine(g.barLeft + 2, g.fieldTop, g.barLeft + 2, g.fieldBottom, paint);
+            c.drawLine(g.barRight - 2, g.fieldTop, g.barRight - 2, g.fieldBottom, paint);
+            drawCompass(c, (g.barLeft + g.barRight) / 2f, (g.fieldTop + g.fieldBottom) / 2f,
+                    Math.min(g.barRight - g.barLeft, g.fieldBottom - g.fieldTop) * .31f, theme.metalAccent);
             return;
         }
         paint.setStyle(Paint.Style.FILL);
@@ -169,6 +193,119 @@ final class StaticBoardRenderer {
         paint.setTextSize(Math.max(9f, (g.offRight - g.offLeft) * .19f));
         paint.setColor(theme.metalAccent);
         c.drawText("OFF", cx, mid + paint.getTextSize() * .34f, paint);
+    }
+
+
+    /** Extra procedural material detail so the three showcase boards read as genuinely different skins. */
+    private void drawThemeDetails(Canvas c, BoardGeometry g, BoardTheme theme) {
+        if ("board_greek_marble".equals(theme.id)) {
+            drawMarbleVeins(c, g);
+            drawGreekKeyTrim(c, g, theme);
+        } else if ("board_modern_teal".equals(theme.id)) {
+            drawModernStitching(c, g, theme);
+            drawModernPanelLines(c, g, theme);
+        } else {
+            drawWalnutInlays(c, g, theme);
+        }
+    }
+
+    private void drawWalnutInlays(Canvas c, BoardGeometry g, BoardTheme theme) {
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1f, g.frame * .07f));
+        paint.setColor(withAlpha(lighten(theme.trim, .18f), 125));
+        float inset = Math.max(5f, g.frame * .24f);
+        c.drawRoundRect(new RectF(g.outerLeft + inset, g.outerTop + inset,
+                g.outerRight - inset, g.outerBottom - inset), 11f, 11f, paint);
+
+        // A few darker grain strokes in the rails, deliberately irregular rather than UI-flat.
+        texturePaint.setStyle(Paint.Style.STROKE);
+        texturePaint.setStrokeWidth(1.2f);
+        texturePaint.setColor(withAlpha(darken(theme.outerWood, .56f), 52));
+        for (int i = 0; i < 9; i++) {
+            float x = g.outerLeft + 12 + i * (g.outerRight - g.outerLeft - 24) / 8f;
+            float wobble = (i % 3 - 1) * 2.2f;
+            c.drawLine(x, g.outerTop + 5, x + wobble, g.fieldTop - 3, texturePaint);
+            c.drawLine(x - wobble, g.fieldBottom + 3, x, g.outerBottom - 5, texturePaint);
+        }
+    }
+
+    private void drawMarbleVeins(Canvas c, BoardGeometry g) {
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        float w = g.outerRight - g.outerLeft;
+        float h = g.outerBottom - g.outerTop;
+        int[] alphas = {35, 24, 31, 20, 28};
+        for (int i = 0; i < 5; i++) {
+            Path vein = new Path();
+            float sy = g.outerTop + h * (.10f + i * .18f);
+            vein.moveTo(g.outerLeft + w * .02f, sy);
+            vein.cubicTo(g.outerLeft + w * .28f, sy + (i % 2 == 0 ? 14 : -18),
+                    g.outerLeft + w * .55f, sy + (i % 2 == 0 ? -11 : 15),
+                    g.outerRight - w * .03f, sy + (i - 2) * 3f);
+            paint.setStrokeWidth(i % 2 == 0 ? 1.4f : .85f);
+            paint.setColor(withAlpha(0xFF6E7782, alphas[i]));
+            c.drawPath(vein, paint);
+        }
+        paint.setStrokeCap(Paint.Cap.BUTT);
+    }
+
+    private void drawGreekKeyTrim(Canvas c, BoardGeometry g, BoardTheme theme) {
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1.4f, g.frame * .075f));
+        paint.setColor(withAlpha(theme.trim, 185));
+        float yTop = g.outerTop + Math.max(6f, g.frame * .32f);
+        float yBottom = g.outerBottom - Math.max(6f, g.frame * .32f);
+        float step = Math.max(12f, g.frame * .75f);
+        for (float x = g.outerLeft + 8; x < g.outerRight - 8 - step; x += step) {
+            Path key = new Path();
+            key.moveTo(x, yTop); key.lineTo(x + step * .72f, yTop);
+            key.lineTo(x + step * .72f, yTop + step * .22f);
+            key.lineTo(x + step * .28f, yTop + step * .22f);
+            key.lineTo(x + step * .28f, yTop + step * .42f);
+            key.lineTo(x + step, yTop + step * .42f);
+            c.drawPath(key, paint);
+
+            key.reset();
+            key.moveTo(x, yBottom); key.lineTo(x + step * .72f, yBottom);
+            key.lineTo(x + step * .72f, yBottom - step * .22f);
+            key.lineTo(x + step * .28f, yBottom - step * .22f);
+            key.lineTo(x + step * .28f, yBottom - step * .42f);
+            key.lineTo(x + step, yBottom - step * .42f);
+            c.drawPath(key, paint);
+        }
+    }
+
+    private void drawModernStitching(Canvas c, BoardGeometry g, BoardTheme theme) {
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(1.1f);
+        paint.setColor(withAlpha(lighten(theme.darkPoint, .22f), 95));
+        float dash = 7f;
+        for (float x = g.fieldLeft + 7; x < g.fieldRight - 7; x += dash * 2f) {
+            c.drawLine(x, g.fieldTop + 5, Math.min(x + dash, g.fieldRight - 7), g.fieldTop + 5, paint);
+            c.drawLine(x, g.fieldBottom - 5, Math.min(x + dash, g.fieldRight - 7), g.fieldBottom - 5, paint);
+        }
+    }
+
+    private void drawModernPanelLines(Canvas c, BoardGeometry g, BoardTheme theme) {
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(1f);
+        paint.setColor(withAlpha(theme.trim, 42));
+        float mid = (g.fieldTop + g.fieldBottom) * .5f;
+        c.drawLine(g.fieldLeft + 4, mid, g.barLeft - 4, mid, paint);
+        c.drawLine(g.barRight + 4, mid, g.fieldRight - 4, mid, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(withAlpha(theme.trim, 100));
+        float r = Math.max(1.7f, g.frame * .08f);
+        for (int i = 0; i < 6; i++) {
+            float y = g.fieldTop + (g.fieldBottom - g.fieldTop) * (i + 1) / 7f;
+            c.drawCircle(g.barLeft + 4f, y, r, paint);
+            c.drawCircle(g.barRight - 4f, y, r, paint);
+        }
     }
 
     private static int withAlpha(int color, int alpha) {

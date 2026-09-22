@@ -1,6 +1,8 @@
 package com.george.backgammon.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,12 +11,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.george.backgammon.R;
 import com.george.backgammon.ai.AiStrategy;
 import com.george.backgammon.ai.PositionalAi;
 import com.george.backgammon.cosmetics.CosmeticCatalog;
+import com.george.backgammon.cosmetics.BoardTheme;
+import com.george.backgammon.cosmetics.CheckerTheme;
+import com.george.backgammon.cosmetics.PlayerLoadout;
+import com.george.backgammon.animation.MoveAnimationStyle;
 import com.george.backgammon.game.BackgammonGame;
 import com.george.backgammon.game.Move;
 import com.george.backgammon.rendering.BackgammonBoardView;
@@ -41,6 +48,8 @@ public class MainActivity extends Activity {
 
     private boolean versusAi = true;
     private boolean aiBusy = false;
+    private PlayerLoadout loadout;
+    private SharedPreferences prefs;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +70,10 @@ public class MainActivity extends Activity {
         menuButton = findViewById(R.id.menuButton);
 
         boardView.setGame(game);
-        boardView.setLoadout(CosmeticCatalog.defaultLoadout());
+        prefs = getSharedPreferences("backgammon_visuals", MODE_PRIVATE);
+        loadout = CosmeticCatalog.defaultLoadout();
+        restoreVisualPreferences();
+        boardView.setLoadout(loadout);
         boardView.setOnGameChangedListener(this::refreshUi);
 
         mainActionButton.setOnClickListener(v -> onMainAction());
@@ -190,12 +202,17 @@ public class MainActivity extends Activity {
 
     private void showGameMenu(View anchor) {
         PopupMenu popup = new PopupMenu(this, anchor);
+        popup.getMenu().add("Customise");
         popup.getMenu().add("New Game");
         popup.getMenu().add(versusAi ? "Switch to 2 Players" : "Play vs AI");
         popup.getMenu().add(boardView.isShowingFps() ? "Hide FPS" : "Show FPS");
-        popup.getMenu().add("About v0.6");
+        popup.getMenu().add("About v0.7");
         popup.setOnMenuItemClickListener((MenuItem item) -> {
             String title = String.valueOf(item.getTitle());
+            if (title.equals("Customise")) {
+                showCustomiseMenu();
+                return true;
+            }
             if (title.equals("New Game")) {
                 resetGame();
                 return true;
@@ -209,14 +226,111 @@ public class MainActivity extends Activity {
                 boardView.setShowFps(!boardView.isShowingFps());
                 return true;
             }
-            if (title.equals("About v0.6")) {
-                statusTitle.setText("Backgammon v0.6 • Modular Core");
+            if (title.equals("About v0.7")) {
+                statusTitle.setText("Backgammon v0.7 • Graphics Lab");
                 boardView.postDelayed(this::refreshUi, 1200);
                 return true;
             }
             return false;
         });
         popup.show();
+    }
+
+    private void showCustomiseMenu() {
+        if (boardView.isAnimating() || aiBusy) return;
+        String[] categories = {
+                "Board  •  " + loadout.board.displayName,
+                "Checkers  •  " + loadout.checkers.displayName,
+                "Movement  •  " + loadout.moveAnimation.displayName()
+        };
+        new AlertDialog.Builder(this)
+                .setTitle("Customise Graphics")
+                .setItems(categories, (dialog, which) -> {
+                    if (which == 0) showBoardPicker();
+                    else if (which == 1) showCheckerPicker();
+                    else showAnimationPicker();
+                })
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void showBoardPicker() {
+        java.util.List<BoardTheme> options = CosmeticCatalog.BOARD_THEMES;
+        String[] names = new String[options.size()];
+        int selected = 0;
+        for (int i = 0; i < options.size(); i++) {
+            names[i] = options.get(i).displayName;
+            if (options.get(i).id.equals(loadout.board.id)) selected = i;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Board")
+                .setSingleChoiceItems(names, selected, (dialog, which) -> {
+                    loadout.board = options.get(which);
+                    applyVisualLoadout("board", options.get(which).id, options.get(which).displayName + " board");
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showCheckerPicker() {
+        java.util.List<CheckerTheme> options = CosmeticCatalog.CHECKER_THEMES;
+        String[] names = new String[options.size()];
+        int selected = 0;
+        for (int i = 0; i < options.size(); i++) {
+            names[i] = options.get(i).displayName;
+            if (options.get(i).id.equals(loadout.checkers.id)) selected = i;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Checkers")
+                .setSingleChoiceItems(names, selected, (dialog, which) -> {
+                    loadout.checkers = options.get(which);
+                    applyVisualLoadout("checkers", options.get(which).id, options.get(which).displayName + " checkers");
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showAnimationPicker() {
+        java.util.List<MoveAnimationStyle> options = CosmeticCatalog.MOVE_ANIMATIONS;
+        String[] names = new String[options.size()];
+        int selected = 0;
+        for (int i = 0; i < options.size(); i++) {
+            names[i] = options.get(i).displayName();
+            if (options.get(i).id().equals(loadout.moveAnimation.id())) selected = i;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Checker Movement")
+                .setSingleChoiceItems(names, selected, (dialog, which) -> {
+                    loadout.moveAnimation = options.get(which);
+                    applyVisualLoadout("animation", options.get(which).id(), options.get(which).displayName());
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void applyVisualLoadout(String key, String id, String label) {
+        prefs.edit().putString(key, id).apply();
+        boardView.setLoadout(loadout);
+        Toast.makeText(this, label + " equipped", Toast.LENGTH_SHORT).show();
+        refreshUi();
+    }
+
+    private void restoreVisualPreferences() {
+        String boardId = prefs.getString("board", loadout.board.id);
+        for (BoardTheme option : CosmeticCatalog.BOARD_THEMES) {
+            if (option.id.equals(boardId)) { loadout.board = option; break; }
+        }
+        String checkerId = prefs.getString("checkers", loadout.checkers.id);
+        for (CheckerTheme option : CosmeticCatalog.CHECKER_THEMES) {
+            if (option.id.equals(checkerId)) { loadout.checkers = option; break; }
+        }
+        String animationId = prefs.getString("animation", loadout.moveAnimation.id());
+        for (MoveAnimationStyle option : CosmeticCatalog.MOVE_ANIMATIONS) {
+            if (option.id().equals(animationId)) { loadout.moveAnimation = option; break; }
+        }
     }
 
     private void resetGame() {
@@ -346,7 +460,7 @@ public class MainActivity extends Activity {
         playerOnePanel.setBackgroundResource(whiteActive ? R.drawable.bg_panel_active : R.drawable.bg_panel);
         playerTwoPanel.setBackgroundResource(blackActive ? R.drawable.bg_panel_active : R.drawable.bg_panel);
 
-        playerOneSub.setText("IVORY  •  OFF " + game.getWhiteOff() + "  •  BAR " + game.getWhiteBar());
-        playerTwoSub.setText("WALNUT  •  OFF " + game.getBlackOff() + "  •  BAR " + game.getBlackBar());
+        playerOneSub.setText("LIGHT  •  OFF " + game.getWhiteOff() + "  •  BAR " + game.getWhiteBar());
+        playerTwoSub.setText("DARK  •  OFF " + game.getBlackOff() + "  •  BAR " + game.getBlackBar());
     }
 }

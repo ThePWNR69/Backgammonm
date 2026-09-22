@@ -27,3 +27,5 @@ Use a square transparent image. The game scales it to the physical checker radiu
 Use square transparent images. Rotation and dice-roll motion are applied by the renderer.
 
 This separation is intentional: a visual set can be changed without changing the rules engine, AI, or turn logic.
+
+- `checkers/obsidian_gold/light.webp` + `dark.webp` are optional future production artwork; v0.7 has a procedural fallback with gold detailing.
