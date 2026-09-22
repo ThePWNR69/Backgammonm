@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -12,18 +13,20 @@ import android.graphics.Path;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.PathInterpolator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 /**
- * v0.3 board: compact chrome, larger physical-board-inspired checkers,
- * occupied-point landing previews and reversible checker movement animations.
+ * v0.5 board: hardware-accelerated, cached static scene/sprites, high-refresh-aware
+ * animations, compact chrome, larger physical-board-inspired checkers and move previews.
  */
 public class BackgammonBoardView extends View {
     public interface OnGameChangedListener { void onGameChanged(); }
@@ -34,6 +37,18 @@ public class BackgammonBoardView extends View {
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint texturePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint spritePaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+    private final RectF spriteDst = new RectF();
+    private Bitmap staticBoardBitmap;
+    private Bitmap whiteCheckerSprite;
+    private Bitmap blackCheckerSprite;
+    private final Bitmap[] dieSprites = new Bitmap[7];
+    private float cachedCheckerRadius = -1f;
+    private float cachedDieSize = -1f;
+    private boolean showFps = false;
+    private long fpsWindowStartNs = 0L;
+    private int fpsFrameCount = 0;
+    private float measuredFps = 0f;
     private BackgammonGame game;
     private OnGameChangedListener listener;
     private int selectedFrom = NO_SELECTION;
@@ -53,6 +68,7 @@ public class BackgammonBoardView extends View {
     private int animatedDieOne = 1;
     private int animatedDieTwo = 1;
     private final Random diceVisualRandom = new Random();
+    private final PathInterpolator moveInterpolator = new PathInterpolator(0.20f, 0f, 0.20f, 1f);
     private int lastDiceVisualStep = -1;
     private boolean inputEnabled = true;
     private long normalMoveDurationMs = 720L;
@@ -66,7 +82,9 @@ public class BackgammonBoardView extends View {
 
     public BackgammonBoardView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        // Keep the View on Android's normal GPU-backed rendering path. v0.4 forced
+        // software rendering, which made full-board redraws much more likely to miss frames.
+        setLayerType(View.LAYER_TYPE_NONE, null);
         setFocusable(true);
     }
 
@@ -75,6 +93,14 @@ public class BackgammonBoardView extends View {
     public boolean isAnimating() { return animating || diceRolling; }
     public boolean isDiceRolling() { return diceRolling; }
     public void setInputEnabled(boolean enabled) { inputEnabled = enabled; }
+    public boolean isShowingFps() { return showFps; }
+    public void setShowFps(boolean show) {
+        showFps = show;
+        fpsWindowStartNs = 0L;
+        fpsFrameCount = 0;
+        measuredFps = 0f;
+        invalidate();
+    }
 
     /** Kept as a setting internally so cosmetic movement styles can be plugged in later. */
     public void setMoveAnimationDurations(long normalMs, long hitMs) {
@@ -97,6 +123,7 @@ public class BackgammonBoardView extends View {
         animationMove = null;
         animationProgress = 0f;
         animationCompletion = null;
+        requestHighRefresh(false);
         clearSelection();
     }
 
@@ -110,6 +137,7 @@ public class BackgammonBoardView extends View {
         if (diceRolling || animating) return;
         diceRolling = true;
         dicePreviewVisible = true;
+        requestHighRefresh(true);
         diceRollProgress = 0f;
         animatedDieOne = diceVisualRandom.nextInt(6) + 1;
         animatedDieTwo = diceVisualRandom.nextInt(6) + 1;
@@ -131,7 +159,7 @@ public class BackgammonBoardView extends View {
                 animatedDieOne = finalDieOne;
                 animatedDieTwo = finalDieTwo;
             }
-            invalidate();
+            postInvalidateOnAnimation();
         });
         diceAnimator.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled = false;
@@ -141,7 +169,8 @@ public class BackgammonBoardView extends View {
                 diceRollProgress = 1f;
                 animatedDieOne = finalDieOne;
                 animatedDieTwo = finalDieTwo;
-                invalidate();
+                requestHighRefresh(false);
+                postInvalidateOnAnimation();
                 if (listener != null) listener.onGameChanged();
                 if (!cancelled && completion != null) completion.run();
             }
@@ -153,19 +182,71 @@ public class BackgammonBoardView extends View {
         super.onDraw(c);
         if (game == null || getWidth() <= 0 || getHeight() <= 0) return;
         computeGeometry();
+        ensureRenderCaches();
 
-        drawBoardShell(c);
-        drawPlayingField(c);
-        drawPoints(c);
-        drawCentralBar(c);
-        drawOffTray(c);
+        // The expensive wood/leather/point geometry is rasterized only when the View size changes.
+        // During animation a frame is therefore mostly bitmap blits plus one moving checker.
+        if (staticBoardBitmap != null) c.drawBitmap(staticBoardBitmap, 0f, 0f, null);
+        else drawStaticBoard(c);
+
+        drawOffCounts(c);
         drawDice(c);
         drawMoveHints(c);
-
         for (int p = 1; p <= 24; p++) drawCheckersAtPoint(c, p, adjustedPointValue(p));
         drawBarCheckers(c);
         drawAnimationOverlay(c);
         drawInvalidFeedback(c);
+        if (showFps) drawFpsOverlay(c);
+    }
+
+    @Override protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        clearRenderCaches();
+        if (w > 0 && h > 0) {
+            computeGeometry();
+            ensureRenderCaches();
+        }
+    }
+
+    private void requestHighRefresh(boolean high) {
+        if (Build.VERSION.SDK_INT >= 35) {
+            setRequestedFrameRate(high ? View.REQUESTED_FRAME_RATE_CATEGORY_HIGH
+                    : View.REQUESTED_FRAME_RATE_CATEGORY_DEFAULT);
+        }
+    }
+
+    private void clearRenderCaches() {
+        staticBoardBitmap = null;
+        whiteCheckerSprite = null;
+        blackCheckerSprite = null;
+        for (int i = 0; i < dieSprites.length; i++) dieSprites[i] = null;
+        cachedCheckerRadius = -1f;
+        cachedDieSize = -1f;
+    }
+
+    private void ensureRenderCaches() {
+        float currentR = checkerRadius();
+        if (staticBoardBitmap == null || staticBoardBitmap.getWidth() != getWidth()
+                || staticBoardBitmap.getHeight() != getHeight()) {
+            staticBoardBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas cacheCanvas = new Canvas(staticBoardBitmap);
+            drawStaticBoard(cacheCanvas);
+        }
+        if (whiteCheckerSprite == null || Math.abs(cachedCheckerRadius - currentR) > 0.5f) {
+            buildCheckerSprites(currentR);
+        }
+        float dieSize = currentDieSize();
+        if (dieSprites[1] == null || Math.abs(cachedDieSize - dieSize) > 0.5f) {
+            buildDieSprites(dieSize);
+        }
+    }
+
+    private void drawStaticBoard(Canvas c) {
+        drawBoardShell(c);
+        drawPlayingField(c);
+        drawPoints(c);
+        drawCentralBar(c);
+        drawOffTrayBackground(c);
     }
 
     /** Keeps the physical board closer to real backgammon proportions instead of stretching to 16:9. */
@@ -309,7 +390,7 @@ public class BackgammonBoardView extends View {
         c.drawCircle(cx, cy, r * 0.14f, paint);
     }
 
-    private void drawOffTray(Canvas c) {
+    private void drawOffTrayBackground(Canvas c) {
         RectF tray = new RectF(offLeft + 3, fieldTop, offRight, fieldBottom);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(0xFF140D09);
@@ -326,7 +407,10 @@ public class BackgammonBoardView extends View {
         paint.setTextSize(Math.max(9f, (offRight - offLeft) * 0.19f));
         paint.setColor(0xFFCDA768);
         c.drawText("OFF", cx, mid + paint.getTextSize() * 0.34f, paint);
+    }
 
+    private void drawOffCounts(Canvas c) {
+        float cx = (offLeft + offRight) / 2f;
         drawOffCount(c, cx, offCenter(true)[1], adjustedOffCount(true), true);
         drawOffCount(c, cx, offCenter(false)[1], adjustedOffCount(false), false);
     }
@@ -396,44 +480,75 @@ public class BackgammonBoardView extends View {
         return Math.min(r * 1.72f, fitFiveToTip);
     }
 
-    private void drawChecker(Canvas c, float cx, float cy, float r, boolean white, boolean selected, float alpha) {
-        float drawY = selected ? cy - Math.max(2f, r * 0.10f) : cy;
-        int a = Math.max(0, Math.min(255, (int)(alpha * 255)));
+    private void buildCheckerSprites(float r) {
+        cachedCheckerRadius = r;
+        int padding = Math.max(4, (int)Math.ceil(r * 0.42f));
+        int size = Math.max(8, (int)Math.ceil(r * 2f) + padding * 2);
+        whiteCheckerSprite = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        blackCheckerSprite = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        drawCheckerPrimitive(new Canvas(whiteCheckerSprite), size / 2f, size / 2f, r, true);
+        drawCheckerPrimitive(new Canvas(blackCheckerSprite), size / 2f, size / 2f, r, false);
+    }
 
+    /** Rendered once into a software Bitmap; live animation only blits the resulting sprite. */
+    private void drawCheckerPrimitive(Canvas c, float cx, float cy, float r, boolean white) {
         paint.setShader(null);
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor((Math.min(a, 120) << 24));
+        paint.setColor(0x78000000);
         paint.setShadowLayer(r * 0.20f, 0, r * 0.15f, 0x99000000);
-        c.drawCircle(cx, drawY, r * 1.02f, paint);
+        c.drawCircle(cx, cy, r * 1.02f, paint);
         paint.clearShadowLayer();
 
         int center = white ? 0xFFFFF7E7 : 0xFF714027;
         int edge = white ? 0xFFD2BE9D : 0xFF241008;
         int hi = lighten(center, 0.15f);
-        paint.setShader(new RadialGradient(cx - r * 0.28f, drawY - r * 0.32f, r * 1.25f,
-                new int[]{withAlpha(hi, a), withAlpha(center, a), withAlpha(edge, a)},
-                new float[]{0f, 0.52f, 1f}, Shader.TileMode.CLAMP));
+        paint.setShader(new RadialGradient(cx - r * 0.28f, cy - r * 0.32f, r * 1.25f,
+                new int[]{hi, center, edge}, new float[]{0f, 0.52f, 1f}, Shader.TileMode.CLAMP));
         paint.setStyle(Paint.Style.FILL);
-        c.drawCircle(cx, drawY, r, paint);
+        c.drawCircle(cx, cy, r, paint);
         paint.setShader(null);
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(Math.max(1.4f, r * 0.07f));
-        paint.setColor(withAlpha(white ? 0xFFE7D6B9 : 0xFFB67B56, a));
-        c.drawCircle(cx, drawY, r * 0.82f, paint);
+        paint.setColor(white ? 0xFFE7D6B9 : 0xFFB67B56);
+        c.drawCircle(cx, cy, r * 0.82f, paint);
 
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(withAlpha(0xFFFFFFFF, Math.min(a, white ? 82 : 64)));
-        c.drawCircle(cx - r * 0.28f, drawY - r * 0.30f, r * 0.18f, paint);
+        paint.setColor(white ? 0x52FFFFFF : 0x40FFFFFF);
+        c.drawCircle(cx - r * 0.28f, cy - r * 0.30f, r * 0.18f, paint);
+    }
 
-        if (selected) {
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(Math.max(3f, r * 0.12f));
-            paint.setColor(0xFF43AFFF);
-            paint.setShadowLayer(r * 0.34f, 0, 0, 0xFF178DFF);
-            c.drawCircle(cx, drawY, r * 1.10f, paint);
-            paint.clearShadowLayer();
+    private void drawChecker(Canvas c, float cx, float cy, float r, boolean white, boolean selected, float alpha) {
+        float drawY = selected ? cy - Math.max(2f, r * 0.10f) : cy;
+        int a = Math.max(0, Math.min(255, (int)(alpha * 255)));
+        Bitmap sprite = white ? whiteCheckerSprite : blackCheckerSprite;
+        if (sprite == null || cachedCheckerRadius <= 0f) {
+            drawCheckerPrimitive(c, cx, drawY, r, white);
+        } else {
+            float scale = r / cachedCheckerRadius;
+            float halfW = sprite.getWidth() * scale * 0.5f;
+            float halfH = sprite.getHeight() * scale * 0.5f;
+            spriteDst.set(cx - halfW, drawY - halfH, cx + halfW, drawY + halfH);
+            spritePaint.setAlpha(a);
+            c.drawBitmap(sprite, null, spriteDst, spritePaint);
+            spritePaint.setAlpha(255);
         }
+
+        if (selected) drawSelectionGlow(c, cx, drawY, r);
+    }
+
+    private void drawSelectionGlow(Canvas c, float cx, float cy, float r) {
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(8f, r * 0.28f));
+        paint.setColor(0x30178DFF);
+        c.drawCircle(cx, cy, r * 1.12f, paint);
+        paint.setStrokeWidth(Math.max(5f, r * 0.19f));
+        paint.setColor(0x60178DFF);
+        c.drawCircle(cx, cy, r * 1.11f, paint);
+        paint.setStrokeWidth(Math.max(3f, r * 0.11f));
+        paint.setColor(0xFF43AFFF);
+        c.drawCircle(cx, cy, r * 1.10f, paint);
     }
 
     private void drawStackBadge(Canvas c, float x, float y, float r, int count, boolean white) {
@@ -441,10 +556,10 @@ public class BackgammonBoardView extends View {
         float bx = x + r * 0.62f;
         float by = y - r * 0.55f;
         paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0x55000000);
+        c.drawCircle(bx, by + r * 0.06f, badgeR * 1.05f, paint);
         paint.setColor(white ? 0xFF31231A : 0xFFF4DFC0);
-        paint.setShadowLayer(r * 0.12f, 0, r * 0.06f, 0x77000000);
         c.drawCircle(bx, by, badgeR, paint);
-        paint.clearShadowLayer();
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         paint.setTextSize(badgeR * 1.25f);
@@ -484,9 +599,24 @@ public class BackgammonBoardView extends View {
         }
     }
 
+    private float currentDieSize() {
+        return Math.min(checkerRadius() * 1.48f, (fieldBottom - fieldTop) * 0.09f);
+    }
+
+    private void buildDieSprites(float size) {
+        cachedDieSize = size;
+        int padding = Math.max(4, (int)Math.ceil(size * 0.24f));
+        int bitmapSize = Math.max(8, (int)Math.ceil(size) + padding * 2);
+        for (int value = 1; value <= 6; value++) {
+            Bitmap b = Bitmap.createBitmap(bitmapSize, bitmapSize, Bitmap.Config.ARGB_8888);
+            drawDiePrimitive(new Canvas(b), bitmapSize / 2f, bitmapSize / 2f, size, value);
+            dieSprites[value] = b;
+        }
+    }
+
     private void drawDice(Canvas c) {
         if (!game.hasRolled() && !diceRolling && !dicePreviewVisible) return;
-        float size = Math.min(checkerRadius() * 1.48f, (fieldBottom - fieldTop) * 0.09f);
+        float size = currentDieSize();
         float gap = size * 0.34f;
         float cx = fieldLeft + (fieldRight - fieldLeft) * 0.69f;
         float cy = (fieldTop + fieldBottom) / 2f;
@@ -515,6 +645,19 @@ public class BackgammonBoardView extends View {
     }
 
     private void drawDie(Canvas c, float cx, float cy, float size, int value) {
+        Bitmap sprite = value >= 1 && value <= 6 ? dieSprites[value] : null;
+        if (sprite == null || cachedDieSize <= 0f) {
+            drawDiePrimitive(c, cx, cy, size, value);
+            return;
+        }
+        float scale = size / cachedDieSize;
+        float halfW = sprite.getWidth() * scale * 0.5f;
+        float halfH = sprite.getHeight() * scale * 0.5f;
+        spriteDst.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
+        c.drawBitmap(sprite, null, spriteDst, spritePaint);
+    }
+
+    private void drawDiePrimitive(Canvas c, float cx, float cy, float size, int value) {
         paint.setShader(null);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(0x75000000);
@@ -578,12 +721,7 @@ public class BackgammonBoardView extends View {
         if (count < 5) {
             float[] center = landingCenter(point, count);
             drawChecker(c, center[0], center[1], r, white, false, 0.30f);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(Math.max(3f, r * 0.10f));
-            paint.setColor(0xFF67FF89);
-            paint.setShadowLayer(r * 0.32f, 0, 0, 0xB832EF70);
-            c.drawCircle(center[0], center[1], r * 1.04f, paint);
-            paint.clearShadowLayer();
+            drawGreenGlowRing(c, center[0], center[1], r * 1.04f);
         } else {
             float[] center = topCheckerCenter(point, 5);
             drawValidRing(c, center[0], center[1], r * 0.93f);
@@ -600,26 +738,36 @@ public class BackgammonBoardView extends View {
         }
     }
 
-    private void drawValidRing(Canvas c, float cx, float cy, float r) {
+    private void drawGreenGlowRing(Canvas c, float cx, float cy, float r) {
         paint.setShader(null);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(0x2038EF72);
-        paint.setShadowLayer(r * 0.48f, 0, 0, 0xC02DEB6F);
-        c.drawCircle(cx, cy, r * 0.80f, paint);
-        paint.clearShadowLayer();
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(Math.max(2.5f, r * 0.15f));
+        paint.setStrokeWidth(Math.max(7f, r * 0.28f));
+        paint.setColor(0x2632EF70);
+        c.drawCircle(cx, cy, r, paint);
+        paint.setStrokeWidth(Math.max(4f, r * 0.19f));
+        paint.setColor(0x6032EF70);
+        c.drawCircle(cx, cy, r, paint);
+        paint.setStrokeWidth(Math.max(2.5f, r * 0.12f));
         paint.setColor(0xFF65FF87);
         c.drawCircle(cx, cy, r, paint);
     }
 
+    private void drawValidRing(Canvas c, float cx, float cy, float r) {
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0x2038EF72);
+        c.drawCircle(cx, cy, r * 0.80f, paint);
+        drawGreenGlowRing(c, cx, cy, r);
+    }
+
     private void drawCaptureHighlight(Canvas c, float cx, float cy, float r) {
         paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(7f, r * 0.24f));
+        paint.setColor(0x30FF6A2B);
+        c.drawCircle(cx, cy, r * 1.10f, paint);
         paint.setStrokeWidth(Math.max(3f, r * 0.12f));
         paint.setColor(0xFFFF9B4B);
-        paint.setShadowLayer(r * 0.30f, 0, 0, 0xD0FF6A2B);
         c.drawCircle(cx, cy, r * 1.10f, paint);
-        paint.clearShadowLayer();
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(0xFFFFB15F);
         paint.setTextAlign(Paint.Align.CENTER);
@@ -644,14 +792,15 @@ public class BackgammonBoardView extends View {
         paint.setShader(null);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeWidth(Math.max(7f, r * 0.28f));
+        paint.setColor(0x35FF3B26);
+        c.drawCircle(cx, cy, r, paint);
         paint.setStrokeWidth(Math.max(3f, r * 0.16f));
         paint.setColor(0xFFFF5A42);
-        paint.setShadowLayer(r * 0.40f, 0, 0, 0xFFFF3B26);
         c.drawCircle(cx, cy, r, paint);
         float d = r * 0.42f;
         c.drawLine(cx - d, cy - d, cx + d, cy + d, paint);
         c.drawLine(cx + d, cy - d, cx - d, cy + d, paint);
-        paint.clearShadowLayer();
         paint.setStrokeCap(Paint.Cap.BUTT);
     }
 
@@ -794,15 +943,16 @@ public class BackgammonBoardView extends View {
 
     private void startMoveAnimator(long duration, Runnable completion) {
         animating = true;
+        requestHighRefresh(true);
         animationProgress = 0f;
         animationCompletion = completion;
         if (listener != null) listener.onGameChanged();
         moveAnimator = ValueAnimator.ofFloat(0f, 1f);
         moveAnimator.setDuration(duration);
-        moveAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        moveAnimator.setInterpolator(moveInterpolator);
         moveAnimator.addUpdateListener(a -> {
             animationProgress = (float)a.getAnimatedValue();
-            invalidate();
+            postInvalidateOnAnimation();
         });
         moveAnimator.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled = false;
@@ -813,8 +963,9 @@ public class BackgammonBoardView extends View {
                 animationMove = null;
                 animationProgress = 0f;
                 animationCompletion = null;
+                requestHighRefresh(false);
                 if (!cancelled && finish != null) finish.run();
-                invalidate();
+                postInvalidateOnAnimation();
             }
         });
         moveAnimator.start();
@@ -936,6 +1087,33 @@ public class BackgammonBoardView extends View {
 
     private static int withAlpha(int color, int alpha) {
         return (Math.max(0, Math.min(255, alpha)) << 24) | (color & 0x00FFFFFF);
+    }
+
+    private void drawFpsOverlay(Canvas c) {
+        long now = System.nanoTime();
+        if (fpsWindowStartNs == 0L) fpsWindowStartNs = now;
+        fpsFrameCount++;
+        long elapsed = now - fpsWindowStartNs;
+        if (elapsed >= 500_000_000L) {
+            measuredFps = fpsFrameCount * 1_000_000_000f / elapsed;
+            fpsWindowStartNs = now;
+            fpsFrameCount = 0;
+        }
+
+        float textSize = Math.max(12f, Math.min(getWidth(), getHeight()) * 0.025f);
+        String label = String.format(java.util.Locale.US, "%.0f FPS%s", measuredFps,
+                isHardwareAccelerated() ? " • GPU" : " • CPU");
+        paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        paint.setTextAlign(Paint.Align.LEFT);
+        paint.setTextSize(textSize);
+        float x = outerLeft + frame * 0.6f;
+        float y = outerTop + frame * 0.9f;
+        float width = paint.measureText(label);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0xB8000000);
+        c.drawRoundRect(new RectF(x - 6f, y - textSize, x + width + 6f, y + 6f), 7f, 7f, paint);
+        paint.setColor(0xFFFFFFFF);
+        c.drawText(label, x, y, paint);
     }
 
     private static int lighten(int color, float amount) {

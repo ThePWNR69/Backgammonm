@@ -182,7 +182,8 @@ public class MainActivity extends Activity {
         PopupMenu popup = new PopupMenu(this, anchor);
         popup.getMenu().add("New Game");
         popup.getMenu().add(versusAi ? "Switch to 2 Players" : "Play vs AI");
-        popup.getMenu().add("About v0.4");
+        popup.getMenu().add(boardView.isShowingFps() ? "Hide FPS" : "Show FPS");
+        popup.getMenu().add("About v0.5");
         popup.setOnMenuItemClickListener((MenuItem item) -> {
             String title = String.valueOf(item.getTitle());
             if (title.equals("New Game")) {
@@ -194,8 +195,12 @@ public class MainActivity extends Activity {
                 resetGame();
                 return true;
             }
-            if (title.equals("About v0.4")) {
-                statusTitle.setText("Backgammon v0.4");
+            if (title.equals("Show FPS") || title.equals("Hide FPS")) {
+                boardView.setShowFps(!boardView.isShowingFps());
+                return true;
+            }
+            if (title.equals("About v0.5")) {
+                statusTitle.setText("Backgammon v0.5 • Smooth Motion");
                 boardView.postDelayed(this::refreshUi, 1200);
                 return true;
             }
