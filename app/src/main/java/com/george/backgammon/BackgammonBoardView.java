@@ -19,6 +19,7 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * v0.3 board: compact chrome, larger physical-board-inspired checkers,
@@ -44,7 +45,18 @@ public class BackgammonBoardView extends View {
     private float frame;
 
     private ValueAnimator moveAnimator;
+    private ValueAnimator diceAnimator;
     private boolean animating = false;
+    private boolean diceRolling = false;
+    private boolean dicePreviewVisible = false;
+    private float diceRollProgress = 0f;
+    private int animatedDieOne = 1;
+    private int animatedDieTwo = 1;
+    private final Random diceVisualRandom = new Random();
+    private int lastDiceVisualStep = -1;
+    private boolean inputEnabled = true;
+    private long normalMoveDurationMs = 720L;
+    private long hitMoveDurationMs = 950L;
     private boolean animationUndo = false;
     private boolean animationHit = false;
     private float animationProgress = 0f;
@@ -60,7 +72,15 @@ public class BackgammonBoardView extends View {
 
     public void setGame(BackgammonGame game) { this.game = game; invalidate(); }
     public void setOnGameChangedListener(OnGameChangedListener l) { listener = l; }
-    public boolean isAnimating() { return animating; }
+    public boolean isAnimating() { return animating || diceRolling; }
+    public boolean isDiceRolling() { return diceRolling; }
+    public void setInputEnabled(boolean enabled) { inputEnabled = enabled; }
+
+    /** Kept as a setting internally so cosmetic movement styles can be plugged in later. */
+    public void setMoveAnimationDurations(long normalMs, long hitMs) {
+        normalMoveDurationMs = Math.max(250L, normalMs);
+        hitMoveDurationMs = Math.max(normalMoveDurationMs, hitMs);
+    }
 
     public void clearSelection() {
         selectedFrom = NO_SELECTION;
@@ -70,11 +90,63 @@ public class BackgammonBoardView extends View {
 
     public void cancelAnimationsAndReset() {
         if (moveAnimator != null) moveAnimator.cancel();
+        if (diceAnimator != null) diceAnimator.cancel();
         animating = false;
+        diceRolling = false;
+        dicePreviewVisible = false;
         animationMove = null;
         animationProgress = 0f;
         animationCompletion = null;
         clearSelection();
+    }
+
+    public void clearDicePreview() {
+        dicePreviewVisible = false;
+        invalidate();
+    }
+
+    /** Rolls the on-board dice with a tumble/bounce before settling on the supplied results. */
+    public void animateDiceRoll(int finalDieOne, int finalDieTwo, Runnable completion) {
+        if (diceRolling || animating) return;
+        diceRolling = true;
+        dicePreviewVisible = true;
+        diceRollProgress = 0f;
+        animatedDieOne = diceVisualRandom.nextInt(6) + 1;
+        animatedDieTwo = diceVisualRandom.nextInt(6) + 1;
+        lastDiceVisualStep = -1;
+        if (listener != null) listener.onGameChanged();
+
+        diceAnimator = ValueAnimator.ofFloat(0f, 1f);
+        diceAnimator.setDuration(920L);
+        diceAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        diceAnimator.addUpdateListener(a -> {
+            diceRollProgress = (float)a.getAnimatedValue();
+            int step = Math.min(11, (int)(diceRollProgress * 12f));
+            if (step != lastDiceVisualStep && diceRollProgress < 0.88f) {
+                lastDiceVisualStep = step;
+                animatedDieOne = diceVisualRandom.nextInt(6) + 1;
+                animatedDieTwo = diceVisualRandom.nextInt(6) + 1;
+            }
+            if (diceRollProgress >= 0.88f) {
+                animatedDieOne = finalDieOne;
+                animatedDieTwo = finalDieTwo;
+            }
+            invalidate();
+        });
+        diceAnimator.addListener(new AnimatorListenerAdapter() {
+            private boolean cancelled = false;
+            @Override public void onAnimationCancel(Animator animation) { cancelled = true; }
+            @Override public void onAnimationEnd(Animator animation) {
+                diceRolling = false;
+                diceRollProgress = 1f;
+                animatedDieOne = finalDieOne;
+                animatedDieTwo = finalDieTwo;
+                invalidate();
+                if (listener != null) listener.onGameChanged();
+                if (!cancelled && completion != null) completion.run();
+            }
+        });
+        diceAnimator.start();
     }
 
     @Override protected void onDraw(Canvas c) {
@@ -413,13 +485,33 @@ public class BackgammonBoardView extends View {
     }
 
     private void drawDice(Canvas c) {
-        if (!game.hasRolled()) return;
+        if (!game.hasRolled() && !diceRolling && !dicePreviewVisible) return;
         float size = Math.min(checkerRadius() * 1.48f, (fieldBottom - fieldTop) * 0.09f);
         float gap = size * 0.34f;
         float cx = fieldLeft + (fieldRight - fieldLeft) * 0.69f;
         float cy = (fieldTop + fieldBottom) / 2f;
-        drawDie(c, cx - (size + gap) * 0.50f, cy, size, game.getDieOne());
-        drawDie(c, cx + (size + gap) * 0.50f, cy, size, game.getDieTwo());
+        int d1 = diceRolling || dicePreviewVisible && !game.hasRolled() ? animatedDieOne : game.getDieOne();
+        int d2 = diceRolling || dicePreviewVisible && !game.hasRolled() ? animatedDieTwo : game.getDieTwo();
+
+        if (diceRolling) {
+            float energy = 1f - diceRollProgress;
+            float bounce = (float)Math.sin(diceRollProgress * Math.PI * 8f) * size * 0.14f * energy;
+            float angle = 420f * energy;
+            drawDieTransformed(c, cx - (size + gap) * 0.50f, cy - bounce, size, d1, angle);
+            drawDieTransformed(c, cx + (size + gap) * 0.50f, cy + bounce * 0.65f, size, d2, -angle * 0.88f);
+        } else {
+            drawDie(c, cx - (size + gap) * 0.50f, cy, size, d1);
+            drawDie(c, cx + (size + gap) * 0.50f, cy, size, d2);
+        }
+    }
+
+    private void drawDieTransformed(Canvas c, float cx, float cy, float size, int value, float angle) {
+        c.save();
+        c.rotate(angle, cx, cy);
+        float settleScale = 0.94f + 0.06f * (1f - diceRollProgress);
+        c.scale(settleScale, settleScale, cx, cy);
+        drawDie(c, cx, cy, size, value);
+        c.restore();
     }
 
     private void drawDie(Canvas c, float cx, float cy, float size, int value) {
@@ -564,8 +656,8 @@ public class BackgammonBoardView extends View {
     }
 
     @Override public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() != MotionEvent.ACTION_UP || game == null || animating || !game.hasRolled()
-                || game.getWinner() != 0 || game.canEndTurn()) return true;
+        if (event.getAction() != MotionEvent.ACTION_UP || game == null || animating || diceRolling || !inputEnabled
+                || !game.hasRolled() || game.getWinner() != 0 || game.canEndTurn()) return true;
 
         float x = event.getX(), y = event.getY();
         clearInvalid();
@@ -661,9 +753,25 @@ public class BackgammonBoardView extends View {
         animationHit = move.to >= 1 && move.to <= 24 && game.getPoint(move.to) == -animationPlayer;
         selectedFrom = NO_SELECTION;
         clearInvalid();
-        startMoveAnimator(animationHit ? 620L : 430L, () -> {
+        startMoveAnimator(animationHit ? hitMoveDurationMs : normalMoveDurationMs, () -> {
             game.applyMove(move);
             if (listener != null) listener.onGameChanged();
+        });
+    }
+
+    /** Used by the AI so it shares exactly the same movement animation as a human move. */
+    public void playMoveAnimated(BackgammonGame.Move move, Runnable completion) {
+        if (animating || diceRolling || game == null || move == null) return;
+        animationMove = move;
+        animationPlayer = game.getCurrentPlayer();
+        animationUndo = false;
+        animationHit = move.to >= 1 && move.to <= 24 && game.getPoint(move.to) == -animationPlayer;
+        selectedFrom = NO_SELECTION;
+        clearInvalid();
+        startMoveAnimator(animationHit ? hitMoveDurationMs : normalMoveDurationMs, () -> {
+            game.applyMove(move);
+            if (listener != null) listener.onGameChanged();
+            if (completion != null) completion.run();
         });
     }
 
@@ -677,7 +785,7 @@ public class BackgammonBoardView extends View {
         animationHit = game.peekLastMoveWasHit();
         selectedFrom = NO_SELECTION;
         clearInvalid();
-        startMoveAnimator(animationHit ? 620L : 430L, () -> {
+        startMoveAnimator(animationHit ? hitMoveDurationMs : normalMoveDurationMs, () -> {
             game.undoLastMove();
             if (completion != null) completion.run();
             if (listener != null) listener.onGameChanged();

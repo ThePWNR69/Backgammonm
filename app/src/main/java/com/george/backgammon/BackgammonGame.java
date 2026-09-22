@@ -69,6 +69,8 @@ public class BackgammonGame {
     private int dieOne = 0, dieTwo = 0;
     private boolean rolled = false;
     private int winner = 0;
+    private boolean openingResolved = false;
+    private boolean openingTie = false;
 
     public BackgammonGame() { reset(); }
 
@@ -90,6 +92,8 @@ public class BackgammonGame {
         dieOne = dieTwo = 0;
         rolled = false;
         winner = 0;
+        openingResolved = false;
+        openingTie = false;
     }
 
     public int getCurrentPlayer() { return currentPlayer; }
@@ -97,6 +101,8 @@ public class BackgammonGame {
     public boolean hasRolled() { return rolled; }
     public int getDieOne() { return dieOne; }
     public int getDieTwo() { return dieTwo; }
+    public boolean isOpeningResolved() { return openingResolved; }
+    public boolean wasOpeningTie() { return openingTie; }
     public List<Integer> getDiceRemaining() { return Collections.unmodifiableList(diceRemaining); }
     public int getWhiteBar() { return state.whiteBar; }
     public int getBlackBar() { return state.blackBar; }
@@ -108,8 +114,31 @@ public class BackgammonGame {
     public Move peekLastMove() { return undoHistory.isEmpty() ? null : undoHistory.peek().move; }
     public boolean peekLastMoveWasHit() { return !undoHistory.isEmpty() && undoHistory.peek().hit; }
 
+    /**
+     * Standard opening roll: each player rolls one die. Ties reroll. The higher roller starts and
+     * uses the two opening dice as the first turn.
+     */
+    public void rollOpeningDice() {
+        if (winner != 0 || openingResolved || rolled) return;
+        dieOne = random.nextInt(6) + 1; // Player 1 / White
+        dieTwo = random.nextInt(6) + 1; // Player 2 / Black
+        diceRemaining.clear();
+        undoHistory.clear();
+        openingTie = dieOne == dieTwo;
+        if (openingTie) {
+            rolled = false;
+            return;
+        }
+
+        openingResolved = true;
+        currentPlayer = dieOne > dieTwo ? WHITE : BLACK;
+        diceRemaining.add(dieOne);
+        diceRemaining.add(dieTwo);
+        rolled = true;
+    }
+
     public void rollDice() {
-        if (winner != 0 || rolled) return;
+        if (winner != 0 || rolled || !openingResolved) return;
         dieOne = random.nextInt(6) + 1;
         dieTwo = random.nextInt(6) + 1;
         diceRemaining.clear();
@@ -121,36 +150,42 @@ public class BackgammonGame {
             diceRemaining.add(dieOne);
         }
         rolled = true;
-        // Important: do not auto-finish the turn. The player confirms with End Turn.
     }
 
     public List<Move> getAllowedFirstMoves() {
-        if (!rolled || winner != 0 || diceRemaining.isEmpty()) return Collections.emptyList();
-        List<List<Move>> sequences = enumerateSequences(state, currentPlayer, diceRemaining);
+        List<List<Move>> sequences = getPlayableSequences();
         if (sequences.isEmpty()) return Collections.emptyList();
-
-        int maxLength = 0;
-        for (List<Move> seq : sequences) maxLength = Math.max(maxLength, seq.size());
-        if (maxLength == 0) return Collections.emptyList();
-
-        // If only one die can be played from a non-double roll, the higher die must be used.
-        int requiredDie = -1;
-        if (maxLength == 1 && distinctCount(diceRemaining) > 1) {
-            for (List<Move> seq : sequences) {
-                if (seq.size() == 1) requiredDie = Math.max(requiredDie, seq.get(0).die);
-            }
-        }
 
         List<Move> result = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         for (List<Move> seq : sequences) {
-            if (seq.size() != maxLength || seq.isEmpty()) continue;
+            if (seq.isEmpty()) continue;
             Move m = seq.get(0);
-            if (requiredDie != -1 && m.die != requiredDie) continue;
             String key = m.from + ":" + m.to + ":" + m.die;
             if (seen.add(key)) result.add(m);
         }
         return result;
+    }
+
+    /** Returns a complete legal turn sequence chosen by a lightweight positional AI. */
+    public List<Move> chooseAiTurnSequence() {
+        List<List<Move>> sequences = getPlayableSequences();
+        if (sequences.isEmpty()) return Collections.emptyList();
+
+        double best = -Double.MAX_VALUE;
+        List<Move> bestSequence = Collections.emptyList();
+        for (List<Move> seq : sequences) {
+            State next = state.copy();
+            for (Move m : seq) applyToState(next, currentPlayer, m);
+            double score = evaluateState(next, currentPlayer);
+            score += sequenceTacticalBonus(state, next, currentPlayer, seq);
+            score += random.nextDouble() * 0.35; // small variation among near-equal moves
+            if (score > best) {
+                best = score;
+                bestSequence = new ArrayList<>(seq);
+            }
+        }
+        return bestSequence;
     }
 
     public boolean applyMove(Move requested) {
@@ -164,13 +199,10 @@ public class BackgammonGame {
         }
         if (chosen == null) return false;
 
-        // Save the exact provisional state before every move so Undo can walk the turn backwards.
         boolean hit = chosen.to >= 1 && chosen.to <= 24 && state.points[chosen.to] == -currentPlayer;
         undoHistory.push(new TurnSnapshot(state, diceRemaining, chosen, hit));
         applyToState(state, currentPlayer, chosen);
         diceRemaining.remove(Integer.valueOf(chosen.die));
-
-        // A win is not committed here. Even the final bear-off can be undone until End Turn.
         return true;
     }
 
@@ -183,17 +215,12 @@ public class BackgammonGame {
         return true;
     }
 
-    /**
-     * A turn can only be confirmed when the player has used every die they are legally required
-     * to use, has no remaining legal move, or has provisionally borne off all 15 checkers.
-     */
     public boolean canEndTurn() {
         if (!rolled || winner != 0) return false;
         if (state.whiteOff >= 15 || state.blackOff >= 15) return true;
         return diceRemaining.isEmpty() || getAllowedFirstMoves().isEmpty();
     }
 
-    /** Commits the provisional turn. Returns false if legal moves still have to be played. */
     public boolean endTurn() {
         if (!canEndTurn()) return false;
 
@@ -204,9 +231,82 @@ public class BackgammonGame {
         undoHistory.clear();
         rolled = false;
         dieOne = dieTwo = 0;
+        openingTie = false;
 
         if (winner == 0) currentPlayer = -currentPlayer;
         return true;
+    }
+
+    private List<List<Move>> getPlayableSequences() {
+        if (!rolled || winner != 0 || diceRemaining.isEmpty()) return Collections.emptyList();
+        List<List<Move>> sequences = enumerateSequences(state, currentPlayer, diceRemaining);
+        if (sequences.isEmpty()) return Collections.emptyList();
+
+        int maxLength = 0;
+        for (List<Move> seq : sequences) maxLength = Math.max(maxLength, seq.size());
+        if (maxLength == 0) return Collections.emptyList();
+
+        int requiredDie = -1;
+        if (maxLength == 1 && distinctCount(diceRemaining) > 1) {
+            for (List<Move> seq : sequences) {
+                if (seq.size() == 1) requiredDie = Math.max(requiredDie, seq.get(0).die);
+            }
+        }
+
+        List<List<Move>> filtered = new ArrayList<>();
+        for (List<Move> seq : sequences) {
+            if (seq.size() != maxLength || seq.isEmpty()) continue;
+            if (requiredDie != -1 && seq.get(0).die != requiredDie) continue;
+            filtered.add(seq);
+        }
+        return filtered;
+    }
+
+    private static double sequenceTacticalBonus(State before, State after, int player, List<Move> seq) {
+        double score = 0;
+        int beforeOppBar = player == WHITE ? before.blackBar : before.whiteBar;
+        int afterOppBar = player == WHITE ? after.blackBar : after.whiteBar;
+        score += (afterOppBar - beforeOppBar) * 22.0;
+
+        for (Move m : seq) {
+            if (m.to == OFF_WHITE || m.to == OFF_BLACK) score += 16.0;
+        }
+        return score;
+    }
+
+    /** Positive is good for player. This is intentionally simple and fast for the first AI. */
+    private static double evaluateState(State s, int player) {
+        int ownOff = player == WHITE ? s.whiteOff : s.blackOff;
+        int oppOff = player == WHITE ? s.blackOff : s.whiteOff;
+        int ownBar = player == WHITE ? s.whiteBar : s.blackBar;
+        int oppBar = player == WHITE ? s.blackBar : s.whiteBar;
+
+        double score = ownOff * 110.0 - oppOff * 95.0;
+        score += oppBar * 34.0 - ownBar * 42.0;
+
+        int ownPips = 0;
+        int ownBlots = 0;
+        int ownMade = 0;
+        int ownHomeMade = 0;
+        for (int p = 1; p <= 24; p++) {
+            int v = s.points[p];
+            int ownCount = player == WHITE ? Math.max(0, v) : Math.max(0, -v);
+            if (ownCount == 0) continue;
+            int distance = player == WHITE ? p : 25 - p;
+            ownPips += ownCount * distance;
+            if (ownCount == 1) ownBlots++;
+            if (ownCount >= 2) {
+                ownMade++;
+                boolean home = player == WHITE ? p <= 6 : p >= 19;
+                if (home) ownHomeMade++;
+            }
+        }
+
+        score -= ownPips * 0.42;
+        score -= ownBlots * 4.8;
+        score += ownMade * 5.0;
+        score += ownHomeMade * 4.0;
+        return score;
     }
 
     private static int distinctCount(List<Integer> dice) {
@@ -288,14 +388,12 @@ public class BackgammonGame {
         if (player == WHITE) {
             if (die == point) return true;
             if (die < point) return false;
-            // Oversized die: no white checker may be farther from bear-off.
             for (int p = point + 1; p <= 6; p++) if (s.points[p] > 0) return false;
             return true;
         } else {
             int distance = 25 - point;
             if (die == distance) return true;
             if (die < distance) return false;
-            // Oversized die: no black checker may be farther from bear-off.
             for (int p = 19; p < point; p++) if (s.points[p] < 0) return false;
             return true;
         }

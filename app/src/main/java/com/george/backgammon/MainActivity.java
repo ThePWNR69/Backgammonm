@@ -2,16 +2,24 @@ package com.george.backgammon;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import java.util.List;
+
 public class MainActivity extends Activity {
+    private static final int AI_PLAYER = BackgammonGame.BLACK;
+
     private BackgammonGame game;
     private BackgammonBoardView boardView;
     private TextView statusTitle;
+    private TextView playerOneName;
+    private TextView playerTwoName;
     private TextView playerOneSub;
     private TextView playerTwoSub;
     private View playerOnePanel;
@@ -19,6 +27,10 @@ public class MainActivity extends Activity {
     private Button mainActionButton;
     private Button undoButton;
     private Button menuButton;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private boolean versusAi = true;
+    private boolean aiBusy = false;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,6 +40,8 @@ public class MainActivity extends Activity {
         game = new BackgammonGame();
         boardView = findViewById(R.id.boardView);
         statusTitle = findViewById(R.id.statusTitle);
+        playerOneName = findViewById(R.id.playerOneName);
+        playerTwoName = findViewById(R.id.playerTwoName);
         playerOneSub = findViewById(R.id.playerOneSub);
         playerTwoSub = findViewById(R.id.playerTwoSub);
         playerOnePanel = findViewById(R.id.playerOnePanel);
@@ -37,22 +51,13 @@ public class MainActivity extends Activity {
         menuButton = findViewById(R.id.menuButton);
 
         boardView.setGame(game);
+        boardView.setMoveAnimationDurations(720L, 950L);
         boardView.setOnGameChangedListener(this::refreshUi);
 
-        mainActionButton.setOnClickListener(v -> {
-            if (boardView.isAnimating()) return;
-            if (!game.hasRolled()) {
-                game.rollDice();
-                boardView.clearSelection();
-                refreshUi();
-            } else if (game.canEndTurn() && game.endTurn()) {
-                boardView.clearSelection();
-                refreshUi();
-            }
-        });
+        mainActionButton.setOnClickListener(v -> onMainAction());
 
         undoButton.setOnClickListener(v -> {
-            if (!boardView.isAnimating() && game.canUndo()) {
+            if (!boardView.isAnimating() && !isAiTurn() && game.canUndo()) {
                 boardView.undoLastMoveAnimated(this::refreshUi);
             }
         });
@@ -61,26 +66,155 @@ public class MainActivity extends Activity {
         refreshUi();
     }
 
+    private void onMainAction() {
+        if (boardView.isAnimating() || aiBusy || game.getWinner() != 0) return;
+
+        if (!game.isOpeningResolved()) {
+            beginOpeningRoll();
+            return;
+        }
+
+        if (isAiTurn()) return;
+
+        if (!game.hasRolled()) {
+            beginHumanDiceRoll();
+        } else if (game.canEndTurn() && game.endTurn()) {
+            boardView.clearSelection();
+            boardView.clearDicePreview();
+            refreshUi();
+            scheduleAiIfNeeded();
+        }
+    }
+
+    private void beginOpeningRoll() {
+        game.rollOpeningDice();
+        int d1 = game.getDieOne();
+        int d2 = game.getDieTwo();
+        boardView.clearSelection();
+        boardView.animateDiceRoll(d1, d2, () -> {
+            refreshUi();
+            if (game.isOpeningResolved()) scheduleAiIfNeeded();
+        });
+        refreshUi();
+    }
+
+    private void beginHumanDiceRoll() {
+        game.rollDice();
+        boardView.clearSelection();
+        boardView.animateDiceRoll(game.getDieOne(), game.getDieTwo(), this::refreshUi);
+        refreshUi();
+    }
+
+    private boolean isAiTurn() {
+        return versusAi && game.isOpeningResolved() && game.getWinner() == 0
+                && game.getCurrentPlayer() == AI_PLAYER;
+    }
+
+    private void scheduleAiIfNeeded() {
+        if (!isAiTurn() || aiBusy || boardView.isAnimating()) return;
+        aiBusy = true;
+        refreshUi();
+        handler.postDelayed(() -> {
+            if (!isAiTurn()) {
+                aiBusy = false;
+                refreshUi();
+                return;
+            }
+            if (!game.hasRolled()) beginAiDiceRoll();
+            else playNextAiMove();
+        }, 520L);
+    }
+
+    private void beginAiDiceRoll() {
+        if (!isAiTurn()) {
+            aiBusy = false;
+            refreshUi();
+            return;
+        }
+        game.rollDice();
+        boardView.animateDiceRoll(game.getDieOne(), game.getDieTwo(), () -> {
+            refreshUi();
+            handler.postDelayed(this::playNextAiMove, 360L);
+        });
+        refreshUi();
+    }
+
+    private void playNextAiMove() {
+        if (!isAiTurn()) {
+            aiBusy = false;
+            refreshUi();
+            return;
+        }
+        if (boardView.isAnimating()) {
+            handler.postDelayed(this::playNextAiMove, 120L);
+            return;
+        }
+
+        if (game.canEndTurn()) {
+            handler.postDelayed(() -> {
+                if (isAiTurn() && game.canEndTurn()) {
+                    game.endTurn();
+                    boardView.clearDicePreview();
+                }
+                aiBusy = false;
+                refreshUi();
+            }, 420L);
+            return;
+        }
+
+        List<BackgammonGame.Move> sequence = game.chooseAiTurnSequence();
+        if (sequence.isEmpty()) {
+            if (game.canEndTurn()) {
+                game.endTurn();
+                boardView.clearDicePreview();
+            }
+            aiBusy = false;
+            refreshUi();
+            return;
+        }
+
+        BackgammonGame.Move move = sequence.get(0);
+        boardView.playMoveAnimated(move, () -> handler.postDelayed(this::playNextAiMove, 300L));
+        refreshUi();
+    }
+
     private void showGameMenu(View anchor) {
         PopupMenu popup = new PopupMenu(this, anchor);
         popup.getMenu().add("New Game");
-        popup.getMenu().add("About v0.3");
+        popup.getMenu().add(versusAi ? "Switch to 2 Players" : "Play vs AI");
+        popup.getMenu().add("About v0.4");
         popup.setOnMenuItemClickListener((MenuItem item) -> {
             String title = String.valueOf(item.getTitle());
             if (title.equals("New Game")) {
-                game.reset();
-                boardView.cancelAnimationsAndReset();
-                refreshUi();
+                resetGame();
                 return true;
             }
-            if (title.equals("About v0.3")) {
-                statusTitle.setText("Backgammon v0.3");
+            if (title.equals("Switch to 2 Players") || title.equals("Play vs AI")) {
+                versusAi = !versusAi;
+                resetGame();
+                return true;
+            }
+            if (title.equals("About v0.4")) {
+                statusTitle.setText("Backgammon v0.4");
                 boardView.postDelayed(this::refreshUi, 1200);
                 return true;
             }
             return false;
         });
         popup.show();
+    }
+
+    private void resetGame() {
+        handler.removeCallbacksAndMessages(null);
+        aiBusy = false;
+        game.reset();
+        boardView.cancelAnimationsAndReset();
+        refreshUi();
+    }
+
+    @Override protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
 
     @Override public void onWindowFocusChanged(boolean hasFocus) {
@@ -100,10 +234,15 @@ public class MainActivity extends Activity {
 
     private void refreshUi() {
         boardView.invalidate();
+        boolean aiTurn = isAiTurn();
+        boardView.setInputEnabled(!aiTurn && !aiBusy && game.isOpeningResolved());
+
+        playerOneName.setText(versusAi ? "You" : "Player 1");
+        playerTwoName.setText(versusAi ? "AI" : "Player 2");
 
         int winner = game.getWinner();
         if (winner != 0) {
-            String name = winner == BackgammonGame.WHITE ? "Player 1" : "Player 2";
+            String name = displayName(winner);
             statusTitle.setText(name + " Wins!");
             mainActionButton.setText("Game Over");
             mainActionButton.setEnabled(false);
@@ -112,8 +251,40 @@ public class MainActivity extends Activity {
             return;
         }
 
-        boolean whiteTurn = game.getCurrentPlayer() == BackgammonGame.WHITE;
-        String currentName = whiteTurn ? "Player 1" : "Player 2";
+        if (boardView.isDiceRolling()) {
+            statusTitle.setText(game.isOpeningResolved() ? "Rolling…" : "Opening Roll…");
+            mainActionButton.setText("Rolling…");
+            mainActionButton.setEnabled(false);
+            undoButton.setEnabled(false);
+            updatePlayerPanels();
+            return;
+        }
+
+        if (!game.isOpeningResolved()) {
+            if (game.wasOpeningTie()) {
+                statusTitle.setText("Tie • Roll Again");
+                mainActionButton.setText("⚄  Roll Again");
+            } else {
+                statusTitle.setText("Roll to Decide First");
+                mainActionButton.setText("⚄  Opening Roll");
+            }
+            mainActionButton.setBackgroundResource(R.drawable.button_green_selector);
+            mainActionButton.setEnabled(!aiBusy);
+            undoButton.setEnabled(false);
+            updatePlayerPanels();
+            return;
+        }
+
+        String currentName = displayName(game.getCurrentPlayer());
+        if (aiTurn || aiBusy) {
+            statusTitle.setText(game.hasRolled() ? "AI Thinking…" : "AI Turn");
+            mainActionButton.setText("AI Turn");
+            mainActionButton.setBackgroundResource(R.drawable.button_dark_selector);
+            mainActionButton.setEnabled(false);
+            undoButton.setEnabled(false);
+            updatePlayerPanels();
+            return;
+        }
 
         if (!game.hasRolled()) {
             statusTitle.setText(currentName + " • Roll");
@@ -123,6 +294,8 @@ public class MainActivity extends Activity {
         } else {
             if (game.canEndTurn()) {
                 statusTitle.setText(game.getMovesMadeThisTurn() > 0 ? "Review Move" : "No Legal Move");
+            } else if (game.getMovesMadeThisTurn() == 0) {
+                statusTitle.setText(currentName + " Starts • " + diceText());
             } else {
                 statusTitle.setText(currentName + " • " + diceText());
             }
@@ -133,6 +306,11 @@ public class MainActivity extends Activity {
 
         undoButton.setEnabled(game.canUndo() && !boardView.isAnimating());
         updatePlayerPanels();
+    }
+
+    private String displayName(int player) {
+        if (!versusAi) return player == BackgammonGame.WHITE ? "Player 1" : "Player 2";
+        return player == BackgammonGame.WHITE ? "You" : "AI";
     }
 
     private String diceText() {
@@ -147,10 +325,11 @@ public class MainActivity extends Activity {
     }
 
     private void updatePlayerPanels() {
-        boolean whiteActive = game.getWinner() == 0 && game.getCurrentPlayer() == BackgammonGame.WHITE;
+        boolean opening = !game.isOpeningResolved();
+        boolean whiteActive = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == BackgammonGame.WHITE;
+        boolean blackActive = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == BackgammonGame.BLACK;
         playerOnePanel.setBackgroundResource(whiteActive ? R.drawable.bg_panel_active : R.drawable.bg_panel);
-        playerTwoPanel.setBackgroundResource(!whiteActive && game.getWinner() == 0
-                ? R.drawable.bg_panel_active : R.drawable.bg_panel);
+        playerTwoPanel.setBackgroundResource(blackActive ? R.drawable.bg_panel_active : R.drawable.bg_panel);
 
         playerOneSub.setText("IVORY  •  OFF " + game.getWhiteOff() + "  •  BAR " + game.getWhiteBar());
         playerTwoSub.setText("WALNUT  •  OFF " + game.getBlackOff() + "  •  BAR " + game.getBlackBar());
