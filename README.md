@@ -1,26 +1,22 @@
-# Backgammon Android v0.7 — Graphics Lab
+# Backgammon Legacy — v1.2
 
-This build keeps the modular v0.6 architecture and adds the first real cosmetic customisation UI.
+Backgammon Legacy is the premium walnut / emerald / gold Android backgammon project.
 
-## Graphics menu
-Open `☰` → **Customise Graphics**. Choices preview immediately and persist between launches.
+## v1.2 identity update
 
-### Boards (3)
-1. **Classic Walnut** — warm timber, leather field, inlay/grain detail.
-2. **Aegean Marble** — pale marble, navy points, gold Greek-key trim and marble veining.
-3. **Midnight Teal** — dark modern board, teal points, stitching and panel accents.
+This build establishes **Backgammon Legacy** as the product name across the Android app label, launcher metadata, main-menu wordmark, build metadata and GitHub Actions artifact naming. Sub-screens use concise page titles only.
 
-### Checkers (3)
-1. **Ivory & Walnut** — carved/polished traditional pieces.
-2. **Marble & Bronze** — veined stone with bronze detailing.
-3. **Obsidian & Gold** — dark glossy pieces with gold rings and matching light pieces.
+The approved crown / dice / checker emblem from v1.1 remains the core app icon. The home screen now presents the identity as:
 
-### Move animations (3)
-1. **Smooth Slide** — slower premium glide.
-2. **Fast Snap** — quick, responsive motion.
-3. **Roll & Fall** — long premium motion with edge-roll/tip illusion and landing flourish.
+**BACKGAMMON**  
+**L E G A C Y**
 
-The choices are deliberately all available in this test build. Unlock/price rules remain in the catalog for the later progression/shop system.
+Existing gameplay is unchanged: Vs Bot, local 2-player, Premium Walnut visuals, cosmetics/customisation, smooth animations, opening roll rules, Undo/End Turn and the legal two-dice destination indicator remain intact.
 
 ## Build
-Run the included GitHub Actions workflow. The artifact is `Backgammon-v0.7-APK`.
+
+Run GitHub Actions → **Build Android APK**.
+
+The uploaded artifact is:
+
+`Backgammon-Legacy-v1.2-APK`
