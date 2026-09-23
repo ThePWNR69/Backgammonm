@@ -6,4 +6,8 @@
     <color name="button_text">#FFF5E5</color>
     <color name="accent">#D5A85E</color>
     <color name="green_accent">#15845F</color>
+    <color name="brand_emerald">#062B1D</color>
+    <color name="brand_emerald_deep">#031C13</color>
+    <color name="brand_gold">#D8AF59</color>
+    <color name="ic_launcher_background">#062B1D</color>
 </resources>
