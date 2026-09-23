@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** Central cosmetic registry. v0.7 exposes three test options per major visual category. */
+/** Central cosmetic registry. v1.0 exposes three test options per major visual category. */
 public final class CosmeticCatalog {
     private CosmeticCatalog() {}
 
@@ -15,6 +15,7 @@ public final class CosmeticCatalog {
             "board_classic_walnut", "Classic Walnut",
             0xFF5A2E17, 0xFF7D4624, 0xFF211813,
             0xFFF0E2C2, 0xFF8D452E, 0xFFC79243, 0xFFB77B3E,
+            "boards/classic_walnut/board_base.webp",
             "boards/classic_walnut/frame.webp", "boards/classic_walnut/field.webp",
             "boards/classic_walnut/points.webp", "boards/classic_walnut/bar.webp");
 
@@ -22,14 +23,14 @@ public final class CosmeticCatalog {
             "board_greek_marble", "Aegean Marble",
             0xFFD8D0C1, 0xFFF2EEE5, 0xFFF7F2E8,
             0xFFF7F2E8, 0xFF163A63, 0xFFC9A04C, 0xFFC9A04C,
-            "boards/greek_marble/frame.webp", "boards/greek_marble/field.webp",
+            null, "boards/greek_marble/frame.webp", "boards/greek_marble/field.webp",
             "boards/greek_marble/points.webp", "boards/greek_marble/bar.webp");
 
     public static final BoardTheme MODERN_TEAL = new BoardTheme(
             "board_modern_teal", "Midnight Teal",
             0xFF111A1C, 0xFF213136, 0xFF0F181A,
             0xFFDCE7E4, 0xFF16706C, 0xFFB79358, 0xFF2D8D88,
-            "boards/modern_teal/frame.webp", "boards/modern_teal/field.webp",
+            null, "boards/modern_teal/frame.webp", "boards/modern_teal/field.webp",
             "boards/modern_teal/points.webp", "boards/modern_teal/bar.webp");
 
     public static final CheckerTheme IVORY_WALNUT = new CheckerTheme(
@@ -52,7 +53,12 @@ public final class CosmeticCatalog {
             "dice/ivory/die_%d.webp");
 
     public static final HighlightTheme CLASSIC_HIGHLIGHTS = new HighlightTheme(
-            "highlight_classic", 0xFF3DA8FF, 0xFF66E47C, 0xFFFF9E38, 0xFFFF554A);
+            "highlight_classic",
+            0xFF3DA8FF,  // selected checker
+            0xFF63E67B,  // one-die legal move
+            0xFFF5C451,  // two-dice same-checker destination
+            0xFFFF9E38,  // capture
+            0xFFFF554A); // invalid
 
     public static final List<BoardTheme> BOARD_THEMES = Collections.unmodifiableList(Arrays.asList(
             CLASSIC_WALNUT, GREEK_MARBLE, MODERN_TEAL));
@@ -76,7 +82,7 @@ public final class CosmeticCatalog {
         return AnimationCatalog.SMOOTH_SLIDE;
     }
 
-    // Unlock metadata remains in place for the later shop/progression system. v0.7 lets all
+    // Unlock metadata remains in place for the later shop/progression system. v1.0 lets all
     // three showcase options be equipped from the Graphics Lab so their feel can be tested now.
     public static final CosmeticItem<BoardTheme> ITEM_CLASSIC_WALNUT = new CosmeticItem<>(
             CLASSIC_WALNUT.id, CLASSIC_WALNUT.displayName, CosmeticCategory.BOARD,

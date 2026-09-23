@@ -22,11 +22,20 @@ final class StaticBoardRenderer {
     }
 
     void draw(Canvas c, BoardGeometry g, BoardTheme theme) {
+        Bitmap fullBoard = textures.get(theme.boardAsset);
+        if (fullBoard != null) {
+            // Production themes can ship a fully rendered empty board. Gameplay geometry is still
+            // independent, so checkers/dice/highlights remain dynamic and interactive.
+            RectF outer = new RectF(g.outerLeft, g.outerTop, g.outerRight, g.outerBottom);
+            c.drawBitmap(fullBoard, null, outer, paint);
+            return;
+        }
         drawBoardShell(c, g, theme);
         drawPlayingField(c, g, theme);
         drawPoints(c, g, theme);
         drawCentralBar(c, g, theme);
-        drawOffTrayBackground(c, g, theme);
+        drawSideTrayBackground(c, g.leftTrayLeft, g.leftTrayRight, g, theme, false);
+        drawSideTrayBackground(c, g.offLeft, g.offRight, g, theme, true);
         drawThemeDetails(c, g, theme);
     }
 
@@ -177,8 +186,9 @@ final class StaticBoardRenderer {
         c.drawCircle(cx, cy, r * .14f, paint);
     }
 
-    private void drawOffTrayBackground(Canvas c, BoardGeometry g, BoardTheme theme) {
-        RectF tray = new RectF(g.offLeft + 3, g.fieldTop, g.offRight, g.fieldBottom);
+    private void drawSideTrayBackground(Canvas c, float trayLeft, float trayRight,
+                                        BoardGeometry g, BoardTheme theme, boolean labelOff) {
+        RectF tray = new RectF(trayLeft + 3, g.fieldTop, trayRight, g.fieldBottom);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(darken(theme.leather, .38f));
         c.drawRoundRect(tray, 9, 9, paint);
@@ -186,11 +196,12 @@ final class StaticBoardRenderer {
         paint.setStrokeWidth(1.1f);
         paint.setColor(darken(theme.trim, .26f));
         c.drawRoundRect(tray, 9, 9, paint);
-        float cx = (g.offLeft + g.offRight) / 2f;
+        if (!labelOff) return;
+        float cx = (trayLeft + trayRight) / 2f;
         float mid = (g.fieldTop + g.fieldBottom) / 2f;
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setTypeface(android.graphics.Typeface.create("serif", android.graphics.Typeface.BOLD));
-        paint.setTextSize(Math.max(9f, (g.offRight - g.offLeft) * .19f));
+        paint.setTextSize(Math.max(9f, (trayRight - trayLeft) * .19f));
         paint.setColor(theme.metalAccent);
         c.drawText("OFF", cx, mid + paint.getTextSize() * .34f, paint);
     }

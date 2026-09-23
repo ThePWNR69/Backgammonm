@@ -1,6 +1,7 @@
 package com.george.backgammon.cosmetics;
 
-/** Data-only board skin. Future image asset IDs can be added without touching rules/gameplay. */
+/** Data-only board skin. A theme can provide a complete production-rendered board asset,
+ * or fall back to separate material layers/procedural rendering. */
 public final class BoardTheme {
     public final String id;
     public final String displayName;
@@ -11,6 +12,8 @@ public final class BoardTheme {
     public final int darkPoint;
     public final int metalAccent;
     public final int trim;
+    /** Optional complete empty board image, aligned to BoardGeometry. */
+    public final String boardAsset;
     public final String frameAsset;
     public final String fieldAsset;
     public final String pointsAsset;
@@ -19,7 +22,8 @@ public final class BoardTheme {
     public BoardTheme(String id, String displayName,
                       int outerWood, int innerWood, int leather,
                       int lightPoint, int darkPoint, int metalAccent, int trim,
-                      String frameAsset, String fieldAsset, String pointsAsset, String barAsset) {
+                      String boardAsset, String frameAsset, String fieldAsset,
+                      String pointsAsset, String barAsset) {
         this.id = id;
         this.displayName = displayName;
         this.outerWood = outerWood;
@@ -29,6 +33,7 @@ public final class BoardTheme {
         this.darkPoint = darkPoint;
         this.metalAccent = metalAccent;
         this.trim = trim;
+        this.boardAsset = boardAsset;
         this.frameAsset = frameAsset;
         this.fieldAsset = fieldAsset;
         this.pointsAsset = pointsAsset;

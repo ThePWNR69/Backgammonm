@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * v0.6 rendering/input surface. Game rules, AI, cosmetics and animation definitions now live in
+ * v0.8 rendering/input surface. Game rules, AI, cosmetics and animation definitions now live in
  * separate packages. This class focuses on board interaction and composing the selected visual skin.
  */
 public class BackgammonBoardView extends View {
@@ -622,7 +622,10 @@ public class BackgammonBoardView extends View {
         if (value == 6) { c.drawCircle(cx - dx, cy, pr, paint); c.drawCircle(cx + dx, cy, pr, paint); }
     }
 
-    /** No movement lines: blue selected checker, green legal landings, orange capture target. */
+    /**
+     * Move language: blue = selected checker, green = one-die landing, gold = the same checker can
+     * legally continue with a second die to reach that final point, orange = capture. No route lines.
+     */
     private void drawMoveHints(Canvas c) {
         if (animating || !game.hasRolled() || selectedFrom == NO_SELECTION) return;
         List<Move> moves = game.getAllowedFirstMoves();
@@ -631,25 +634,123 @@ public class BackgammonBoardView extends View {
             if (m.from == selectedFrom && !destinations.contains(m.to)) destinations.add(m.to);
         }
 
-        for (int to : destinations) {
-            if (to == BackgammonGame.OFF_WHITE || to == BackgammonGame.OFF_BLACK) {
-                float[] center = offCenter(game.getCurrentPlayer() == BackgammonGame.WHITE);
-                drawValidRing(c, center[0], center[1], Math.min((offRight - offLeft) * 0.30f, checkerRadius() * 0.62f));
-                continue;
-            }
+        for (int to : destinations) drawSingleDieDestination(c, to);
 
-            int value = game.getPoint(to);
-            int player = game.getCurrentPlayer();
-            if (value == 0) {
-                float[] center = landingCenter(to, 0);
-                drawValidRing(c, center[0], center[1], checkerRadius() * 0.56f);
-            } else if (Integer.signum(value) == player) {
-                drawOwnedPointPreview(c, to, Math.abs(value), player == BackgammonGame.WHITE);
-            } else if (Math.abs(value) == 1) {
-                float[] center = topCheckerCenter(to, 1);
-                drawCaptureHighlight(c, center[0], center[1], checkerRadius());
+        // Show final positions reachable by using two dice consecutively with this checker. These
+        // come directly from RulesEngine playable sequences, so a blocked intermediate point can
+        // never produce a misleading combined marker.
+        List<Integer> combined = combinedDestinationsFromSelection();
+        for (int to : combined) {
+            if (!destinations.contains(to)) drawCombinedDestination(c, to);
+        }
+    }
+
+    private void drawSingleDieDestination(Canvas c, int to) {
+        if (to == BackgammonGame.OFF_WHITE || to == BackgammonGame.OFF_BLACK) {
+            float[] center = offCenter(game.getCurrentPlayer() == BackgammonGame.WHITE);
+            drawValidRing(c, center[0], center[1], Math.min((offRight - offLeft) * 0.30f, checkerRadius() * 0.62f));
+            return;
+        }
+
+        int value = game.getPoint(to);
+        int player = game.getCurrentPlayer();
+        if (value == 0) {
+            float[] center = landingCenter(to, 0);
+            drawValidRing(c, center[0], center[1], checkerRadius() * 0.56f);
+        } else if (Integer.signum(value) == player) {
+            drawOwnedPointPreview(c, to, Math.abs(value), player == BackgammonGame.WHITE);
+        } else if (Math.abs(value) == 1) {
+            float[] center = topCheckerCenter(to, 1);
+            drawCaptureHighlight(c, center[0], center[1], checkerRadius());
+        }
+    }
+
+    private List<Integer> combinedDestinationsFromSelection() {
+        List<Integer> result = new ArrayList<>();
+        if (game == null || selectedFrom == NO_SELECTION) return result;
+        for (List<Move> seq : game.getPlayableSequencesSnapshot()) {
+            if (seq.size() < 2) continue;
+            Move first = seq.get(0);
+            Move second = seq.get(1);
+            if (first.from != selectedFrom || second.from != first.to) continue;
+            if (!result.contains(second.to)) result.add(second.to);
+        }
+        return result;
+    }
+
+    private List<Move> combinedSequenceTo(int destination) {
+        if (game == null || selectedFrom == NO_SELECTION) return null;
+        for (List<Move> seq : game.getPlayableSequencesSnapshot()) {
+            if (seq.size() < 2) continue;
+            Move first = seq.get(0);
+            Move second = seq.get(1);
+            if (first.from == selectedFrom && second.from == first.to && second.to == destination) {
+                List<Move> pair = new ArrayList<>();
+                pair.add(first);
+                pair.add(second);
+                return pair;
             }
         }
+        return null;
+    }
+
+    private void drawCombinedDestination(Canvas c, int to) {
+        float r = checkerRadius();
+        float cx, cy;
+        if (to == BackgammonGame.OFF_WHITE || to == BackgammonGame.OFF_BLACK) {
+            float[] center = offCenter(game.getCurrentPlayer() == BackgammonGame.WHITE);
+            cx = center[0]; cy = center[1]; r = Math.min((offRight - offLeft) * 0.30f, r * 0.62f);
+        } else {
+            int value = game.getPoint(to);
+            if (value == 0) {
+                float[] center = landingCenter(to, 0);
+                cx = center[0]; cy = center[1]; r *= 0.58f;
+            } else if (Integer.signum(value) == game.getCurrentPlayer()) {
+                int count = Math.abs(value);
+                float[] center = count < 5 ? landingCenter(to, count) : topCheckerCenter(to, 5);
+                cx = center[0]; cy = center[1];
+                if (count < 5) drawChecker(c, cx, cy, checkerRadius(), game.getCurrentPlayer() == BackgammonGame.WHITE, false, 0.22f);
+            } else {
+                float[] center = topCheckerCenter(to, 1);
+                cx = center[0]; cy = center[1];
+            }
+        }
+        drawCombinedRing(c, cx, cy, r);
+        drawTwoDiceBadge(c, cx, cy, r);
+    }
+
+    private void drawCombinedRing(Canvas c, float cx, float cy, float r) {
+        int color = loadout.highlights.combinedColor;
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(withAlpha(color, 28));
+        c.drawCircle(cx, cy, r * 0.80f, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(7f, r * 0.27f));
+        paint.setColor(withAlpha(color, 44));
+        c.drawCircle(cx, cy, r, paint);
+        paint.setStrokeWidth(Math.max(3.5f, r * 0.15f));
+        paint.setColor(withAlpha(color, 130));
+        c.drawCircle(cx, cy, r, paint);
+        paint.setStrokeWidth(Math.max(2.2f, r * 0.09f));
+        paint.setColor(lighten(color, 0.16f));
+        c.drawCircle(cx, cy, r, paint);
+    }
+
+    private void drawTwoDiceBadge(Canvas c, float cx, float cy, float r) {
+        float br = Math.max(8f, r * 0.34f);
+        float bx = cx + r * 0.82f;
+        float by = cy - r * 0.78f;
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0xE61C1710);
+        c.drawCircle(bx, by, br * 1.12f, paint);
+        paint.setColor(loadout.highlights.combinedColor);
+        c.drawCircle(bx, by, br, paint);
+        paint.setColor(0xFF241B0D);
+        paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setTextSize(br * 1.02f);
+        c.drawText("2", bx, by + paint.getTextSize() * 0.34f, paint);
     }
 
     private void drawOwnedPointPreview(Canvas c, int point, int count, boolean white) {
@@ -822,12 +923,44 @@ public class BackgammonBoardView extends View {
         for (Move m : game.getAllowedFirstMoves()) {
             if (m.from == selectedFrom && m.to == to) candidates.add(m);
         }
-        if (candidates.isEmpty()) return false;
+        if (!candidates.isEmpty()) {
+            Move chosen = candidates.get(0);
+            for (Move m : candidates) if (m.die > chosen.die) chosen = m;
+            beginForwardMove(chosen);
+            return true;
+        }
 
-        Move chosen = candidates.get(0);
-        for (Move m : candidates) if (m.die > chosen.die) chosen = m;
-        beginForwardMove(chosen);
-        return true;
+        // Gold two-dice destinations are interactive: tapping one performs the two legal moves
+        // sequentially, with the normal animation applied to each leg.
+        List<Move> pair = combinedSequenceTo(to);
+        if (pair != null) {
+            beginForwardSequence(pair);
+            return true;
+        }
+        return false;
+    }
+
+    private void beginForwardSequence(List<Move> moves) {
+        if (moves == null || moves.isEmpty() || animating) return;
+        selectedFrom = NO_SELECTION;
+        clearInvalid();
+        playSequenceStep(new ArrayList<>(moves), 0);
+    }
+
+    private void playSequenceStep(List<Move> moves, int index) {
+        if (index >= moves.size()) return;
+        Move move = moves.get(index);
+        animationMove = move;
+        animationPlayer = game.getCurrentPlayer();
+        animationUndo = false;
+        animationHit = move.to >= 1 && move.to <= 24 && game.getPoint(move.to) == -animationPlayer;
+        startMoveAnimator(animationHit ? loadout.moveAnimation.hitDurationMs() : loadout.moveAnimation.normalDurationMs(), () -> {
+            boolean applied = game.applyMove(move);
+            if (listener != null) listener.onGameChanged();
+            if (applied && index + 1 < moves.size()) {
+                playSequenceStep(moves, index + 1);
+            }
+        });
     }
 
     private void beginForwardMove(Move move) {
