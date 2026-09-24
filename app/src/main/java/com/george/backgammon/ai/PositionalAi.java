@@ -13,6 +13,10 @@ import java.util.Random;
 /** First modular AI. Future Easy/Hard/Boss personalities can implement AiStrategy independently. */
 public final class PositionalAi implements AiStrategy {
     private final Random random = new Random();
+    private final double noise;
+
+    public PositionalAi() { this(0.35); }
+    public PositionalAi(double noise) { this.noise = Math.max(0.0, noise); }
 
     @Override public String id() { return "positional_normal"; }
     @Override public String displayName() { return "Normal"; }
@@ -28,7 +32,7 @@ public final class PositionalAi implements AiStrategy {
             GameState next = before.copy();
             for (Move m : seq) RulesEngine.apply(next, player, m);
             double score = evaluateState(next, player) + tacticalBonus(before, next, player, seq);
-            score += random.nextDouble() * 0.35;
+            score += random.nextDouble() * noise;
             if (score > best) {
                 best = score;
                 bestSequence = new ArrayList<>(seq);

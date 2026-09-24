@@ -53,6 +53,7 @@ public class BackgammonBoardView extends View {
     private float cachedDieSize = -1f;
     private boolean showFps = false;
     private boolean showBoardMap = false;
+    private boolean swapCheckerColors = false;
     private long fpsWindowStartNs = 0L;
     private int fpsFrameCount = 0;
     private float measuredFps = 0f;
@@ -108,6 +109,14 @@ public class BackgammonBoardView extends View {
     public boolean isShowingFps() { return showFps; }
     public boolean isShowingBoardMap() { return showBoardMap; }
     public void setShowBoardMap(boolean show) { showBoardMap = show; invalidate(); }
+    public void setSwapCheckerColors(boolean swap) {
+        if (swapCheckerColors == swap) return;
+        swapCheckerColors = swap;
+        cachedCheckerRadius = -1f;
+        whiteCheckerSprite = null;
+        blackCheckerSprite = null;
+        invalidate();
+    }
     public void setShowFps(boolean show) {
         showFps = show;
         fpsWindowStartNs = 0L;
@@ -351,7 +360,8 @@ public class BackgammonBoardView extends View {
     }
 
     private void drawCheckerSprite(Canvas canvas, int size, float r, boolean white) {
-        Bitmap artwork = textures.get(white ? loadout.checkers.lightAsset : loadout.checkers.darkAsset);
+        boolean lightVisual = white ^ swapCheckerColors;
+        Bitmap artwork = textures.get(lightVisual ? loadout.checkers.lightAsset : loadout.checkers.darkAsset);
         if (artwork == null) {
             drawCheckerPrimitive(canvas, size / 2f, size / 2f, r, white);
             return;
@@ -370,6 +380,7 @@ public class BackgammonBoardView extends View {
 
     /** Rendered once into a software Bitmap; live animation only blits the resulting sprite. */
     private void drawCheckerPrimitive(Canvas c, float cx, float cy, float r, boolean white) {
+        boolean lightVisual = white ^ swapCheckerColors;
         paint.setShader(null);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(0x78000000);
@@ -377,8 +388,8 @@ public class BackgammonBoardView extends View {
         c.drawCircle(cx, cy, r * 1.02f, paint);
         paint.clearShadowLayer();
 
-        int center = white ? loadout.checkers.lightBase : loadout.checkers.darkBase;
-        int edge = white ? loadout.checkers.lightEdge : loadout.checkers.darkEdge;
+        int center = lightVisual ? loadout.checkers.lightBase : loadout.checkers.darkBase;
+        int edge = lightVisual ? loadout.checkers.lightEdge : loadout.checkers.darkEdge;
         int hi = lighten(center, 0.15f);
         paint.setShader(new RadialGradient(cx - r * 0.28f, cy - r * 0.32f, r * 1.25f,
                 new int[]{hi, center, edge}, new float[]{0f, 0.52f, 1f}, Shader.TileMode.CLAMP));
@@ -388,14 +399,14 @@ public class BackgammonBoardView extends View {
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(Math.max(1.4f, r * 0.07f));
-        paint.setColor(lighten(white ? loadout.checkers.lightEdge : loadout.checkers.darkEdge, 0.25f));
+        paint.setColor(lighten(lightVisual ? loadout.checkers.lightEdge : loadout.checkers.darkEdge, 0.25f));
         c.drawCircle(cx, cy, r * 0.82f, paint);
 
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(white ? 0x52FFFFFF : 0x40FFFFFF);
+        paint.setColor(lightVisual ? 0x52FFFFFF : 0x40FFFFFF);
         c.drawCircle(cx - r * 0.28f, cy - r * 0.30f, r * 0.18f, paint);
 
-        drawCheckerThemeDetail(c, cx, cy, r, white);
+        drawCheckerThemeDetail(c, cx, cy, r, lightVisual);
     }
 
 
@@ -475,18 +486,19 @@ public class BackgammonBoardView extends View {
     }
 
     private void drawStackBadge(Canvas c, float x, float y, float r, int count, boolean white) {
+        boolean lightVisual = white ^ swapCheckerColors;
         float badgeR = r * 0.34f;
         float bx = x + r * 0.62f;
         float by = y - r * 0.55f;
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(0x55000000);
         c.drawCircle(bx, by + r * 0.06f, badgeR * 1.05f, paint);
-        paint.setColor(white ? 0xFF31231A : 0xFFF4DFC0);
+        paint.setColor(lightVisual ? 0xFF31231A : 0xFFF4DFC0);
         c.drawCircle(bx, by, badgeR, paint);
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         paint.setTextSize(badgeR * 1.25f);
-        paint.setColor(white ? 0xFFFFF2DA : 0xFF3A2115);
+        paint.setColor(lightVisual ? 0xFFFFF2DA : 0xFF3A2115);
         c.drawText(String.valueOf(count), bx, by + paint.getTextSize() * 0.34f, paint);
     }
 

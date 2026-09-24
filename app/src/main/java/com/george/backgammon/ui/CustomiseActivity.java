@@ -2,178 +2,190 @@ package com.george.backgammon.ui;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.george.backgammon.animation.MoveAnimationStyle;
-import com.george.backgammon.cosmetics.BoardTheme;
-import com.george.backgammon.cosmetics.CheckerTheme;
+import com.george.backgammon.R;
 import com.george.backgammon.cosmetics.CosmeticCatalog;
+import com.george.backgammon.cosmetics.PlayerLoadout;
 import com.george.backgammon.rendering.CosmeticPreviewView;
 
-import java.util.List;
-
-/** Responsive v0.9 graphics customiser using the exact gameplay preview geometry. */
-public final class CustomiseActivity extends Activity {
-    private static final int GOLD = 0xFFD3AE67;
-    private static final int CREAM = 0xFFF4E6C9;
-    private static final int GREEN = 0xFF08362E;
-    private static final int GREEN_SELECTED = 0xFF0C5948;
-
-    private LinearLayout cards;
+/** Premium visual customisation gallery. */
+public class CustomiseActivity extends Activity {
     private SharedPreferences prefs;
-    private String boardId;
-    private String checkerId;
-    private String animationId;
-    private int currentTab = 0;
+    private PlayerLoadout loadout;
 
-    @Override protected void onCreate(Bundle state) {
-        super.onCreate(state);
+    private TextView tabBoard;
+    private TextView tabCheckers;
+    private TextView tabAnimation;
+    private TextView sectionDescription;
+    private View boardContent;
+    private View checkerContent;
+    private View animationContent;
+
+    private final View[] boardCards = new View[3];
+    private final View[] checkerCards = new View[3];
+    private final View[] animationCards = new View[3];
+    private final TextView[] boardStates = new TextView[3];
+    private final TextView[] checkerStates = new TextView[3];
+    private final TextView[] animationStates = new TextView[3];
+
+    @Override protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         enterImmersiveMode();
+        setContentView(R.layout.activity_customise);
+
         prefs = getSharedPreferences("backgammon_visuals", MODE_PRIVATE);
-        boardId = prefs.getString("board", CosmeticCatalog.CLASSIC_WALNUT.id);
-        checkerId = prefs.getString("checkers", CosmeticCatalog.IVORY_WALNUT.id);
-        animationId = prefs.getString("animation", CosmeticCatalog.MOVE_ANIMATIONS.get(0).id());
-        buildScreen();
-    }
+        loadout = CosmeticCatalog.defaultLoadout();
+        restore();
 
-    private void buildScreen() {
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(18), dp(10), dp(18), dp(12));
-        root.setBackgroundColor(0xFF052A24);
+        findViewById(R.id.backButton).setOnClickListener(v -> finish());
+        tabBoard = findViewById(R.id.tabBoard);
+        tabCheckers = findViewById(R.id.tabCheckers);
+        tabAnimation = findViewById(R.id.tabAnimation);
+        sectionDescription = findViewById(R.id.sectionDescription);
+        boardContent = findViewById(R.id.boardContent);
+        checkerContent = findViewById(R.id.checkerContent);
+        animationContent = findViewById(R.id.animationContent);
 
-        LinearLayout header = new LinearLayout(this);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        Button back = textButton("‹", dp(58), dp(46));
-        back.setTextSize(34);
-        back.setOnClickListener(v -> finish());
-        header.addView(back);
-        TextView title = label("CUSTOMISE", 27, true);
-        title.setGravity(Gravity.CENTER);
-        header.addView(title, new LinearLayout.LayoutParams(0, dp(50), 1f));
-        View spacer = new View(this);
-        header.addView(spacer, new LinearLayout.LayoutParams(dp(58), dp(1)));
-        root.addView(header, new LinearLayout.LayoutParams(-1, dp(52)));
+        boardCards[0] = findViewById(R.id.boardCard0);
+        boardCards[1] = findViewById(R.id.boardCard1);
+        boardCards[2] = findViewById(R.id.boardCard2);
+        checkerCards[0] = findViewById(R.id.checkerCard0);
+        checkerCards[1] = findViewById(R.id.checkerCard1);
+        checkerCards[2] = findViewById(R.id.checkerCard2);
+        animationCards[0] = findViewById(R.id.animationCard0);
+        animationCards[1] = findViewById(R.id.animationCard1);
+        animationCards[2] = findViewById(R.id.animationCard2);
 
-        LinearLayout tabs = new LinearLayout(this);
-        tabs.setGravity(Gravity.CENTER);
-        String[] names = {"Board", "Checkers", "Animation"};
-        for (int i=0;i<3;i++) {
-            final int tab=i;
-            Button b=textButton(names[i], 0, dp(46));
-            b.setTag(i);
-            b.setOnClickListener(v -> { currentTab=tab; renderCards(); updateTabs(tabs); });
-            tabs.addView(b,new LinearLayout.LayoutParams(0,dp(46),1f));
-            if (i<2) {
-                View gap=new View(this); tabs.addView(gap,new LinearLayout.LayoutParams(dp(10),1));
-            }
+        boardStates[0] = findViewById(R.id.boardState0);
+        boardStates[1] = findViewById(R.id.boardState1);
+        boardStates[2] = findViewById(R.id.boardState2);
+        checkerStates[0] = findViewById(R.id.checkerState0);
+        checkerStates[1] = findViewById(R.id.checkerState1);
+        checkerStates[2] = findViewById(R.id.checkerState2);
+        animationStates[0] = findViewById(R.id.animationState0);
+        animationStates[1] = findViewById(R.id.animationState1);
+        animationStates[2] = findViewById(R.id.animationState2);
+
+        // Previews use the exact same BoardMap and checker-size rules as gameplay.
+        CosmeticPreviewView boardPreview0 = findViewById(R.id.boardPreview0);
+        CosmeticPreviewView boardPreview1 = findViewById(R.id.boardPreview1);
+        CosmeticPreviewView boardPreview2 = findViewById(R.id.boardPreview2);
+        boardPreview0.setBoardTheme(CosmeticCatalog.BOARD_THEMES.get(0));
+        boardPreview1.setBoardTheme(CosmeticCatalog.BOARD_THEMES.get(1));
+        boardPreview2.setBoardTheme(CosmeticCatalog.BOARD_THEMES.get(2));
+        boardPreview0.setCheckerTheme(loadout.checkers);
+        boardPreview1.setCheckerTheme(loadout.checkers);
+        boardPreview2.setCheckerTheme(loadout.checkers);
+
+        CosmeticPreviewView checkerPreview0 = findViewById(R.id.checkerPreview0);
+        CosmeticPreviewView checkerPreview1 = findViewById(R.id.checkerPreview1);
+        CosmeticPreviewView checkerPreview2 = findViewById(R.id.checkerPreview2);
+        checkerPreview0.setBoardTheme(loadout.board);
+        checkerPreview1.setBoardTheme(loadout.board);
+        checkerPreview2.setBoardTheme(loadout.board);
+        checkerPreview0.setCheckerTheme(CosmeticCatalog.CHECKER_THEMES.get(0));
+        checkerPreview1.setCheckerTheme(CosmeticCatalog.CHECKER_THEMES.get(1));
+        checkerPreview2.setCheckerTheme(CosmeticCatalog.CHECKER_THEMES.get(2));
+
+        tabBoard.setOnClickListener(v -> showTab(0));
+        tabCheckers.setOnClickListener(v -> showTab(1));
+        tabAnimation.setOnClickListener(v -> showTab(2));
+
+        for (int i = 0; i < 3; i++) {
+            final int index = i;
+            boardCards[i].setOnClickListener(v -> equipBoard(index));
+            checkerCards[i].setOnClickListener(v -> equipCheckers(index));
+            animationCards[i].setOnClickListener(v -> equipAnimation(index));
         }
-        root.addView(tabs,new LinearLayout.LayoutParams(-1,dp(52)));
 
-        TextView help=label("Choose a cosmetic. Previews use the same map and checker sizing as gameplay.",11,false);
-        help.setGravity(Gravity.CENTER);
-        help.setTextColor(0xFF9FB8AC);
-        root.addView(help,new LinearLayout.LayoutParams(-1,dp(30)));
-
-        cards=new LinearLayout(this);
-        cards.setGravity(Gravity.CENTER);
-        root.addView(cards,new LinearLayout.LayoutParams(-1,0,1f));
-        setContentView(root);
-        updateTabs(tabs);
-        renderCards();
+        showTab(0);
+        refreshSelections();
     }
 
-    private void updateTabs(LinearLayout tabs) {
-        for(int i=0;i<tabs.getChildCount();i++) {
-            View v=tabs.getChildAt(i);
-            if(v instanceof Button && v.getTag() instanceof Integer) {
-                boolean selected=((Integer)v.getTag())==currentTab;
-                v.setBackground(panel(selected));
-                ((Button)v).setTextColor(selected?CREAM:0xFFC2B89F);
-            }
+    private void showTab(int tab) {
+        boardContent.setVisibility(tab == 0 ? View.VISIBLE : View.GONE);
+        checkerContent.setVisibility(tab == 1 ? View.VISIBLE : View.GONE);
+        animationContent.setVisibility(tab == 2 ? View.VISIBLE : View.GONE);
+
+        tabBoard.setBackgroundResource(tab == 0 ? R.drawable.premium_tab_selected : R.drawable.premium_tab);
+        tabCheckers.setBackgroundResource(tab == 1 ? R.drawable.premium_tab_selected : R.drawable.premium_tab);
+        tabAnimation.setBackgroundResource(tab == 2 ? R.drawable.premium_tab_selected : R.drawable.premium_tab);
+        tabBoard.setTextColor(tab == 0 ? 0xFFF8E5B5 : 0xFFCDBA92);
+        tabCheckers.setTextColor(tab == 1 ? 0xFFF8E5B5 : 0xFFCDBA92);
+        tabAnimation.setTextColor(tab == 2 ? 0xFFF8E5B5 : 0xFFCDBA92);
+
+        if (tab == 0) sectionDescription.setText("Choose the board that sets the tone of your table");
+        else if (tab == 1) sectionDescription.setText("Choose the checker set you want to play with");
+        else sectionDescription.setText("Choose how your checkers travel across the board");
+    }
+
+    private void equipBoard(int index) {
+        loadout.board = CosmeticCatalog.BOARD_THEMES.get(index);
+        prefs.edit().putString("board", loadout.board.id).apply();
+        refreshSelections();
+        Toast.makeText(this, loadout.board.displayName + " equipped", Toast.LENGTH_SHORT).show();
+    }
+
+    private void equipCheckers(int index) {
+        loadout.checkers = CosmeticCatalog.CHECKER_THEMES.get(index);
+        prefs.edit().putString("checkers", loadout.checkers.id).apply();
+        refreshSelections();
+        Toast.makeText(this, loadout.checkers.displayName + " equipped", Toast.LENGTH_SHORT).show();
+    }
+
+    private void equipAnimation(int index) {
+        loadout.moveAnimation = CosmeticCatalog.MOVE_ANIMATIONS.get(index);
+        prefs.edit().putString("animation", loadout.moveAnimation.id()).apply();
+        refreshSelections();
+        Toast.makeText(this, loadout.moveAnimation.displayName() + " equipped", Toast.LENGTH_SHORT).show();
+    }
+
+    private void refreshSelections() {
+        for (int i = 0; i < 3; i++) {
+            boolean selectedBoard = CosmeticCatalog.BOARD_THEMES.get(i).id.equals(loadout.board.id);
+            boardCards[i].setBackgroundResource(selectedBoard ? R.drawable.premium_card_selected : R.drawable.premium_card);
+            boardStates[i].setText(selectedBoard ? "✓  EQUIPPED" : "TAP TO EQUIP");
+
+            boolean selectedChecker = CosmeticCatalog.CHECKER_THEMES.get(i).id.equals(loadout.checkers.id);
+            checkerCards[i].setBackgroundResource(selectedChecker ? R.drawable.premium_card_selected : R.drawable.premium_card);
+            checkerStates[i].setText(selectedChecker ? "✓  EQUIPPED" : "TAP TO EQUIP");
+
+            boolean selectedAnimation = CosmeticCatalog.MOVE_ANIMATIONS.get(i).id().equals(loadout.moveAnimation.id());
+            animationCards[i].setBackgroundResource(selectedAnimation ? R.drawable.premium_card_selected : R.drawable.premium_card);
+            animationStates[i].setText(selectedAnimation ? "✓  EQUIPPED" : "TAP TO EQUIP");
         }
     }
 
-    private void renderCards() {
-        cards.removeAllViews();
-        if(currentTab==0) renderBoards();
-        else if(currentTab==1) renderCheckers();
-        else renderAnimations();
+    private void restore() {
+        loadout.board = CosmeticCatalog.boardById(prefs.getString("board", loadout.board.id));
+        loadout.checkers = CosmeticCatalog.checkersById(prefs.getString("checkers", loadout.checkers.id));
+        loadout.moveAnimation = CosmeticCatalog.animationById(
+                prefs.getString("animation", loadout.moveAnimation.id()));
     }
 
-    private void renderBoards() {
-        CheckerTheme currentChecker=CosmeticCatalog.checkersById(checkerId);
-        for(BoardTheme theme:CosmeticCatalog.BOARD_THEMES) {
-            boolean equipped=theme.id.equals(boardId);
-            CosmeticPreviewView preview=new CosmeticPreviewView(this);
-            preview.showBoard(theme,currentChecker);
-            addCard(preview,theme.displayName,equipped,()->{
-                boardId=theme.id; prefs.edit().putString("board",boardId).apply(); renderCards();
-            });
-        }
+    @Override protected void onResume() {
+        super.onResume();
+        restore();
+        if (boardCards[0] != null) refreshSelections();
+        enterImmersiveMode();
     }
 
-    private void renderCheckers() {
-        for(CheckerTheme theme:CosmeticCatalog.CHECKER_THEMES) {
-            boolean equipped=theme.id.equals(checkerId);
-            CosmeticPreviewView preview=new CosmeticPreviewView(this);
-            preview.showCheckers(theme);
-            addCard(preview,theme.displayName,equipped,()->{
-                checkerId=theme.id; prefs.edit().putString("checkers",checkerId).apply(); renderCards();
-            });
-        }
+    @Override public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) enterImmersiveMode();
     }
 
-    private void renderAnimations() {
-        List<MoveAnimationStyle> list=CosmeticCatalog.MOVE_ANIMATIONS;
-        for(MoveAnimationStyle style:list) {
-            boolean equipped=style.id().equals(animationId);
-            LinearLayout preview=new LinearLayout(this);
-            preview.setGravity(Gravity.CENTER);
-            preview.setBackground(panel(false));
-            TextView glyph=label("●  →  ●",24,true);
-            glyph.setTextColor(style.id().equals("roll_and_fall")?0xFFF0C85A:0xFF7DE0C5);
-            preview.addView(glyph);
-            addCard(preview,style.displayName(),equipped,()->{
-                animationId=style.id(); prefs.edit().putString("animation",animationId).apply(); renderCards();
-            });
-        }
+    private void enterImmersiveMode() {
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
     }
-
-    private void addCard(View preview,String name,boolean equipped,Runnable tap) {
-        LinearLayout card=new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(8),dp(8),dp(8),dp(7));
-        card.setGravity(Gravity.CENTER);
-        card.setBackground(panel(equipped));
-        card.setOnClickListener(v->tap.run());
-        card.addView(preview,new LinearLayout.LayoutParams(-1,0,1f));
-        TextView n=label(name,17,true); n.setGravity(Gravity.CENTER); card.addView(n,new LinearLayout.LayoutParams(-1,dp(34)));
-        TextView state=label(equipped?"✓ EQUIPPED":"TAP TO EQUIP",10,true); state.setGravity(Gravity.CENTER); state.setTextColor(GOLD); card.addView(state,new LinearLayout.LayoutParams(-1,dp(22)));
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,-1,1f); lp.setMargins(dp(7),dp(4),dp(7),dp(4)); cards.addView(card,lp);
-    }
-
-    private Button textButton(String text,int width,int height) {
-        Button b=new Button(this); b.setText(text); b.setAllCaps(false); b.setTextSize(16); b.setTextColor(CREAM); b.setGravity(Gravity.CENTER); b.setBackground(panel(false)); b.setStateListAnimator(null);
-        if(width>0)b.setLayoutParams(new LinearLayout.LayoutParams(width,height)); return b;
-    }
-
-    private TextView label(String text,int sp,boolean bold) {
-        TextView t=new TextView(this); t.setText(text); t.setTextColor(CREAM); t.setTextSize(sp); t.setGravity(Gravity.CENTER_VERTICAL); t.setFontFeatureSettings("kern"); if(bold)t.setTypeface(android.graphics.Typeface.create("serif",android.graphics.Typeface.BOLD)); return t;
-    }
-
-    private GradientDrawable panel(boolean selected) {
-        GradientDrawable g=new GradientDrawable(); g.setColor(selected?GREEN_SELECTED:GREEN); g.setCornerRadius(dp(15)); g.setStroke(dp(selected?2:1),selected?0xFFE2BE72:0xFF5E5743); return g;
-    }
-
-    private int dp(int value){return Math.round(value*getResources().getDisplayMetrics().density);}
-    private void enterImmersiveMode(){getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_LAYOUT_STABLE);}
-    @Override public void onWindowFocusChanged(boolean focus){super.onWindowFocusChanged(focus);if(focus)enterImmersiveMode();}
 }

@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** Central cosmetic registry. v0.9 exposes three production-template options per major visual category. */
+/** Central cosmetic registry. v1.3 uses one master-aligned static board image per board theme. */
 public final class CosmeticCatalog {
     private CosmeticCatalog() {}
 
@@ -22,15 +22,13 @@ public final class CosmeticCatalog {
             "board_greek_marble", "Aegean Marble",
             0xFFD8D0C1, 0xFFF2EEE5, 0xFFF7F2E8,
             0xFFF7F2E8, 0xFF163A63, 0xFFC9A04C, 0xFFC9A04C,
-            "boards/greek_marble/board.webp",
-            null, null, null, null);
+            "boards/greek_marble/board.webp", null, null, null, null);
 
     public static final BoardTheme MODERN_TEAL = new BoardTheme(
             "board_modern_teal", "Midnight Teal",
             0xFF111A1C, 0xFF213136, 0xFF0F181A,
             0xFFDCE7E4, 0xFF16706C, 0xFFB79358, 0xFF2D8D88,
-            "boards/modern_teal/board.webp",
-            null, null, null, null);
+            "boards/modern_teal/board.webp", null, null, null, null);
 
     public static final CheckerTheme IVORY_WALNUT = new CheckerTheme(
             "checkers_ivory_walnut", "Ivory & Walnut",
@@ -81,7 +79,7 @@ public final class CosmeticCatalog {
         return AnimationCatalog.SMOOTH_SLIDE;
     }
 
-    // Unlock metadata remains in place for the later shop/progression system. v0.9 lets all
+    // Unlock metadata remains in place for the later shop/progression system. v1.0 lets all
     // three showcase options be equipped from the Graphics Lab so their feel can be tested now.
     public static final CosmeticItem<BoardTheme> ITEM_CLASSIC_WALNUT = new CosmeticItem<>(
             CLASSIC_WALNUT.id, CLASSIC_WALNUT.displayName, CosmeticCategory.BOARD,

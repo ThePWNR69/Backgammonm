@@ -29,11 +29,11 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Build Backgammon APK
+      - name: Build Backgammon Legacy APK
         run: gradle :app:assembleDebug
 
-      - name: Upload Backgammon APK
+      - name: Upload Backgammon Legacy APK
         uses: actions/upload-artifact@v4
         with:
-          name: Backgammon-v0.9-APK
+          name: Backgammon-Legacy-v1.3.0-APK
           path: app/build/outputs/apk/debug/app-debug.apk

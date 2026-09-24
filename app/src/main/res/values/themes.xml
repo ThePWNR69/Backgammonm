@@ -9,4 +9,8 @@
         <item name="android:statusBarColor">#160E09</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
+
+    <style name="Theme.Backgammon.Launch" parent="Theme.Backgammon">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
 </resources>
