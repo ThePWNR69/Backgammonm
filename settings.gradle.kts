@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Backgammon Legacy"
+rootProject.name = "Backgammon"
 include(":app")

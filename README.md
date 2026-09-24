@@ -1,22 +1,34 @@
-# Backgammon Legacy — v1.2
+# Backgammon Android v0.9 — Rendering Foundation
 
-Backgammon Legacy is the premium walnut / emerald / gold Android backgammon project.
+v0.9 replaces theme-specific board geometry with one permanent invisible board map and a locked production-art pipeline.
 
-## v1.2 identity update
+## Core concept
 
-This build establishes **Backgammon Legacy** as the product name across the Android app label, launcher metadata, main-menu wordmark, build metadata and GitHub Actions artifact naming. Sub-screens use concise page titles only.
+```text
+premium screen background
+        ↓
+static board skin (1860 × 1000)
+        ↓
+INVISIBLE BOARD MAP (permanent)
+        ↓
+checkers / dice / highlights / animations
+```
 
-The approved crown / dice / checker emblem from v1.1 remains the core app icon. The home screen now presents the identity as:
+All three included boards use identical point, bar and tray geometry. Board art changes appearance only.
 
-**BACKGAMMON**  
-**L E G A C Y**
+See:
+- `PATCH_NOTES_v0.9.md`
+- `DESIGN_STANDARDS.md`
+- `production_templates/MASTER_BOARD_TEMPLATE.png`
+- `production_templates/MASTER_BOARD_MAP.json`
+- `production_templates/MASTER_CHECKER_TEMPLATE.png`
 
-Existing gameplay is unchanged: Vs Bot, local 2-player, Premium Walnut visuals, cosmetics/customisation, smooth animations, opening roll rules, Undo/End Turn and the legal two-dice destination indicator remain intact.
+## Alignment debug
+Open `☰` → **Show Board Map** to overlay the canonical 24 point anchors over the selected board.
 
 ## Build
+Run the included GitHub Actions workflow. Artifact: `Backgammon-v0.9-APK`.
 
-Run GitHub Actions → **Build Android APK**.
-
-The uploaded artifact is:
-
-`Backgammon-Legacy-v1.2-APK`
+## GitHub web-upload package
+This compact v0.9 package removes redundant legacy board layers and duplicate preview images.
+It is designed to stay comfortably below GitHub's 100-file browser upload limit while retaining the same v0.9 gameplay/rendering behaviour.

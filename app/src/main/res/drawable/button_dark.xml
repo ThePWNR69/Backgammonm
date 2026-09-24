@@ -1,15 +1,12 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:left="1dp" android:top="2dp" android:right="1dp">
-        <shape android:shape="rectangle"><solid android:color="#68000000"/><corners android:radius="13dp"/></shape>
+    <item android:top="2dp" android:left="2dp" android:right="2dp">
+        <shape android:shape="rectangle"><corners android:radius="13dp"/><solid android:color="#55000000"/></shape>
     </item>
-    <item android:left="1dp" android:right="1dp" android:bottom="2dp">
-        <shape android:shape="rectangle"><gradient android:angle="270" android:startColor="#9B7442" android:endColor="#51351C"/><corners android:radius="13dp"/></shape>
-    </item>
-    <item android:left="2dp" android:top="1dp" android:right="2dp" android:bottom="3dp">
+    <item android:bottom="2dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#342216" android:centerColor="#21150E" android:endColor="#100A07"/>
-            <stroke android:width="1dp" android:color="#5FBC8D52"/>
-            <corners android:radius="11dp"/>
+            <corners android:radius="13dp"/>
+            <gradient android:angle="270" android:startColor="#28231E" android:endColor="#151310"/>
+            <stroke android:width="1dp" android:color="#8F6A39"/>
         </shape>
     </item>
 </layer-list>

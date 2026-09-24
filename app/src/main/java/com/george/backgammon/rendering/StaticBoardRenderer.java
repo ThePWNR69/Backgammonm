@@ -23,9 +23,10 @@ final class StaticBoardRenderer {
 
     void draw(Canvas c, BoardGeometry g, BoardTheme theme) {
         Bitmap fullBoard = textures.get(theme.boardAsset);
-        if (fullBoard != null) {
-            // Production themes can ship a fully rendered empty board. Gameplay geometry is still
-            // independent, so checkers/dice/highlights remain dynamic and interactive.
+        if (isValidProductionBoard(fullBoard)) {
+            // Board art is a replaceable skin under one permanent invisible BoardMap.
+            // Every production board is authored to the same 1860x1000 template, so its 24
+            // visual points remain pixel-aligned with checker anchors, hitboxes and animations.
             RectF outer = new RectF(g.outerLeft, g.outerTop, g.outerRight, g.outerBottom);
             c.drawBitmap(fullBoard, null, outer, paint);
             return;
@@ -317,6 +318,12 @@ final class StaticBoardRenderer {
             c.drawCircle(g.barLeft + 4f, y, r, paint);
             c.drawCircle(g.barRight - 4f, y, r, paint);
         }
+    }
+
+    private boolean isValidProductionBoard(Bitmap bitmap) {
+        return bitmap != null
+                && bitmap.getWidth() == BoardMap.MASTER_WIDTH_PX
+                && bitmap.getHeight() == BoardMap.MASTER_HEIGHT_PX;
     }
 
     private static int withAlpha(int color, int alpha) {

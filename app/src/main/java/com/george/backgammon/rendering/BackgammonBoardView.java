@@ -11,6 +11,7 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RadialGradient;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.os.Build;
@@ -30,7 +31,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * v0.8 rendering/input surface. Game rules, AI, cosmetics and animation definitions now live in
+ * v0.9 rendering/input surface. Game rules, AI, cosmetics and animation definitions now live in
  * separate packages. This class focuses on board interaction and composing the selected visual skin.
  */
 public class BackgammonBoardView extends View {
@@ -51,6 +52,7 @@ public class BackgammonBoardView extends View {
     private float cachedCheckerRadius = -1f;
     private float cachedDieSize = -1f;
     private boolean showFps = false;
+    private boolean showBoardMap = false;
     private long fpsWindowStartNs = 0L;
     private int fpsFrameCount = 0;
     private float measuredFps = 0f;
@@ -104,6 +106,8 @@ public class BackgammonBoardView extends View {
     public boolean isDiceRolling() { return diceRolling; }
     public void setInputEnabled(boolean enabled) { inputEnabled = enabled; }
     public boolean isShowingFps() { return showFps; }
+    public boolean isShowingBoardMap() { return showBoardMap; }
+    public void setShowBoardMap(boolean show) { showBoardMap = show; invalidate(); }
     public void setShowFps(boolean show) {
         showFps = show;
         fpsWindowStartNs = 0L;
@@ -209,6 +213,7 @@ public class BackgammonBoardView extends View {
         drawBarCheckers(c);
         drawAnimationOverlay(c);
         drawInvalidFeedback(c);
+        if (showBoardMap) drawBoardMapOverlay(c);
         if (showFps) drawFpsOverlay(c);
     }
 
@@ -330,15 +335,10 @@ public class BackgammonBoardView extends View {
         }
     }
 
-    /** Larger checkers; five visible positions end at approximately the point tip. */
-    private float checkerRadius() {
-        return Math.min(colWidth * 0.39f, triangleHeight * 0.145f);
-    }
+    /** One renderer-controlled checker size for every cosmetic set. */
+    private float checkerRadius() { return geometry.checkerRadius(); }
 
-    private float checkerSpacing(float r) {
-        float fitFiveToTip = Math.max(r * 0.92f, (triangleHeight - 2f * r) / 4f);
-        return Math.min(r * 1.72f, fitFiveToTip);
-    }
+    private float checkerSpacing(float r) { return geometry.checkerSpacing(r); }
 
     private void buildCheckerSprites(float r) {
         cachedCheckerRadius = r;
@@ -363,8 +363,9 @@ public class BackgammonBoardView extends View {
         paint.setShadowLayer(r * 0.18f, 0, r * 0.12f, 0x88000000);
         canvas.drawCircle(cx, cy, r * 1.01f, paint);
         paint.clearShadowLayer();
+        Rect src = textures.visibleBounds(artwork);
         RectF dst = new RectF(cx - r, cy - r, cx + r, cy + r);
-        canvas.drawBitmap(artwork, null, dst, spritePaint);
+        canvas.drawBitmap(artwork, src, dst, spritePaint);
     }
 
     /** Rendered once into a software Bitmap; live animation only blits the resulting sprite. */
@@ -848,7 +849,7 @@ public class BackgammonBoardView extends View {
         float x = event.getX(), y = event.getY();
         clearInvalid();
 
-        if (x >= offLeft && x <= offRight && y >= fieldTop && y <= fieldBottom) {
+        if (geometry.isInOffTray(x, y)) {
             if (selectedFrom != NO_SELECTION) {
                 int off = game.getCurrentPlayer() == BackgammonGame.WHITE
                         ? BackgammonGame.OFF_WHITE : BackgammonGame.OFF_BLACK;
@@ -857,7 +858,7 @@ public class BackgammonBoardView extends View {
             return true;
         }
 
-        if (x >= barLeft && x <= barRight && y >= fieldTop && y <= fieldBottom) {
+        if (geometry.isInBar(x, y)) {
             if (selectedFrom == BackgammonGame.BAR) {
                 selectedFrom = NO_SELECTION;
             } else if (hasMoveFrom(BackgammonGame.BAR)) {
@@ -896,22 +897,9 @@ public class BackgammonBoardView extends View {
         return true;
     }
 
-    private int hitNearestPointBesideBar(float x, float y) {
-        boolean top = y < (fieldTop + fieldBottom) / 2f;
-        return top ? (x < (barLeft + barRight) / 2f ? 18 : 19)
-                : (x < (barLeft + barRight) / 2f ? 7 : 6);
-    }
+    private int hitNearestPointBesideBar(float x, float y) { return geometry.nearestPointBesideBar(x, y); }
 
-    private int hitPoint(float x, float y) {
-        if (x < fieldLeft || x > fieldRight || y < fieldTop || y > fieldBottom
-                || (x >= barLeft && x <= barRight)) return 0;
-        int idx;
-        if (x < barLeft) idx = (int)((x - fieldLeft) / colWidth);
-        else idx = 6 + (int)((x - barRight) / colWidth);
-        if (idx < 0 || idx > 11) return 0;
-        if (y < (fieldTop + fieldBottom) / 2f) return 13 + idx;
-        return 12 - idx;
-    }
+    private int hitPoint(float x, float y) { return geometry.hitPoint(x, y); }
 
     private boolean hasMoveFrom(int from) {
         for (Move m : game.getAllowedFirstMoves()) if (m.from == from) return true;
@@ -1130,41 +1118,13 @@ public class BackgammonBoardView extends View {
         return landingCenter(location, current);
     }
 
-    private float[] landingCenter(int point, int existingCount) {
-        boolean topPoint = point >= 13;
-        int idx = topPoint ? point - 13 : 12 - point;
-        float cx = columnX(idx) + colWidth / 2f;
-        float r = checkerRadius();
-        float spacing = checkerSpacing(r);
-        int slot = Math.min(existingCount, 4);
-        float cy = topPoint ? fieldTop + r + slot * spacing : fieldBottom - r - slot * spacing;
-        return new float[]{cx, cy};
-    }
+    private float[] landingCenter(int point, int existingCount) { return geometry.landingCenter(point, existingCount); }
 
-    private float[] topCheckerCenter(int point, int visibleCount) {
-        boolean topPoint = point >= 13;
-        int idx = topPoint ? point - 13 : 12 - point;
-        float cx = columnX(idx) + colWidth / 2f;
-        float r = checkerRadius();
-        float spacing = checkerSpacing(r);
-        int slot = Math.max(0, Math.min(visibleCount, 5) - 1);
-        float cy = topPoint ? fieldTop + r + slot * spacing : fieldBottom - r - slot * spacing;
-        return new float[]{cx, cy};
-    }
+    private float[] topCheckerCenter(int point, int visibleCount) { return geometry.topCheckerCenter(point, visibleCount); }
 
-    private float[] barCenter(boolean white) {
-        float cx = (barLeft + barRight) / 2f;
-        float cy = white ? fieldTop + (fieldBottom - fieldTop) * 0.37f
-                : fieldTop + (fieldBottom - fieldTop) * 0.63f;
-        return new float[]{cx, cy};
-    }
+    private float[] barCenter(boolean white) { return geometry.barCenter(white); }
 
-    private float[] offCenter(boolean white) {
-        float cx = (offLeft + offRight) / 2f;
-        float cy = white ? fieldTop + (fieldBottom - fieldTop) * 0.21f
-                : fieldBottom - (fieldBottom - fieldTop) * 0.18f;
-        return new float[]{cx, cy};
-    }
+    private float[] offCenter(boolean white) { return geometry.offCenter(white); }
 
     private void showInvalid(int point) {
         invalidDestination = point;
@@ -1183,6 +1143,32 @@ public class BackgammonBoardView extends View {
 
     private static int withAlpha(int color, int alpha) {
         return (Math.max(0, Math.min(255, alpha)) << 24) | (color & 0x00FFFFFF);
+    }
+
+    /** Developer alignment overlay for validating future board skins against the permanent map. */
+    private void drawBoardMapOverlay(Canvas c) {
+        float r = checkerRadius();
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1.5f, r * 0.045f));
+        paint.setColor(0xB85AC8FF);
+        for (int point = 1; point <= 24; point++) {
+            float[] center = geometry.landingCenter(point, 0);
+            c.drawCircle(center[0], center[1], r, paint);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setTextAlign(Paint.Align.CENTER);
+            paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            paint.setTextSize(Math.max(9f, r * 0.42f));
+            paint.setColor(0xEFFFFFFF);
+            c.drawText(String.valueOf(point), center[0], center[1] + paint.getTextSize() * 0.34f, paint);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(0xB85AC8FF);
+        }
+        paint.setColor(0xB8FFD56A);
+        paint.setStrokeWidth(Math.max(2f, r * 0.055f));
+        c.drawRect(fieldLeft, fieldTop, fieldRight, fieldBottom, paint);
+        c.drawRect(barLeft, fieldTop, barRight, fieldBottom, paint);
+        c.drawRect(offLeft, fieldTop, offRight, fieldBottom, paint);
     }
 
     private void drawFpsOverlay(Canvas c) {

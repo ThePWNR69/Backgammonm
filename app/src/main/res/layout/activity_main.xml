@@ -3,15 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingLeft="8dp"
-    android:paddingTop="5dp"
-    android:paddingRight="8dp"
-    android:paddingBottom="5dp"
+    android:paddingLeft="6dp"
+    android:paddingTop="4dp"
+    android:paddingRight="6dp"
+    android:paddingBottom="4dp"
     android:background="@drawable/tabletop">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="44dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:baselineAligned="false">
@@ -55,8 +55,8 @@
             android:layout_height="match_parent"
             android:layout_weight="0.72"
             android:gravity="center"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
+            android:paddingLeft="6dp"
+            android:paddingRight="6dp"
             android:background="@drawable/bg_status"
             android:text="Player 1 • Roll"
             android:textColor="@color/text_primary"
@@ -113,14 +113,14 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="44dp"
         android:orientation="horizontal"
         android:gravity="center"
         android:baselineAligned="false">
 
         <Button
             android:id="@+id/undoButton"
-            android:layout_width="64dp"
+            android:layout_width="58dp"
             android:layout_height="match_parent"
             android:background="@drawable/button_dark_selector"
             android:text="↶\nUndo"
@@ -134,7 +134,7 @@
 
         <Button
             android:id="@+id/mainActionButton"
-            android:layout_width="220dp"
+            android:layout_width="210dp"
             android:layout_height="match_parent"
             android:background="@drawable/button_green_selector"
             android:text="⚄  Roll Dice"
@@ -149,7 +149,7 @@
 
         <Button
             android:id="@+id/menuButton"
-            android:layout_width="64dp"
+            android:layout_width="58dp"
             android:layout_height="match_parent"
             android:background="@drawable/button_dark_selector"
             android:text="☰"

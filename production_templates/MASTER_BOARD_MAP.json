@@ -1,0 +1,27 @@
+{
+  "masterBoardWidthPx": 1860,
+  "masterBoardHeightPx": 1000,
+  "aspectRatio": 1.86,
+  "field": {
+    "left": 0.09731182795698924,
+    "top": 0.07,
+    "right": 0.9026881720430108,
+    "bottom": 0.93
+  },
+  "leftTray": {
+    "left": 0.03118279569892473,
+    "right": 0.08763440860215053
+  },
+  "rightTray": {
+    "left": 0.9123655913978495,
+    "right": 0.9688172043010753
+  },
+  "bar": {
+    "left": 0.4768817204301075,
+    "right": 0.5231182795698924
+  },
+  "triangleHeight": 0.38,
+  "checkerCanvasPx": 512,
+  "checkerVisibleDiameterPx": 448,
+  "rules": "Board art may change appearance only. These normalized geometry values never change per theme."
+}

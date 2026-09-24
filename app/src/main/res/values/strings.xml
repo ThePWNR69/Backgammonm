@@ -1,7 +1,5 @@
 <resources>
-    <string name="app_name">Backgammon Legacy</string>
-    <string name="brand_title">BACKGAMMON</string>
-    <string name="brand_subtitle">L E G A C Y</string>
+    <string name="app_name">Backgammon</string>
     <string name="roll_dice">Roll Dice</string>
     <string name="undo">Undo</string>
     <string name="end_turn">End Turn</string>

@@ -1,8 +1,12 @@
 package com.george.backgammon.rendering;
 
+import com.george.backgammon.game.BackgammonGame;
+
 /**
- * Pure layout math for the board. v0.8 uses proportions based on the premium production artwork
- * rather than stretching the play field to the device's landscape aspect ratio.
+ * Device-sized projection of the permanent {@link BoardMap}.
+ *
+ * Board cosmetics never own geometry. This class projects one invisible canonical map into the
+ * currently available view rectangle while preserving the master board aspect ratio.
  */
 final class BoardGeometry {
     float outerLeft, outerTop, outerRight, outerBottom;
@@ -12,44 +16,113 @@ final class BoardGeometry {
     float frame;
 
     void compute(float width, float height) {
-        float pad = Math.max(3f, Math.min(width, height) * 0.006f);
-        float availableW = width - pad * 2f;
-        float availableH = height - pad * 2f;
+        float pad = Math.max(1f, Math.min(width, height) * 0.0025f);
+        float availableW = Math.max(1f, width - pad * 2f);
+        float availableH = Math.max(1f, height - pad * 2f);
 
-        // Matches the 1860 x 1000 master board artwork.
-        float desiredAspect = 1.86f;
-        float boardW = Math.min(availableW, availableH * desiredAspect);
-        float boardH = Math.min(availableH, boardW / desiredAspect);
+        float boardW = Math.min(availableW, availableH * BoardMap.MASTER_ASPECT);
+        float boardH = boardW / BoardMap.MASTER_ASPECT;
+        if (boardH > availableH) {
+            boardH = availableH;
+            boardW = boardH * BoardMap.MASTER_ASPECT;
+        }
 
-        outerLeft = (width - boardW) / 2f;
+        outerLeft = (width - boardW) * 0.5f;
+        outerTop = (height - boardH) * 0.5f;
         outerRight = outerLeft + boardW;
-        outerTop = (height - boardH) / 2f;
         outerBottom = outerTop + boardH;
 
-        frame = boardH * 0.030f;
-        float trayWidth = boardW * 0.055f;
-        float trayGap = frame * 0.36f;
-
-        leftTrayLeft = outerLeft + frame * 0.65f;
-        leftTrayRight = leftTrayLeft + trayWidth;
-        fieldLeft = leftTrayRight + trayGap;
-
-        offRight = outerRight - frame * 0.65f;
-        offLeft = offRight - trayWidth;
-        fieldRight = offLeft - trayGap;
-
-        fieldTop = outerTop + frame;
-        fieldBottom = outerBottom - frame;
-
-        float playWidth = fieldRight - fieldLeft;
-        float barWidth = Math.max(34f, playWidth * 0.054f);
-        colWidth = (playWidth - barWidth) / 12f;
-        barLeft = fieldLeft + 6f * colWidth;
-        barRight = barLeft + barWidth;
-        triangleHeight = (fieldBottom - fieldTop) * 0.445f;
+        fieldLeft = x(BoardMap.FIELD_LEFT);
+        fieldRight = x(BoardMap.FIELD_RIGHT);
+        fieldTop = y(BoardMap.FIELD_TOP);
+        fieldBottom = y(BoardMap.FIELD_BOTTOM);
+        leftTrayLeft = x(BoardMap.LEFT_TRAY_LEFT);
+        leftTrayRight = x(BoardMap.LEFT_TRAY_RIGHT);
+        offLeft = x(BoardMap.RIGHT_TRAY_LEFT);
+        offRight = x(BoardMap.RIGHT_TRAY_RIGHT);
+        barLeft = x(BoardMap.BAR_LEFT);
+        barRight = x(BoardMap.BAR_RIGHT);
+        triangleHeight = boardH * BoardMap.TRIANGLE_HEIGHT;
+        colWidth = (barLeft - fieldLeft) / 6f;
+        frame = boardH * 0.058f;
     }
 
+    float x(float normalized) { return outerLeft + (outerRight - outerLeft) * normalized; }
+    float y(float normalized) { return outerTop + (outerBottom - outerTop) * normalized; }
+
     float columnX(int visualIndex) {
-        return fieldLeft + visualIndex * colWidth + (visualIndex >= 6 ? (barRight - barLeft) : 0);
+        return fieldLeft + visualIndex * colWidth + (visualIndex >= 6 ? (barRight - barLeft) : 0f);
+    }
+
+    float checkerRadius() {
+        // Five visible checker positions end at approximately the point tip.
+        return Math.min(colWidth * 0.39f, triangleHeight * 0.145f);
+    }
+
+    float checkerSpacing(float r) {
+        float fitFiveToTip = Math.max(r * 0.92f, (triangleHeight - 2f * r) / 4f);
+        return Math.min(r * 1.72f, fitFiveToTip);
+    }
+
+    float[] landingCenter(int point, int existingCount) {
+        boolean topPoint = point >= 13;
+        int idx = topPoint ? point - 13 : 12 - point;
+        float cx = columnX(idx) + colWidth * 0.5f;
+        float r = checkerRadius();
+        float spacing = checkerSpacing(r);
+        int slot = Math.min(Math.max(existingCount, 0), 4);
+        float cy = topPoint ? fieldTop + r + slot * spacing : fieldBottom - r - slot * spacing;
+        return new float[]{cx, cy};
+    }
+
+    float[] topCheckerCenter(int point, int visibleCount) {
+        boolean topPoint = point >= 13;
+        int idx = topPoint ? point - 13 : 12 - point;
+        float cx = columnX(idx) + colWidth * 0.5f;
+        float r = checkerRadius();
+        float spacing = checkerSpacing(r);
+        int slot = Math.max(0, Math.min(visibleCount, 5) - 1);
+        float cy = topPoint ? fieldTop + r + slot * spacing : fieldBottom - r - slot * spacing;
+        return new float[]{cx, cy};
+    }
+
+    float[] barCenter(boolean white) {
+        float cx = (barLeft + barRight) * 0.5f;
+        float cy = white ? fieldTop + (fieldBottom - fieldTop) * 0.37f
+                : fieldTop + (fieldBottom - fieldTop) * 0.63f;
+        return new float[]{cx, cy};
+    }
+
+    float[] offCenter(boolean white) {
+        float cx = (offLeft + offRight) * 0.5f;
+        float cy = white ? fieldTop + (fieldBottom - fieldTop) * 0.21f
+                : fieldBottom - (fieldBottom - fieldTop) * 0.18f;
+        return new float[]{cx, cy};
+    }
+
+    int hitPoint(float px, float py) {
+        if (px < fieldLeft || px > fieldRight || py < fieldTop || py > fieldBottom
+                || (px >= barLeft && px <= barRight)) return 0;
+
+        int idx;
+        if (px < barLeft) idx = (int)((px - fieldLeft) / colWidth);
+        else idx = 6 + (int)((px - barRight) / colWidth);
+        idx = Math.max(0, Math.min(11, idx));
+
+        return py < (fieldTop + fieldBottom) * 0.5f ? 13 + idx : 12 - idx;
+    }
+
+    int nearestPointBesideBar(float px, float py) {
+        boolean top = py < (fieldTop + fieldBottom) * 0.5f;
+        return top ? (px < (barLeft + barRight) * 0.5f ? 18 : 19)
+                : (px < (barLeft + barRight) * 0.5f ? 7 : 6);
+    }
+
+    boolean isInOffTray(float px, float py) {
+        return px >= offLeft && px <= offRight && py >= fieldTop && py <= fieldBottom;
+    }
+
+    boolean isInBar(float px, float py) {
+        return px >= barLeft && px <= barRight && py >= fieldTop && py <= fieldBottom;
     }
 }

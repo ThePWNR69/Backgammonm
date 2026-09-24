@@ -1,4 +1,4 @@
-# Backgammon Legacy architecture
+# Backgammon v0.7 architecture
 
 The project is now split by responsibility so future content can grow without turning the board view into a monolith.
 
@@ -76,11 +76,8 @@ Adding a board is the same pattern with board layers. Adding a movement animatio
 ## v0.7 Graphics Lab
 The menu now exposes three boards, three checker sets and three movement styles. The selected IDs are stored in SharedPreferences and rebuilt into `PlayerLoadout` at launch. These are showcase/testing choices; normal progression locks can be re-enabled later without changing the renderer.
 
-## `ui/` navigation (v0.9)
-- `MainActivity` — launcher/home screen.
-- `GameActivity` — gameplay only; receives `vs_ai` or `two_player` mode from the launcher.
-- `CustomiseActivity` — persistent board/checker/movement loadout selection.
-- `StoreActivity` — future store destination, already separated for currency/catalog work.
-- `ProfileActivity` — future profile and gameplay-statistics destination.
+## v0.9 locked rendering foundation
 
-This separation keeps menu/store/profile growth out of the gameplay controller.
+`BoardMap` is now the authoritative invisible board. `BoardGeometry` projects it to the device. Production board skins are static 1860×1000 images underneath that map. Theme artwork never owns point positions or checker sizes.
+
+All future board/checker additions must follow `DESIGN_STANDARDS.md` and the files in `production_templates/`.
