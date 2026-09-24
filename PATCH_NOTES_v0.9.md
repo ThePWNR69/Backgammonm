@@ -1,3 +1,9 @@
+
+## Build hotfix
+- Fixed `CustomiseActivity` Android compilation failure caused by the invalid `Button.setTextAllCaps(false)` call.
+- Replaced it with the supported `Button.setAllCaps(false)` API.
+- Re-ran a full Java source compile against Android API stubs after the fix.
+
 # Patch Notes — v0.9 Rendering Foundation
 
 ## Rendering architecture

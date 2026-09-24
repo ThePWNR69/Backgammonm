@@ -161,7 +161,7 @@ public final class CustomiseActivity extends Activity {
     }
 
     private Button textButton(String text,int width,int height) {
-        Button b=new Button(this); b.setText(text); b.setTextAllCaps(false); b.setTextSize(16); b.setTextColor(CREAM); b.setGravity(Gravity.CENTER); b.setBackground(panel(false)); b.setStateListAnimator(null);
+        Button b=new Button(this); b.setText(text); b.setAllCaps(false); b.setTextSize(16); b.setTextColor(CREAM); b.setGravity(Gravity.CENTER); b.setBackground(panel(false)); b.setStateListAnimator(null);
         if(width>0)b.setLayoutParams(new LinearLayout.LayoutParams(width,height)); return b;
     }
 
