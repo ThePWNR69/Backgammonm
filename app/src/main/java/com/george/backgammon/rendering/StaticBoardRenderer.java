@@ -34,8 +34,8 @@ final class StaticBoardRenderer {
             // so it has zero per-frame animation cost.
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(0x52000000);
-            paint.setShadowLayer(Math.max(10f, g.frame * 0.72f), 0f, Math.max(3f, g.frame * 0.18f), 0xB0000000);
-            c.drawRoundRect(new RectF(outer.left + 4f, outer.top + 3f, outer.right - 4f, outer.bottom - 2f),
+            paint.setShadowLayer(Math.max(12f, g.frame * 0.92f), 0f, Math.max(4f, g.frame * 0.24f), 0xC4000000);
+            c.drawRoundRect(new RectF(outer.left + 3f, outer.top + 2f, outer.right - 3f, outer.bottom - 1f),
                     Math.max(18f, g.frame * 0.52f), Math.max(18f, g.frame * 0.52f), paint);
             paint.clearShadowLayer();
             paint.setColor(Color.WHITE);

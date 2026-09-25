@@ -129,7 +129,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="10dp"
-        android:text="v1.5.0"
+        android:text="v1.6.0"
         android:textColor="#6A967F72"
         android:textSize="8sp" />
 </FrameLayout>

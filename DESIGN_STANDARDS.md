@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.5.0)
+# Backgammon Legacy — locked production standards (v1.6.0)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 
@@ -122,3 +122,13 @@ Gameplay player nameplates show only the checker icon, player name and rounds wo
 
 Setup screens use the same two-panel pattern: settings on the left, rules/summary on the right, with a single strong emerald START MATCH action. Layouts must remain compact enough for landscape phones and must not clip at the bottom.
 
+
+## 12. Gameplay HUD proportions
+
+For wide landscape phones, keep the live match screen board-first:
+- top HUD band: about **7.2%** of available height
+- board band: about **85.8%**
+- bottom controls: about **7.0%**
+- checker icons and round-score badges must remain fully inside the player nameplates
+- centre status uses small symmetrical gold ornaments, never extra gameplay metadata
+- bottom controls remain centred and compact; they must not force the board smaller than necessary

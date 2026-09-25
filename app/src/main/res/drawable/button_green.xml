@@ -1,12 +1,15 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:top="3dp"><shape android:shape="rectangle"><solid android:color="#98000000"/><corners android:radius="18dp"/></shape></item>
-    <item android:bottom="2dp"><shape android:shape="rectangle"><gradient android:angle="270" android:startColor="#FFE7A0" android:centerColor="#D5A451" android:endColor="#71491C"/><corners android:radius="18dp"/></shape></item>
-    <item android:left="3dp" android:top="2dp" android:right="3dp" android:bottom="5dp">
+    <item android:top="2dp">
+        <shape android:shape="rectangle"><solid android:color="#82000000"/><corners android:radius="17dp"/></shape>
+    </item>
+    <item android:bottom="1dp">
+        <shape android:shape="rectangle"><gradient android:angle="270" android:startColor="#FFE7A0" android:centerColor="#D4A14D" android:endColor="#71491B"/><corners android:radius="17dp"/></shape>
+    </item>
+    <item android:left="3dp" android:top="2dp" android:right="3dp" android:bottom="3dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#24C99A" android:centerColor="#07825F" android:endColor="#054B37"/>
-            <stroke android:width="1dp" android:color="#FFF1C2"/>
-            <corners android:radius="14dp"/>
-            <padding android:left="16dp" android:top="2dp" android:right="16dp" android:bottom="2dp"/>
+            <gradient android:angle="270" android:startColor="#21B98D" android:centerColor="#087558" android:endColor="#043C2D"/>
+            <stroke android:width="1dp" android:color="#F5DB90"/>
+            <corners android:radius="13dp"/>
         </shape>
     </item>
 </layer-list>
