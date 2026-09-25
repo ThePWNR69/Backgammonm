@@ -5,12 +5,15 @@ import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.os.Bundle;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.PopupMenu;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 
@@ -45,6 +48,8 @@ public class GameActivity extends Activity {
     private TextView playerTwoName;
     private TextView playerOneSub;
     private TextView playerTwoSub;
+    private ImageView playerOneCheckerIcon;
+    private ImageView playerTwoCheckerIcon;
     private View playerOnePanel;
     private View playerTwoPanel;
     private Button mainActionButton;
@@ -87,6 +92,8 @@ public class GameActivity extends Activity {
         playerTwoName = findViewById(R.id.playerTwoName);
         playerOneSub = findViewById(R.id.playerOneSub);
         playerTwoSub = findViewById(R.id.playerTwoSub);
+        playerOneCheckerIcon = findViewById(R.id.playerOneCheckerIcon);
+        playerTwoCheckerIcon = findViewById(R.id.playerTwoCheckerIcon);
         playerOnePanel = findViewById(R.id.playerOnePanel);
         playerTwoPanel = findViewById(R.id.playerTwoPanel);
         mainActionButton = findViewById(R.id.mainActionButton);
@@ -98,6 +105,7 @@ public class GameActivity extends Activity {
         loadout = CosmeticCatalog.defaultLoadout();
         restoreVisualPreferences();
         boardView.setLoadout(loadout);
+        updatePlayerCheckerIcons();
         boardView.setSwapCheckerColors((playerOneSide == BackgammonGame.WHITE) ^ playerOneLight);
         boardView.setOnGameChangedListener(this::refreshUi);
 
@@ -270,7 +278,7 @@ public class GameActivity extends Activity {
                 return true;
             }
             if (title.equals("About Backgammon Legacy")) {
-                statusTitle.setText("Backgammon Legacy v1.3.0 • Main Menu");
+                statusTitle.setText("Backgammon Legacy v1.4.1 • Premium Rebuild");
                 boardView.postDelayed(this::refreshUi, 1400);
                 return true;
             }
@@ -294,6 +302,25 @@ public class GameActivity extends Activity {
         }
     }
 
+
+    private void updatePlayerCheckerIcons() {
+        if (loadout == null || loadout.checkers == null) return;
+        String p1 = playerOneLight ? loadout.checkers.lightAsset : loadout.checkers.darkAsset;
+        String p2 = playerOneLight ? loadout.checkers.darkAsset : loadout.checkers.lightAsset;
+        setAssetImage(playerOneCheckerIcon, p1);
+        setAssetImage(playerTwoCheckerIcon, p2);
+    }
+
+    private void setAssetImage(ImageView view, String relativeAssetPath) {
+        if (view == null || relativeAssetPath == null) return;
+        try (java.io.InputStream in = getAssets().open("cosmetics/" + relativeAssetPath)) {
+            Bitmap bitmap = BitmapFactory.decodeStream(in);
+            view.setImageBitmap(bitmap);
+        } catch (Exception ignored) {
+            view.setImageDrawable(null);
+        }
+    }
+
     private void resetGame() {
         playerOneScore = 0;
         playerTwoScore = 0;
@@ -314,6 +341,7 @@ public class GameActivity extends Activity {
         if (prefs != null && loadout != null && boardView != null) {
             restoreVisualPreferences();
             boardView.setLoadout(loadout);
+            updatePlayerCheckerIcons();
             boardView.setSwapCheckerColors((playerOneSide == BackgammonGame.WHITE) ^ playerOneLight);
             refreshUi();
         }

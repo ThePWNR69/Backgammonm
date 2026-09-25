@@ -104,7 +104,7 @@ public class MatchSetupActivity extends Activity {
                 "Player 2 automatically travels in the opposite direction.\n\n" +
                 "Your checker colour is visual only and does not change movement rules.\n\n" +
                 "Opening roll: each side rolls one die; ties reroll; the higher die starts using both opening dice.\n\n" +
-                "Mahbouseh and Tawle 31 are visible here so the setup structure is ready, but v1.3.0 only enables the standard Backgammon / Sheish Beish ruleset.",
+                "Mahbouseh and Tawle 31 are visible here so the setup structure is ready, but v1.4.1 only enables the standard Backgammon / Sheish Beish ruleset.",
                 11, false);
         summary.setTextColor(Color.rgb(194, 184, 157));
         summary.setGravity(Gravity.CENTER_VERTICAL);

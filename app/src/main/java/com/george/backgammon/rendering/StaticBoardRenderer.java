@@ -25,7 +25,7 @@ final class StaticBoardRenderer {
         Bitmap fullBoard = textures.get(theme.boardAsset);
         if (isValidProductionBoard(fullBoard)) {
             // Board art is a replaceable skin under one permanent invisible BoardMap.
-            // Every production board is authored to the same 1860x1000 template, so its 24
+            // Every production board is authored to the same 2048x992 template, so its 24
             // visual points remain pixel-aligned with checker anchors, hitboxes and animations.
             RectF outer = new RectF(g.outerLeft, g.outerTop, g.outerRight, g.outerBottom);
             c.drawBitmap(fullBoard, null, outer, paint);

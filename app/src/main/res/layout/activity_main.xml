@@ -4,159 +4,210 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingLeft="8dp"
-    android:paddingTop="5dp"
+    android:paddingTop="6dp"
     android:paddingRight="8dp"
-    android:paddingBottom="5dp"
-    android:background="@drawable/tabletop">
+    android:paddingBottom="6dp"
+    android:background="@drawable/tabletop"
+    android:weightSum="10">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="0dp"
+        android:layout_weight="1.15"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:baselineAligned="false">
+        android:baselineAligned="false"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp">
 
         <LinearLayout
             android:id="@+id/playerOnePanel"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
+            android:layout_weight="1.05"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingLeft="12dp"
-            android:paddingRight="10dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="12dp"
             android:background="@drawable/bg_panel_active">
 
-            <TextView
-                android:id="@+id/playerOneName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="You"
-                android:textColor="@color/text_primary"
-                android:textSize="15.5sp"
-                android:textStyle="bold"
-                android:fontFamily="serif" />
+            <ImageView
+                android:id="@+id/playerOneCheckerIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginRight="10dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="Player 1 checker" />
 
-            <TextView
-                android:id="@+id/playerOneSub"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="IVORY • OFF 0 • BAR 0"
-                android:textColor="@color/text_secondary"
-                android:textSize="8.8sp"
-                android:letterSpacing="0.04" />
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/playerOneName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="You"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:fontFamily="serif" />
+
+                <TextView
+                    android:id="@+id/playerOneSub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="LIGHT • OFF 0 • BAR 0"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="9.5sp"
+                    android:letterSpacing="0.045" />
+            </LinearLayout>
         </LinearLayout>
 
-        <Space android:layout_width="6dp" android:layout_height="1dp" />
+        <Space android:layout_width="8dp" android:layout_height="1dp" />
 
         <TextView
             android:id="@+id/statusTitle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.72"
+            android:layout_weight="0.82"
             android:gravity="center"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:background="@drawable/bg_status"
-            android:text="Player 1 • Roll"
+            android:text="Roll to Decide First"
             android:textColor="@color/text_primary"
-            android:textSize="14sp"
+            android:textSize="17sp"
             android:textStyle="bold"
             android:fontFamily="serif"
             android:maxLines="1"
             android:ellipsize="end" />
 
-        <Space android:layout_width="6dp" android:layout_height="1dp" />
+        <Space android:layout_width="8dp" android:layout_height="1dp" />
 
         <LinearLayout
             android:id="@+id/playerTwoPanel"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
+            android:layout_weight="1.05"
+            android:orientation="horizontal"
             android:gravity="center_vertical|right"
-            android:paddingLeft="10dp"
-            android:paddingRight="12dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="10dp"
             android:background="@drawable/bg_panel">
 
-            <TextView
-                android:id="@+id/playerTwoName"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="AI"
-                android:textColor="@color/text_primary"
-                android:textSize="15.5sp"
-                android:textStyle="bold"
-                android:fontFamily="serif" />
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="right|center_vertical">
 
-            <TextView
-                android:id="@+id/playerTwoSub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WALNUT • OFF 0 • BAR 0"
-                android:textColor="@color/text_secondary"
-                android:textSize="8.8sp"
-                android:letterSpacing="0.04" />
+                <TextView
+                    android:id="@+id/playerTwoName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:fontFamily="serif" />
+
+                <TextView
+                    android:id="@+id/playerTwoSub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="DARK • OFF 0 • BAR 0"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="9.5sp"
+                    android:letterSpacing="0.045" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/playerTwoCheckerIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginLeft="10dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="Player 2 checker" />
         </LinearLayout>
     </LinearLayout>
 
-    <Space android:layout_width="1dp" android:layout_height="3dp" />
-
-    <com.george.backgammon.rendering.BackgammonBoardView
-        android:id="@+id/boardView"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:contentDescription="Backgammon board" />
+        android:layout_weight="7.45"
+        android:foregroundGravity="center">
 
-    <Space android:layout_width="1dp" android:layout_height="3dp" />
+        <com.george.backgammon.rendering.BackgammonBoardView
+            android:id="@+id/boardView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:contentDescription="Backgammon board" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="0dp"
+        android:layout_weight="1.40"
         android:orientation="horizontal"
         android:gravity="center"
-        android:baselineAligned="false">
+        android:baselineAligned="false"
+        android:paddingTop="3dp"
+        android:paddingBottom="1dp">
+
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1.15" />
 
         <Button
             android:id="@+id/undoButton"
-            android:layout_width="64dp"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="0.50"
             android:background="@drawable/button_dark"
             android:text="↶\nUndo"
             android:textAllCaps="false"
             android:textColor="@color/button_text"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:fontFamily="serif"
             android:stateListAnimator="@null" />
 
-        <Space android:layout_width="8dp" android:layout_height="1dp" />
+        <Space android:layout_width="9dp" android:layout_height="1dp" />
 
         <Button
             android:id="@+id/mainActionButton"
-            android:layout_width="220dp"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="1.35"
             android:background="@drawable/button_green"
-            android:text="⚄  Roll Dice"
+            android:text="⚄  Opening Roll"
             android:textAllCaps="false"
             android:textColor="@color/button_text"
-            android:textSize="16.5sp"
+            android:textSize="19sp"
             android:textStyle="bold"
             android:fontFamily="serif"
             android:stateListAnimator="@null" />
 
-        <Space android:layout_width="8dp" android:layout_height="1dp" />
+        <Space android:layout_width="9dp" android:layout_height="1dp" />
 
         <Button
             android:id="@+id/menuButton"
-            android:layout_width="64dp"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="0.50"
             android:background="@drawable/button_dark"
             android:text="☰"
             android:textAllCaps="false"
             android:textColor="@color/button_text"
-            android:textSize="22sp"
+            android:textSize="26sp"
             android:fontFamily="sans"
             android:stateListAnimator="@null" />
+
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1.15" />
     </LinearLayout>
 </LinearLayout>
