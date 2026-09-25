@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.4.2)
+# Backgammon Legacy — locked production standards (v1.4.3)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 

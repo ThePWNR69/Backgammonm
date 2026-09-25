@@ -327,7 +327,7 @@ public class BackgammonBoardView extends View {
         if (value == 0) return;
         boolean topPoint = point >= 13;
         int visualIndex = topPoint ? point - 13 : 12 - point;
-        float cx = columnX(visualIndex) + colWidth / 2f;
+        float cx = columnX(visualIndex) + geometry.columnWidth(visualIndex) / 2f;
         float r = checkerRadius();
         int count = Math.abs(value);
         int visible = Math.min(count, 5);
@@ -1165,7 +1165,7 @@ public class BackgammonBoardView extends View {
         paint.setStrokeWidth(Math.max(1.5f, r * 0.045f));
         paint.setColor(0xB85AC8FF);
         for (int point = 1; point <= 24; point++) {
-            float[] center = geometry.landingCenter(point, 0);
+            float[] center = geometry.pointVisualCenter(point);
             c.drawCircle(center[0], center[1], r, paint);
             paint.setStyle(Paint.Style.FILL);
             paint.setTextAlign(Paint.Align.CENTER);

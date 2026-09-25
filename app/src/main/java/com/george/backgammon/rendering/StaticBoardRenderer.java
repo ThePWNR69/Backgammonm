@@ -28,6 +28,17 @@ final class StaticBoardRenderer {
             // Every production board is authored to the same 2048x977 template, so its 24
             // visual points remain pixel-aligned with checker anchors, hitboxes and animations.
             RectF outer = new RectF(g.outerLeft, g.outerTop, g.outerRight, g.outerBottom);
+
+            // Ground the board into the tabletop instead of letting the artwork read as a
+            // rectangular image pasted on top.  This shadow is baked into the static cache,
+            // so it has zero per-frame animation cost.
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(0x52000000);
+            paint.setShadowLayer(Math.max(10f, g.frame * 0.72f), 0f, Math.max(3f, g.frame * 0.18f), 0xB0000000);
+            c.drawRoundRect(new RectF(outer.left + 4f, outer.top + 3f, outer.right - 4f, outer.bottom - 2f),
+                    Math.max(18f, g.frame * 0.52f), Math.max(18f, g.frame * 0.52f), paint);
+            paint.clearShadowLayer();
+            paint.setColor(Color.WHITE);
             c.drawBitmap(fullBoard, null, outer, paint);
             return;
         }
@@ -114,7 +125,7 @@ final class StaticBoardRenderer {
         }
         for (int i = 0; i < 12; i++) {
             float x0 = g.columnX(i);
-            float x1 = x0 + g.colWidth;
+            float x1 = x0 + g.columnWidth(i);
             boolean even = (i % 2 == 0);
             drawTriangle(c, g, x0, x1, g.fieldTop, true, even ? theme.lightPoint : theme.darkPoint, theme);
             drawTriangle(c, g, x0, x1, g.fieldBottom, false, even ? theme.darkPoint : theme.lightPoint, theme);
