@@ -124,25 +124,27 @@ final class StaticBoardRenderer {
             return;
         }
         for (int i = 0; i < 12; i++) {
-            float x0 = g.columnX(i);
-            float x1 = x0 + g.columnWidth(i);
             boolean even = (i % 2 == 0);
-            drawTriangle(c, g, x0, x1, g.fieldTop, true, even ? theme.lightPoint : theme.darkPoint, theme);
-            drawTriangle(c, g, x0, x1, g.fieldBottom, false, even ? theme.darkPoint : theme.lightPoint, theme);
+            int topPoint = 13 + i;
+            int bottomPoint = 12 - i;
+            drawTriangleExact(c, g, topPoint, even ? theme.lightPoint : theme.darkPoint);
+            drawTriangleExact(c, g, bottomPoint, even ? theme.darkPoint : theme.lightPoint);
         }
     }
 
-    private void drawTriangle(Canvas c, BoardGeometry g, float x0, float x1, float edgeY,
-                              boolean down, int baseColor, BoardTheme theme) {
-        float tipY = edgeY + (down ? g.triangleHeight : -g.triangleHeight);
+    private void drawTriangleExact(Canvas c, BoardGeometry g, int point, int baseColor) {
+        float[] left = g.pointBaseLeft(point);
+        float[] right = g.pointBaseRight(point);
+        float[] apex = g.pointApex(point);
         Path path = new Path();
-        path.moveTo(x0 + 1f, edgeY);
-        path.lineTo(x1 - 1f, edgeY);
-        path.lineTo((x0 + x1) / 2f, tipY);
+        path.moveTo(left[0], left[1]);
+        path.lineTo(right[0], right[1]);
+        path.lineTo(apex[0], apex[1]);
         path.close();
         int lighter = lighten(baseColor, .13f);
         int darker = darken(baseColor, .18f);
-        paint.setShader(new LinearGradient(0, edgeY, 0, tipY,
+        boolean down = point >= 13;
+        paint.setShader(new LinearGradient(0, left[1], 0, apex[1],
                 down ? lighter : darker, down ? darker : lighter, Shader.TileMode.CLAMP));
         paint.setStyle(Paint.Style.FILL);
         c.drawPath(path, paint);

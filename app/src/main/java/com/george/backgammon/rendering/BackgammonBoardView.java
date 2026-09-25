@@ -325,22 +325,21 @@ public class BackgammonBoardView extends View {
 
     private void drawCheckersAtPoint(Canvas c, int point, int value) {
         if (value == 0) return;
-        boolean topPoint = point >= 13;
-        int visualIndex = topPoint ? point - 13 : 12 - point;
-        float cx = columnX(visualIndex) + geometry.columnWidth(visualIndex) / 2f;
         float r = checkerRadius();
         int count = Math.abs(value);
         int visible = Math.min(count, 5);
-        float spacing = checkerSpacing(r);
 
+        // v1.4.4: do not use one fixed column X.  Every checker slot asks BoardGeometry
+        // for the midpoint between the actual painted triangle edges at that slot's Y.
+        // This keeps a stack visually centred even when the triangle leans a few pixels.
         for (int i = 0; i < visible; i++) {
-            float cy = topPoint ? fieldTop + r + i * spacing : fieldBottom - r - i * spacing;
+            float[] center = landingCenter(point, i);
             boolean selected = !animating && selectedFrom == point && i == visible - 1;
-            drawChecker(c, cx, cy, r, value > 0, selected, 1f);
+            drawChecker(c, center[0], center[1], r, value > 0, selected, 1f);
         }
         if (count > 5) {
-            float cy = topPoint ? fieldTop + r + 4 * spacing : fieldBottom - r - 4 * spacing;
-            drawStackBadge(c, cx, cy, r, count, value > 0);
+            float[] center = landingCenter(point, 4);
+            drawStackBadge(c, center[0], center[1], r, count, value > 0);
         }
     }
 
@@ -1161,24 +1160,42 @@ public class BackgammonBoardView extends View {
     private void drawBoardMapOverlay(Canvas c) {
         float r = checkerRadius();
         paint.setShader(null);
-        paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(Math.max(1.5f, r * 0.045f));
-        paint.setColor(0xB85AC8FF);
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        paint.setTextSize(Math.max(9f, r * 0.40f));
+
         for (int point = 1; point <= 24; point++) {
+            float[] baseL = geometry.pointBaseLeft(point);
+            float[] baseR = geometry.pointBaseRight(point);
+            float[] baseC = geometry.pointBaseCenter(point);
+            float[] apex = geometry.pointApex(point);
             float[] center = geometry.pointVisualCenter(point);
-            c.drawCircle(center[0], center[1], r, paint);
+
+            // Cyan centreline is the exact midpoint path from triangle base to apex.
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(1.8f, r * 0.05f));
+            paint.setColor(0xDC43E8FF);
+            c.drawLine(baseC[0], baseC[1], apex[0], apex[1], paint);
+
+            // Faint triangle-edge guides make it obvious that checker centres are halfway
+            // between the two edges rather than based on an unrelated column grid.
+            paint.setStrokeWidth(Math.max(1f, r * 0.026f));
+            paint.setColor(0x775AC8FF);
+            c.drawLine(baseL[0], baseL[1], apex[0], apex[1], paint);
+            c.drawLine(baseR[0], baseR[1], apex[0], apex[1], paint);
+
+            paint.setStrokeWidth(Math.max(1.5f, r * 0.042f));
+            paint.setColor(0xB85AC8FF);
+            c.drawCircle(center[0], center[1], r * 0.72f, paint);
             paint.setStyle(Paint.Style.FILL);
-            paint.setTextAlign(Paint.Align.CENTER);
-            paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-            paint.setTextSize(Math.max(9f, r * 0.42f));
             paint.setColor(0xEFFFFFFF);
             c.drawText(String.valueOf(point), center[0], center[1] + paint.getTextSize() * 0.34f, paint);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(0xB85AC8FF);
         }
+
+        paint.setStyle(Paint.Style.STROKE);
         paint.setColor(0xB8FFD56A);
         paint.setStrokeWidth(Math.max(2f, r * 0.055f));
-        c.drawRect(fieldLeft, fieldTop, fieldRight, fieldBottom, paint);
         c.drawRect(barLeft, fieldTop, barRight, fieldBottom, paint);
         c.drawRect(offLeft, fieldTop, offRight, fieldBottom, paint);
     }

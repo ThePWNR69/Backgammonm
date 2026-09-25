@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.4.3)
+# Backgammon Legacy — locked production standards (v1.4.4)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 
@@ -33,11 +33,11 @@ Only materials, colours, ornamentation and lighting may change.
 Runtime protection: `StaticBoardRenderer` accepts a production board only when it matches the master dimensions exactly. An invalid board falls back to the debug renderer rather than silently misaligning gameplay.
 
 ### Canonical pixel regions
-- Field: x **238–1835**, y **54–913**
+- Field envelope: x **236–1840**, y **58–916**
 - Left tray: x **78–219**
 - Right tray: x **1849–1976**
-- Bar: x **990–1081**
-- Point height: **382 px**
+- Bar: x **996–1085**
+- Point height: measured per triangle from its base to its apex (approximately **358–392 px**)
 
 ## 3. Layering
 
@@ -102,3 +102,7 @@ The approved premium gameplay reference is the production target for Classic Wal
 ## 10. GitHub browser upload limit
 
 The distributable source package must remain below **100 files**. Reuse assets and render previews from production assets rather than adding duplicate preview files.
+
+## Triangle-centred checker placement
+
+Checker X positions are **not** a generic column centre. Each production point has measured base-left, base-right and apex coordinates. At every checker slot Y, the renderer interpolates both sloping triangle edges and places the checker at their exact midpoint. The same rule applies to landing previews, move indicators and animation endpoints. Future board artwork must preserve these triangle vertices.
