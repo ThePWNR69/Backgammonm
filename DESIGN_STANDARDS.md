@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.4.1)
+# Backgammon Legacy — locked production standards (v1.4.2)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 
@@ -18,7 +18,7 @@ Board artwork never supplies gameplay coordinates.
 
 ## 2. Master board artwork
 
-Production board size: **2048 × 992 px** (aspect ~**2.0645:1**).
+Production board size: **2048 × 977 px** (aspect ~**2.096:1**).
 
 Every board image must retain the same:
 - 24 triangle positions
@@ -33,11 +33,11 @@ Only materials, colours, ornamentation and lighting may change.
 Runtime protection: `StaticBoardRenderer` accepts a production board only when it matches the master dimensions exactly. An invalid board falls back to the debug renderer rather than silently misaligning gameplay.
 
 ### Canonical pixel regions
-- Field: x **250–1798**, y **108–884**
-- Left tray: x **95–220**
-- Right tray: x **1828–1953**
-- Bar: x **999–1049**
-- Point height: **370 px**
+- Field: x **238–1835**, y **54–913**
+- Left tray: x **78–219**
+- Right tray: x **1849–1976**
+- Bar: x **990–1081**
+- Point height: **382 px**
 
 ## 3. Layering
 
@@ -84,7 +84,7 @@ The approved premium gameplay reference is the production target for Classic Wal
 
 ## 8. New board workflow
 
-1. Start from the 2048×992 canonical template/regions above.
+1. Start from the 2048×977 canonical template/regions above.
 2. Never move any gameplay geometry.
 3. Redesign only the materials/art treatment.
 4. Export to `app/src/main/assets/cosmetics/boards/<id>/board.webp`.

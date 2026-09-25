@@ -278,7 +278,7 @@ public class GameActivity extends Activity {
                 return true;
             }
             if (title.equals("About Backgammon Legacy")) {
-                statusTitle.setText("Backgammon Legacy v1.4.1 • Premium Rebuild");
+                statusTitle.setText("Backgammon Legacy v1.4.2 • Reference Match");
                 boardView.postDelayed(this::refreshUi, 1400);
                 return true;
             }

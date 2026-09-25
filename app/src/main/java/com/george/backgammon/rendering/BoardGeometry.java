@@ -56,12 +56,12 @@ final class BoardGeometry {
 
     float checkerRadius() {
         // Five visible checker positions end at approximately the point tip.
-        return Math.min(colWidth * 0.39f, triangleHeight * 0.145f);
+        return Math.min(colWidth * 0.34f, triangleHeight * 0.112f);
     }
 
     float checkerSpacing(float r) {
         float fitFiveToTip = Math.max(r * 0.92f, (triangleHeight - 2f * r) / 4f);
-        return Math.min(r * 1.72f, fitFiveToTip);
+        return Math.min(r * 1.55f, fitFiveToTip);
     }
 
     float[] landingCenter(int point, int existingCount) {
