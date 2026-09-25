@@ -46,8 +46,8 @@ public class GameActivity extends Activity {
     private TextView statusTitle;
     private TextView playerOneName;
     private TextView playerTwoName;
-    private TextView playerOneSub;
-    private TextView playerTwoSub;
+    private TextView playerOneScoreText;
+    private TextView playerTwoScoreText;
     private ImageView playerOneCheckerIcon;
     private ImageView playerTwoCheckerIcon;
     private View playerOnePanel;
@@ -90,8 +90,8 @@ public class GameActivity extends Activity {
         statusTitle = findViewById(R.id.statusTitle);
         playerOneName = findViewById(R.id.playerOneName);
         playerTwoName = findViewById(R.id.playerTwoName);
-        playerOneSub = findViewById(R.id.playerOneSub);
-        playerTwoSub = findViewById(R.id.playerTwoSub);
+        playerOneScoreText = findViewById(R.id.playerOneScore);
+        playerTwoScoreText = findViewById(R.id.playerTwoScore);
         playerOneCheckerIcon = findViewById(R.id.playerOneCheckerIcon);
         playerTwoCheckerIcon = findViewById(R.id.playerTwoCheckerIcon);
         playerOnePanel = findViewById(R.id.playerOnePanel);
@@ -278,7 +278,7 @@ public class GameActivity extends Activity {
                 return true;
             }
             if (title.equals("About Backgammon Legacy")) {
-                statusTitle.setText("Backgammon Legacy v1.4.4 • Triangle Alignment");
+                statusTitle.setText("Backgammon Legacy v1.5.0 • Premium UI");
                 boardView.postDelayed(this::refreshUi, 1400);
                 return true;
             }
@@ -385,8 +385,8 @@ public class GameActivity extends Activity {
             boolean matchOver = playerOneScore >= matchTarget || playerTwoScore >= matchTarget;
             String name = displayName(winner);
             statusTitle.setText(matchOver
-                    ? name + " Wins Match • " + playerOneScore + "–" + playerTwoScore
-                    : name + " Wins Game • " + playerOneScore + "–" + playerTwoScore);
+                    ? name + " Wins Match"
+                    : name + " Wins Game");
             mainActionButton.setText(matchOver ? "Match Over" : "Next Game");
             mainActionButton.setBackgroundResource(matchOver ? R.drawable.button_dark : R.drawable.button_green);
             mainActionButton.setEnabled(!matchOver);
@@ -476,14 +476,8 @@ public class GameActivity extends Activity {
         playerOnePanel.setBackgroundResource(p1Active ? R.drawable.bg_panel_active : R.drawable.bg_panel);
         playerTwoPanel.setBackgroundResource(p2Active ? R.drawable.bg_panel_active : R.drawable.bg_panel);
 
-        String p1Colour = playerOneLight ? "LIGHT" : "DARK";
-        String p2Colour = playerOneLight ? "DARK" : "LIGHT";
-        String p1Dir = playerOneSide == BackgammonGame.WHITE ? "↺" : "↻";
-        String p2Dir = playerOneSide == BackgammonGame.WHITE ? "↻" : "↺";
-        String score1 = matchTarget > 1 ? "  •  SCORE " + playerOneScore : "";
-        String score2 = matchTarget > 1 ? "  •  SCORE " + playerTwoScore : "";
-        playerOneSub.setText(p1Colour + " " + p1Dir + score1 + "  •  OFF " + offFor(playerOneSide) + "  •  BAR " + barFor(playerOneSide));
-        playerTwoSub.setText(p2Colour + " " + p2Dir + score2 + "  •  OFF " + offFor(-playerOneSide) + "  •  BAR " + barFor(-playerOneSide));
+        playerOneScoreText.setText(String.valueOf(playerOneScore));
+        playerTwoScoreText.setText(String.valueOf(playerTwoScore));
     }
 
     private int offFor(int player) {

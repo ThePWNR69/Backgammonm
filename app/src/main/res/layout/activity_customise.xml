@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="14dp"
-    android:background="@drawable/screen_green_background">
+    android:background="@drawable/tabletop">
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
         <ImageButton android:id="@+id/backButton" android:layout_width="46dp" android:layout_height="42dp" android:padding="10dp" android:src="@drawable/ic_back" android:background="@drawable/premium_small_button" android:contentDescription="Back" />
@@ -28,17 +28,17 @@
             <LinearLayout android:id="@+id/boardCard0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <com.george.backgammon.rendering.CosmeticPreviewView android:id="@+id/boardPreview0" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:contentDescription="Classic Walnut preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Classic Walnut" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/boardState0" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/boardState0" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
             <LinearLayout android:id="@+id/boardCard1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <com.george.backgammon.rendering.CosmeticPreviewView android:id="@+id/boardPreview1" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:contentDescription="Aegean Marble preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Aegean Marble" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/boardState1" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/boardState1" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
             <LinearLayout android:id="@+id/boardCard2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <com.george.backgammon.rendering.CosmeticPreviewView android:id="@+id/boardPreview2" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:contentDescription="Midnight Teal preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Midnight Teal" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/boardState2" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/boardState2" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
@@ -46,17 +46,17 @@
             <LinearLayout android:id="@+id/checkerCard0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <com.george.backgammon.rendering.CosmeticPreviewView android:id="@+id/checkerPreview0" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:contentDescription="Ivory and Walnut preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Ivory &amp; Walnut" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/checkerState0" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/checkerState0" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
             <LinearLayout android:id="@+id/checkerCard1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <com.george.backgammon.rendering.CosmeticPreviewView android:id="@+id/checkerPreview1" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:contentDescription="Marble and Bronze preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Marble &amp; Bronze" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/checkerState1" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/checkerState1" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
             <LinearLayout android:id="@+id/checkerCard2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <com.george.backgammon.rendering.CosmeticPreviewView android:id="@+id/checkerPreview2" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:contentDescription="Obsidian and Gold preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Obsidian &amp; Gold" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/checkerState2" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/checkerState2" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
@@ -64,20 +64,20 @@
             <LinearLayout android:id="@+id/animationCard0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="↝" android:textColor="#EFD59A" android:textSize="38sp" android:background="@drawable/bg_panel" android:contentDescription="Smooth Slide preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Smooth Slide" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/animationState0" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/animationState0" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
             <LinearLayout android:id="@+id/animationCard1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="⚡" android:textColor="#EFD59A" android:textSize="34sp" android:background="@drawable/bg_panel" android:contentDescription="Fast Snap preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Fast Snap" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/animationState1" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/animationState1" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
             <LinearLayout android:id="@+id/animationCard2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card" android:clickable="true">
                 <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="◉" android:textColor="#EFD59A" android:textSize="38sp" android:background="@drawable/bg_panel" android:contentDescription="Roll and Fall preview" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:gravity="center" android:text="Roll &amp; Fall" android:textColor="#FFF0D2" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-                <TextView android:id="@+id/animationState2" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#EBC56E" android:textSize="9sp" android:textStyle="bold" />
+                <TextView android:id="@+id/animationState2" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="" android:textColor="#E7C16E" android:textSize="9sp" android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 
-    <TextView android:layout_width="match_parent" android:layout_height="32dp" android:gravity="center" android:text="Tap a card to equip it instantly" android:textColor="#6E8E7F" android:textSize="8.5sp" android:letterSpacing="0.08" />
+    <TextView android:layout_width="match_parent" android:layout_height="32dp" android:gravity="center" android:text="Tap a card to equip it instantly" android:textColor="#998A6D" android:textSize="8.5sp" android:letterSpacing="0.08" />
 </LinearLayout>

@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="14dp"
-    android:background="@drawable/screen_green_background">
+    android:background="@drawable/tabletop">
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
         <ImageButton android:id="@+id/backButton" android:layout_width="46dp" android:layout_height="42dp" android:padding="10dp" android:src="@drawable/ic_back" android:background="@drawable/premium_small_button" android:contentDescription="Back" />
@@ -19,14 +19,14 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="42dp" android:layout_marginTop="6dp" android:orientation="horizontal" android:gravity="center">
         <TextView android:layout_width="125dp" android:layout_height="38dp" android:gravity="center" android:text="Boards" android:textColor="#F8E5B5" android:textSize="13sp" android:textStyle="bold" android:background="@drawable/premium_tab_selected" />
         <Space android:layout_width="8dp" android:layout_height="1dp" />
-        <TextView android:layout_width="125dp" android:layout_height="38dp" android:gravity="center" android:text="Checkers" android:textColor="#AFA081" android:textSize="13sp" android:background="@drawable/premium_tab" />
+        <TextView android:layout_width="125dp" android:layout_height="38dp" android:gravity="center" android:text="Checkers" android:textColor="#B9AA8C" android:textSize="13sp" android:background="@drawable/premium_tab" />
         <Space android:layout_width="8dp" android:layout_height="1dp" />
-        <TextView android:layout_width="125dp" android:layout_height="38dp" android:gravity="center" android:text="Animations" android:textColor="#AFA081" android:textSize="13sp" android:background="@drawable/premium_tab" />
+        <TextView android:layout_width="125dp" android:layout_height="38dp" android:gravity="center" android:text="Animations" android:textColor="#B9AA8C" android:textSize="13sp" android:background="@drawable/premium_tab" />
         <Space android:layout_width="8dp" android:layout_height="1dp" />
-        <TextView android:layout_width="125dp" android:layout_height="38dp" android:gravity="center" android:text="Bundles" android:textColor="#AFA081" android:textSize="13sp" android:background="@drawable/premium_tab" />
+        <TextView android:layout_width="125dp" android:layout_height="38dp" android:gravity="center" android:text="Bundles" android:textColor="#B9AA8C" android:textSize="13sp" android:background="@drawable/premium_tab" />
     </LinearLayout>
 
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:gravity="center" android:text="A preview of the future cosmetic store — purchasing will be added with progression" android:textColor="#789989" android:textSize="9sp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:gravity="center" android:text="A preview of the future cosmetic store — purchasing will be added with progression" android:textColor="#B6A886" android:textSize="9sp" />
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:gravity="center" android:baselineAligned="false" android:layout_marginTop="10dp">
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="5dp" android:padding="8dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/premium_card">
@@ -55,5 +55,5 @@
         </LinearLayout>
     </LinearLayout>
 
-    <TextView android:layout_width="match_parent" android:layout_height="34dp" android:gravity="center" android:text="More collections, boss sets and limited cosmetics will appear here" android:textColor="#607D70" android:textSize="8.5sp" android:letterSpacing="0.04" />
+    <TextView android:layout_width="match_parent" android:layout_height="34dp" android:gravity="center" android:text="More collections, boss sets and limited cosmetics will appear here" android:textColor="#8F8268" android:textSize="8.5sp" android:letterSpacing="0.04" />
 </LinearLayout>

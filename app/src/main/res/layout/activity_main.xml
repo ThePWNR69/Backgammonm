@@ -28,44 +28,46 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingLeft="10dp"
-            android:paddingRight="12dp"
+            android:paddingRight="10dp"
             android:background="@drawable/bg_panel_active">
 
             <ImageView
                 android:id="@+id/playerOneCheckerIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_marginRight="10dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="Player 1 checker" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/playerOneName"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:text="You"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:fontFamily="serif" />
 
-                <TextView
-                    android:id="@+id/playerOneName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="You"
-                    android:textColor="@color/text_primary"
-                    android:textSize="17sp"
-                    android:textStyle="bold"
-                    android:fontFamily="serif" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="26dp"
+                android:layout_marginRight="10dp"
+                android:background="#7A9C7745" />
 
-                <TextView
-                    android:id="@+id/playerOneSub"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="0dp"
-                    android:text="LIGHT • OFF 0 • BAR 0"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="8.5sp"
-                    android:letterSpacing="0.045" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/playerOneScore"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:gravity="center"
+                android:text="0"
+                android:textColor="#FFEAC0"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:fontFamily="serif"
+                android:background="@drawable/profile_avatar_bg" />
         </LinearLayout>
 
         <Space android:layout_width="8dp" android:layout_height="1dp" />
@@ -95,43 +97,45 @@
             android:layout_height="match_parent"
             android:layout_weight="1.05"
             android:orientation="horizontal"
-            android:gravity="center_vertical|right"
-            android:paddingLeft="12dp"
+            android:gravity="center_vertical"
+            android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:background="@drawable/bg_panel">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/playerTwoScore"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:gravity="center"
+                android:text="0"
+                android:textColor="#FFEAC0"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:fontFamily="serif"
+                android:background="@drawable/profile_avatar_bg" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="26dp"
+                android:layout_marginLeft="10dp"
+                android:background="#7A9C7745" />
+
+            <TextView
+                android:id="@+id/playerTwoName"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="right|center_vertical">
-
-                <TextView
-                    android:id="@+id/playerTwoName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="AI"
-                    android:textColor="@color/text_primary"
-                    android:textSize="17sp"
-                    android:textStyle="bold"
-                    android:fontFamily="serif" />
-
-                <TextView
-                    android:id="@+id/playerTwoSub"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="0dp"
-                    android:text="DARK • OFF 0 • BAR 0"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="8.5sp"
-                    android:letterSpacing="0.045" />
-            </LinearLayout>
+                android:gravity="center_vertical|right"
+                android:text="AI"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:fontFamily="serif" />
 
             <ImageView
                 android:id="@+id/playerTwoCheckerIcon"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_marginLeft="10dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="Player 2 checker" />
@@ -170,10 +174,10 @@
             android:layout_height="match_parent"
             android:layout_weight="0.50"
             android:background="@drawable/button_dark"
-            android:text="↶\nUndo"
+            android:text="↶  Undo"
             android:textAllCaps="false"
             android:textColor="@color/button_text"
-            android:textSize="12sp"
+            android:textSize="12.5sp"
             android:fontFamily="serif"
             android:stateListAnimator="@null" />
 

@@ -2,15 +2,15 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/home_background">
+    android:background="@drawable/tabletop">
 
     <ImageButton
         android:id="@+id/settingsButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_gravity="top|start"
-        android:layout_margin="10dp"
-        android:padding="8dp"
+        android:layout_margin="12dp"
+        android:padding="9dp"
         android:src="@drawable/ic_settings"
         android:background="@drawable/premium_small_button"
         android:contentDescription="Customise" />
@@ -18,9 +18,9 @@
     <LinearLayout
         android:id="@+id/coinChip"
         android:layout_width="wrap_content"
-        android:layout_height="36dp"
+        android:layout_height="38dp"
         android:layout_gravity="top|end"
-        android:layout_margin="10dp"
+        android:layout_margin="12dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingLeft="8dp"
@@ -30,7 +30,7 @@
         android:focusable="true">
         <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_coin" android:contentDescription="Coins" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="5dp" android:text="0" android:textColor="#F7E5BD" android:textSize="13sp" android:textStyle="bold" android:fontFamily="serif" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="7dp" android:text="＋" android:textColor="#71C6A2" android:textSize="16sp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="7dp" android:text="＋" android:textColor="#7ED2AD" android:textSize="16sp" android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -40,128 +40,88 @@
         android:layout_marginLeft="54dp"
         android:orientation="vertical"
         android:gravity="center_horizontal|center_vertical"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp">
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
 
         <ImageView
-            android:layout_width="42dp"
-            android:layout_height="42dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:src="@drawable/brand_mark"
             android:contentDescription="Backgammon Legacy emblem" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-3dp"
+            android:layout_marginTop="-2dp"
             android:text="@string/brand_title"
             android:textColor="#F8E5B5"
-            android:textSize="31sp"
+            android:textSize="29sp"
             android:textStyle="bold"
             android:fontFamily="serif"
-            android:letterSpacing="0.04"
-            android:shadowColor="#B0000000"
-            android:shadowDx="0"
+            android:letterSpacing="0.045"
+            android:shadowColor="#CC000000"
             android:shadowDy="3"
             android:shadowRadius="8" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-3dp"
-            android:text="@string/brand_subtitle"
-            android:textColor="#D7B56D"
-            android:textSize="8sp"
-            android:textStyle="bold"
-            android:fontFamily="serif"
-            android:letterSpacing="0.22"
-            android:shadowColor="#99000000"
-            android:shadowDx="0"
-            android:shadowDy="2"
-            android:shadowRadius="4" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="26dp"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="-2dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚄  ⚂" android:textColor="#F7E8C5" android:textSize="20sp" android:fontFamily="serif" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:text="TRADITION MEETS STRATEGY"
-            android:textColor="#D9C394"
+            android:textColor="#D7BC82"
             android:textSize="8sp"
             android:textStyle="bold"
-            android:letterSpacing="0.21" />
+            android:letterSpacing="0.20" />
 
-        <Space android:layout_width="1dp" android:layout_height="6dp" />
+        <Space android:layout_width="1dp" android:layout_height="8dp" />
 
         <LinearLayout
-            android:id="@+id/vsBotButton"
-            android:layout_width="300dp"
-            android:layout_height="36dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingLeft="14dp"
-            android:paddingRight="14dp"
-            android:background="@drawable/premium_menu_button_normal"
-            android:clickable="true"
-            android:focusable="true">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_robot" android:contentDescription="Vs Bot" />
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="Vs Bot" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-            <Space android:layout_width="22dp" android:layout_height="1dp" />
-        </LinearLayout>
+            android:layout_width="328dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:background="@drawable/premium_card">
 
-        <Space android:layout_width="1dp" android:layout_height="4dp" />
-        <LinearLayout android:id="@+id/twoPlayerButton" android:layout_width="300dp" android:layout_height="36dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_people" android:contentDescription="2-Player" />
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="2-Player" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-            <Space android:layout_width="22dp" android:layout_height="1dp" />
-        </LinearLayout>
-
-        <Space android:layout_width="1dp" android:layout_height="4dp" />
-        <LinearLayout android:id="@+id/storeButton" android:layout_width="300dp" android:layout_height="36dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_cart" android:contentDescription="Store" />
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="Store" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-            <Space android:layout_width="22dp" android:layout_height="1dp" />
-        </LinearLayout>
-
-        <Space android:layout_width="1dp" android:layout_height="4dp" />
-        <LinearLayout android:id="@+id/customiseButton" android:layout_width="300dp" android:layout_height="36dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_palette" android:contentDescription="Customise" />
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="Customise" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-            <Space android:layout_width="22dp" android:layout_height="1dp" />
-        </LinearLayout>
-
-        <Space android:layout_width="1dp" android:layout_height="4dp" />
-        <LinearLayout android:id="@+id/profileButton" android:layout_width="300dp" android:layout_height="36dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_profile" android:contentDescription="Profile" />
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="Profile" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
-            <Space android:layout_width="22dp" android:layout_height="1dp" />
+            <LinearLayout android:id="@+id/vsBotButton" android:layout_width="match_parent" android:layout_height="38dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_robot" android:contentDescription="Vs Bot" />
+                <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="Vs Bot" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
+                <Space android:layout_width="22dp" android:layout_height="1dp" />
+            </LinearLayout>
+            <Space android:layout_width="1dp" android:layout_height="5dp" />
+            <LinearLayout android:id="@+id/twoPlayerButton" android:layout_width="match_parent" android:layout_height="38dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_people" android:contentDescription="2-Player" />
+                <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="2-Player" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
+                <Space android:layout_width="22dp" android:layout_height="1dp" />
+            </LinearLayout>
+            <Space android:layout_width="1dp" android:layout_height="5dp" />
+            <LinearLayout android:id="@+id/storeButton" android:layout_width="match_parent" android:layout_height="38dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_cart" android:contentDescription="Store" />
+                <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="Store" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
+                <Space android:layout_width="22dp" android:layout_height="1dp" />
+            </LinearLayout>
+            <Space android:layout_width="1dp" android:layout_height="5dp" />
+            <LinearLayout android:id="@+id/customiseButton" android:layout_width="match_parent" android:layout_height="38dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_palette" android:contentDescription="Customise" />
+                <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="Customise" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
+                <Space android:layout_width="22dp" android:layout_height="1dp" />
+            </LinearLayout>
+            <Space android:layout_width="1dp" android:layout_height="5dp" />
+            <LinearLayout android:id="@+id/profileButton" android:layout_width="match_parent" android:layout_height="38dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:background="@drawable/premium_menu_button_normal" android:clickable="true" android:focusable="true">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_profile" android:contentDescription="Profile" />
+                <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="Profile" android:textColor="#FFF0CF" android:textSize="15sp" android:textStyle="bold" android:fontFamily="serif" />
+                <Space android:layout_width="22dp" android:layout_height="1dp" />
+            </LinearLayout>
         </LinearLayout>
 
         <TextView
             android:id="@+id/equippedSummary"
-            android:layout_width="330dp"
+            android:layout_width="350dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="5dp"
             android:gravity="center"
             android:text="Classic Walnut • Ivory &amp; Walnut • Smooth Slide"
             android:textColor="#A8926A"
             android:textSize="7sp"
             android:maxLines="1" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="GOOD MOVES CREATE GREAT STORIES"
-            android:textColor="#D7BC82"
-            android:textSize="7sp"
-            android:letterSpacing="0.16" />
     </LinearLayout>
 
     <TextView
@@ -169,7 +129,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="10dp"
-        android:text="v1.4.4"
-        android:textColor="#5F8B786A"
+        android:text="v1.5.0"
+        android:textColor="#6A967F72"
         android:textSize="8sp" />
 </FrameLayout>

@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.4.4)
+# Backgammon Legacy — locked production standards (v1.5.0)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 
@@ -106,3 +106,19 @@ The distributable source package must remain below **100 files**. Reuse assets a
 ## Triangle-centred checker placement
 
 Checker X positions are **not** a generic column centre. Each production point has measured base-left, base-right and apex coordinates. At every checker slot Y, the renderer interpolates both sloping triangle edges and places the checker at their exact midpoint. The same rule applies to landing previews, move indicators and animation endpoints. Future board artwork must preserve these triangle vertices.
+## 11. App-wide premium UI system
+
+The approved VS Bot Setup and gameplay HUD are the visual source of truth for non-board screens. All screens should use the same design language:
+- dark emerald tabletop/background
+- walnut/brown framed panels
+- cream/gold serif headings
+- emerald primary controls with gold borders
+- dark secondary controls with gold borders
+- consistent rounded back button, tabs, cards and score badges
+- restrained decorative elements; the board/content remains the focus
+- no low-contrast grey/green body text when warm cream/gold is clearer
+
+Gameplay player nameplates show only the checker icon, player name and rounds won. Do not reintroduce OFF/BAR/colour/direction text into the nameplates.
+
+Setup screens use the same two-panel pattern: settings on the left, rules/summary on the right, with a single strong emerald START MATCH action. Layouts must remain compact enough for landscape phones and must not clip at the bottom.
+
