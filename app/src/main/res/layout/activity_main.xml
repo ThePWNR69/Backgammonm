@@ -4,22 +4,24 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingLeft="4dp"
-    android:paddingTop="2dp"
+    android:paddingTop="6dp"
     android:paddingRight="4dp"
-    android:paddingBottom="2dp"
+    android:paddingBottom="22dp"
     android:background="@drawable/tabletop"
     android:weightSum="10">
 
     <!-- Compact luxury HUD: designed to stay fully inside the top band on wide phones. -->
     <LinearLayout
+        android:id="@+id/hudRow"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.72"
+        android:layout_weight="0.90"
+        android:layout_gravity="center_horizontal"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:baselineAligned="false"
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp">
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp">
 
         <LinearLayout
             android:id="@+id/playerOnePanel"
@@ -28,15 +30,15 @@
             android:layout_weight="1.10"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingLeft="7dp"
-            android:paddingRight="7dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
             android:background="@drawable/bg_panel_active">
 
             <ImageView
                 android:id="@+id/playerOneCheckerIcon"
-                android:layout_width="27dp"
-                android:layout_height="27dp"
-                android:layout_marginRight="7dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginRight="8dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="Player 1 checker" />
 
@@ -49,26 +51,26 @@
                 android:includeFontPadding="false"
                 android:text="You"
                 android:textColor="@color/text_primary"
-                android:textSize="16.5sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:fontFamily="serif" />
 
             <View
                 android:layout_width="1dp"
-                android:layout_height="21dp"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="7dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="8dp"
                 android:background="#8BC59A59" />
 
             <TextView
                 android:id="@+id/playerOneScore"
-                android:layout_width="27dp"
-                android:layout_height="27dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="0"
                 android:textColor="#FFE5A6"
-                android:textSize="14sp"
+                android:textSize="13.5sp"
                 android:textStyle="bold"
                 android:fontFamily="serif"
                 android:background="@drawable/profile_avatar_bg" />
@@ -106,7 +108,7 @@
                 android:paddingRight="2dp"
                 android:text="Roll to Decide First"
                 android:textColor="@color/text_primary"
-                android:textSize="16.5sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:fontFamily="serif"
                 android:maxLines="1"
@@ -131,28 +133,28 @@
             android:layout_weight="1.10"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingLeft="7dp"
-            android:paddingRight="7dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
             android:background="@drawable/bg_panel">
 
             <TextView
                 android:id="@+id/playerTwoScore"
-                android:layout_width="27dp"
-                android:layout_height="27dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="0"
                 android:textColor="#FFE5A6"
-                android:textSize="14sp"
+                android:textSize="13.5sp"
                 android:textStyle="bold"
                 android:fontFamily="serif"
                 android:background="@drawable/profile_avatar_bg" />
 
             <View
                 android:layout_width="1dp"
-                android:layout_height="21dp"
-                android:layout_marginLeft="7dp"
-                android:layout_marginRight="5dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="6dp"
                 android:background="#8BC59A59" />
 
             <TextView
@@ -164,25 +166,29 @@
                 android:includeFontPadding="false"
                 android:text="AI"
                 android:textColor="@color/text_primary"
-                android:textSize="16.5sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:fontFamily="serif" />
 
             <ImageView
                 android:id="@+id/playerTwoCheckerIcon"
-                android:layout_width="27dp"
-                android:layout_height="27dp"
-                android:layout_marginLeft="7dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="8dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="Player 2 checker" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- The board now gets substantially more vertical room so it fills wide 20:9 screens. -->
+    <Space
+        android:layout_width="1dp"
+        android:layout_height="4dp" />
+
+    <!-- Board remains the hero, with deliberate breathing room around the thicker HUD. -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="8.58"
+        android:layout_weight="8.10"
         android:foregroundGravity="center">
 
         <com.george.backgammon.rendering.BackgammonBoardView
@@ -193,18 +199,24 @@
             android:contentDescription="Backgammon board" />
     </FrameLayout>
 
-    <!-- Compact controls matching the approved reference. -->
+    <Space
+        android:layout_width="1dp"
+        android:layout_height="6dp" />
+
+    <!-- Thicker controls matching the approved reference. -->
     <LinearLayout
+        android:id="@+id/controlsRow"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.70"
+        android:layout_weight="1.00"
+        android:layout_gravity="center_horizontal"
         android:orientation="horizontal"
         android:gravity="center"
         android:baselineAligned="false"
         android:paddingTop="1dp"
         android:paddingBottom="1dp">
 
-        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1.34" />
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1.04" />
 
         <Button
             android:id="@+id/undoButton"
@@ -219,7 +231,7 @@
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="@color/button_text"
-            android:textSize="12.5sp"
+            android:textSize="14.5sp"
             android:fontFamily="serif"
             android:stateListAnimator="@null" />
 
@@ -238,7 +250,7 @@
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="@color/button_text"
-            android:textSize="17sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:fontFamily="serif"
             android:stateListAnimator="@null" />
@@ -262,6 +274,6 @@
             android:fontFamily="sans"
             android:stateListAnimator="@null" />
 
-        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1.34" />
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1.04" />
     </LinearLayout>
 </LinearLayout>

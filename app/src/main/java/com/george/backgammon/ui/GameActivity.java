@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.ImageView;
@@ -28,6 +29,7 @@ import com.george.backgammon.animation.MoveAnimationStyle;
 import com.george.backgammon.game.BackgammonGame;
 import com.george.backgammon.game.Move;
 import com.george.backgammon.rendering.BackgammonBoardView;
+import com.george.backgammon.rendering.BoardMap;
 
 import java.util.List;
 
@@ -52,6 +54,8 @@ public class GameActivity extends Activity {
     private ImageView playerTwoCheckerIcon;
     private View playerOnePanel;
     private View playerTwoPanel;
+    private View hudRow;
+    private View controlsRow;
     private Button mainActionButton;
     private Button undoButton;
     private Button menuButton;
@@ -96,6 +100,8 @@ public class GameActivity extends Activity {
         playerTwoCheckerIcon = findViewById(R.id.playerTwoCheckerIcon);
         playerOnePanel = findViewById(R.id.playerOnePanel);
         playerTwoPanel = findViewById(R.id.playerTwoPanel);
+        hudRow = findViewById(R.id.hudRow);
+        controlsRow = findViewById(R.id.controlsRow);
         mainActionButton = findViewById(R.id.mainActionButton);
         undoButton = findViewById(R.id.undoButton);
         menuButton = findViewById(R.id.menuButton);
@@ -119,6 +125,7 @@ public class GameActivity extends Activity {
 
         menuButton.setOnClickListener(this::showGameMenu);
         refreshUi();
+        boardView.post(this::fitGameplayChromeToBoard);
     }
 
     private void onMainAction() {
@@ -278,7 +285,7 @@ public class GameActivity extends Activity {
                 return true;
             }
             if (title.equals("About Backgammon Legacy")) {
-                statusTitle.setText("Backgammon Legacy v1.6.0 • Gameplay Visual Rebuild");
+                statusTitle.setText("Backgammon Legacy v1.6.1 • Reference Proportion Pass");
                 boardView.postDelayed(this::refreshUi, 1400);
                 return true;
             }
@@ -346,6 +353,7 @@ public class GameActivity extends Activity {
             refreshUi();
         }
         enterImmersiveMode();
+        if (boardView != null) boardView.post(this::fitGameplayChromeToBoard);
     }
 
     @Override protected void onDestroy() {
@@ -355,7 +363,10 @@ public class GameActivity extends Activity {
 
     @Override public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) enterImmersiveMode();
+        if (hasFocus) {
+            enterImmersiveMode();
+            if (boardView != null) boardView.post(this::fitGameplayChromeToBoard);
+        }
     }
 
     private void enterImmersiveMode() {
@@ -366,6 +377,31 @@ public class GameActivity extends Activity {
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+    }
+
+    /**
+     * Keep the HUD and control group visually tied to the physical board rather than the
+     * full ultra-wide phone width. This mirrors the approved reference composition on
+     * different aspect ratios without stretching the board artwork.
+     */
+    private void fitGameplayChromeToBoard() {
+        if (boardView == null || hudRow == null || controlsRow == null) return;
+        int viewW = boardView.getWidth();
+        int viewH = boardView.getHeight();
+        if (viewW <= 0 || viewH <= 0) return;
+
+        int renderedBoardWidth = Math.min(viewW, Math.round(viewH * BoardMap.MASTER_ASPECT));
+        int hudWidth = Math.min(viewW, Math.round(renderedBoardWidth * 1.02f));
+        applyWidth(hudRow, hudWidth);
+        applyWidth(controlsRow, renderedBoardWidth);
+    }
+
+    private void applyWidth(View view, int widthPx) {
+        ViewGroup.LayoutParams lp = view.getLayoutParams();
+        if (lp != null && lp.width != widthPx) {
+            lp.width = widthPx;
+            view.setLayoutParams(lp);
+        }
     }
 
     private void refreshUi() {

@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.6.0)
+# Backgammon Legacy — locked production standards (v1.6.1)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 
@@ -132,3 +132,15 @@ For wide landscape phones, keep the live match screen board-first:
 - checker icons and round-score badges must remain fully inside the player nameplates
 - centre status uses small symmetrical gold ornaments, never extra gameplay metadata
 - bottom controls remain centred and compact; they must not force the board smaller than necessary
+
+## Gameplay chrome reference proportions (v1.6.1)
+
+The approved luxury gameplay reference is treated as a composition target, not just a colour/style reference. On extra-wide phones the reference is effectively **fit by height** rather than stretched to the device width.
+
+- HUD row width tracks approximately **102% of the rendered board width** and is centred.
+- Bottom controls are laid out inside a row exactly equal to the rendered board width.
+- Player nameplates, centre status panel and bottom buttons must never stretch across unused ultrawide side space.
+- Score badges remain fully contained inside the player nameplates; they must not touch or overlap the nameplate border.
+- The gameplay board keeps its canonical aspect ratio. Never stretch the board horizontally to fill an ultrawide screen.
+- Extra horizontal room belongs to the tabletop/background environment.
+- On the primary 20:9 validation device, the intended vertical composition is approximately: 8% HUD, 74% board region, 9% controls, with deliberate top/bottom breathing room.
