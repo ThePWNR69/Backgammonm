@@ -3,14 +3,15 @@ package com.george.backgammon.rendering;
 /**
  * Canonical invisible backgammon map for the premium board template.
  *
- * v1.4.4 changes the mapping model from "one evenly-spaced column centre" to the
- * actual geometry of every visible triangle.  Each point stores its base-left,
+ * v1.6.4 keeps the measured-point mapping model: gameplay follows the
+ * actual geometry of every visible triangle rather than an evenly spaced grid.  Each point stores its base-left,
  * base-right and apex coordinates measured from the production artwork.  Checker
  * centres are calculated halfway between the two sloping triangle edges at the
  * checker's own Y position.
  *
- * This means a slightly leaning/asymmetric triangle can no longer make a checker
- * appear biased to one side.  All board themes must continue to use this exact
+ * The v1.6.4 production art is also horizontally rebalanced around the centre bar,
+ * and these coordinates are the matching post-rebalance measurements. This keeps the
+ * outer wood rails visually even without decoupling checker geometry from the artwork. All board themes must continue to use this exact
  * master geometry.
  */
 public final class BoardMap {
@@ -20,18 +21,18 @@ public final class BoardMap {
     public static final int MASTER_HEIGHT_PX = 977;
     public static final float MASTER_ASPECT = (float) MASTER_WIDTH_PX / MASTER_HEIGHT_PX;
 
-    public static final float FIELD_LEFT = 236f / MASTER_WIDTH_PX;
-    public static final float FIELD_RIGHT = 1840f / MASTER_WIDTH_PX;
+    public static final float FIELD_LEFT = 232.09f / MASTER_WIDTH_PX;
+    public static final float FIELD_RIGHT = 1836.44f / MASTER_WIDTH_PX;
     public static final float FIELD_TOP = 58f / MASTER_HEIGHT_PX;
     public static final float FIELD_BOTTOM = 916f / MASTER_HEIGHT_PX;
 
-    public static final float LEFT_TRAY_LEFT = 78f / MASTER_WIDTH_PX;
-    public static final float LEFT_TRAY_RIGHT = 219f / MASTER_WIDTH_PX;
-    public static final float RIGHT_TRAY_LEFT = 1849f / MASTER_WIDTH_PX;
-    public static final float RIGHT_TRAY_RIGHT = 1976f / MASTER_WIDTH_PX;
+    public static final float LEFT_TRAY_LEFT = 76.71f / MASTER_WIDTH_PX;
+    public static final float LEFT_TRAY_RIGHT = 215.37f / MASTER_WIDTH_PX;
+    public static final float RIGHT_TRAY_LEFT = 1845.59f / MASTER_WIDTH_PX;
+    public static final float RIGHT_TRAY_RIGHT = 1974.77f / MASTER_WIDTH_PX;
 
-    public static final float BAR_LEFT = 996f / MASTER_WIDTH_PX;
-    public static final float BAR_RIGHT = 1085f / MASTER_WIDTH_PX;
+    public static final float BAR_LEFT = 979.50f / MASTER_WIDTH_PX;
+    public static final float BAR_RIGHT = 1068.50f / MASTER_WIDTH_PX;
 
     // Retained for fallback/procedural rendering. Actual checker stacking now uses the
     // measured per-point apex/base distance below.
@@ -47,16 +48,16 @@ public final class BoardMap {
      * individual points instead of forcing an artificial vertical centreline.
      */
     public static final float[] TOP_BASE_LEFT_PX = {
-            252.10f, 380.48f, 502.48f, 627.17f, 754.10f, 874.22f,
-            1087.96f, 1219.06f, 1339.69f, 1464.48f, 1585.73f, 1716.30f
+            247.92f, 374.18f, 494.16f, 616.78f, 741.61f, 859.74f,
+            1071.51f, 1204.86f, 1327.55f, 1454.48f, 1577.81f, 1710.62f
     };
     public static final float[] TOP_BASE_RIGHT_PX = {
-            368.59f, 494.60f, 618.59f, 740.31f, 868.89f, 987.76f,
-            1206.27f, 1332.58f, 1456.70f, 1578.72f, 1702.50f, 1830.35f
+            362.48f, 486.41f, 608.34f, 728.05f, 854.50f, 971.40f,
+            1191.85f, 1320.32f, 1446.57f, 1570.68f, 1696.58f, 1826.62f
     };
     public static final float[] TOP_APEX_X_PX = {
-            304.72f, 430.80f, 555.19f, 680.72f, 806.24f, 930.08f,
-            1149.64f, 1275.44f, 1400.63f, 1525.31f, 1649.30f, 1777.03f
+            299.67f, 423.66f, 545.99f, 669.44f, 792.88f, 914.67f,
+            1134.25f, 1262.20f, 1389.54f, 1516.35f, 1642.47f, 1772.39f
     };
     public static final float[] TOP_APEX_Y_PX = {
             416.25f, 417.07f, 416.62f, 417.84f, 416.26f, 415.92f,
@@ -64,16 +65,16 @@ public final class BoardMap {
     };
 
     public static final float[] BOTTOM_BASE_LEFT_PX = {
-            236.40f, 360.17f, 486.77f, 611.01f, 738.46f, 866.35f,
-            1088.11f, 1212.66f, 1339.87f, 1466.96f, 1593.81f, 1718.85f
+            232.48f, 354.20f, 478.71f, 600.89f, 726.23f, 852.00f,
+            1071.66f, 1198.35f, 1327.74f, 1457.00f, 1586.03f, 1713.21f
     };
     public static final float[] BOTTOM_BASE_RIGHT_PX = {
-            356.67f, 481.20f, 606.91f, 733.56f, 857.05f, 988.74f,
-            1210.26f, 1335.39f, 1461.23f, 1588.51f, 1714.63f, 1839.46f
+            350.76f, 473.23f, 596.86f, 721.41f, 842.85f, 972.36f,
+            1195.91f, 1323.18f, 1451.18f, 1580.64f, 1708.92f, 1835.89f
     };
     public static final float[] BOTTOM_APEX_X_PX = {
-            305.28f, 429.88f, 555.59f, 680.54f, 806.81f, 930.70f,
-            1149.96f, 1274.98f, 1400.73f, 1525.99f, 1650.80f, 1777.95f
+            300.22f, 422.76f, 546.39f, 669.27f, 793.44f, 915.28f,
+            1134.57f, 1261.74f, 1389.64f, 1517.05f, 1643.99f, 1773.32f
     };
     public static final float[] BOTTOM_APEX_Y_PX = {
             524.01f, 525.02f, 523.10f, 527.57f, 523.43f, 527.40f,

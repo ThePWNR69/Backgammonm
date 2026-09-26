@@ -40,8 +40,8 @@ final class BoardGeometry {
 
         // Kept for fallback/procedural art and general sizing only. Gameplay checker
         // placement no longer assumes these columns are the triangle centrelines.
-        leftColWidth = (x(996f / BoardMap.MASTER_WIDTH_PX) - x(251f / BoardMap.MASTER_WIDTH_PX)) / 6f;
-        rightColWidth = (x(1831f / BoardMap.MASTER_WIDTH_PX) - x(1085f / BoardMap.MASTER_WIDTH_PX)) / 6f;
+        leftColWidth = (x(BoardMap.BAR_LEFT) - x(BoardMap.FIELD_LEFT)) / 6f;
+        rightColWidth = (x(BoardMap.FIELD_RIGHT) - x(BoardMap.BAR_RIGHT)) / 6f;
         colWidth = (leftColWidth + rightColWidth) * 0.5f;
         frame = boardH * 0.058f;
     }
@@ -76,8 +76,9 @@ final class BoardGeometry {
             minBasePx = Math.min(minBasePx, BoardMap.BOTTOM_BASE_RIGHT_PX[i] - BoardMap.BOTTOM_BASE_LEFT_PX[i]);
         }
         float baseWidthScreen = (outerRight - outerLeft) * (minBasePx / BoardMap.MASTER_WIDTH_PX);
-        // Diameter ~= 80% of the narrowest point base, matching a physical board more closely.
-        return baseWidthScreen * 0.40f;
+        // v1.6.4: slightly smaller pieces leave more triangle visible and make five-checker stacks cleaner.
+        // Diameter ~= 74% of the narrowest point base.
+        return baseWidthScreen * 0.37f;
     }
 
     /** Legacy/global spacing helper retained for code that needs a generic value. */
@@ -140,7 +141,7 @@ final class BoardGeometry {
         // Five visible checker centres remain between the base and apex.  A little overlap
         // is allowed, but the fifth checker never needs to wander beyond the point tip.
         float exactFiveFit = Math.max(r * 0.92f, (height - 2f * r) / 4f);
-        return Math.min(r * 1.45f, exactFiveFit);
+        return Math.min(r * 1.50f, exactFiveFit);
     }
 
     float[] landingCenter(int point, int existingCount) {

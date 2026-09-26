@@ -78,6 +78,7 @@ public class BackgammonBoardView extends View {
     private boolean animating = false;
     private boolean diceRolling = false;
     private boolean dicePreviewVisible = false;
+    private boolean openingPresentationActive = false;
     private float diceRollProgress = 0f;
     private int animatedDieOne = 1;
     private int animatedDieTwo = 1;
@@ -105,6 +106,13 @@ public class BackgammonBoardView extends View {
     public void setOnGameChangedListener(OnGameChangedListener l) { listener = l; }
     public boolean isAnimating() { return animating || diceRolling; }
     public boolean isDiceRolling() { return diceRolling; }
+    public void setOpeningPresentationActive(boolean active) {
+        if (openingPresentationActive == active) return;
+        openingPresentationActive = active;
+        cachedDieSize = -1f;
+        for (int i = 0; i < dieSprites.length; i++) dieSprites[i] = null;
+        invalidate();
+    }
     public void setInputEnabled(boolean enabled) { inputEnabled = enabled; }
     public boolean isShowingFps() { return showFps; }
     public boolean isShowingBoardMap() { return showBoardMap; }
@@ -308,6 +316,12 @@ public class BackgammonBoardView extends View {
         paint.setTextSize(Math.max(10f, r * 0.88f));
         paint.setColor(count == 0 ? 0xFFB8915B : (white ? 0xFF241A13 : 0xFFF2DEC0));
         c.drawText(String.valueOf(count), cx, cy + paint.getTextSize() * 0.34f, paint);
+
+        paint.setTypeface(android.graphics.Typeface.create("sans", android.graphics.Typeface.NORMAL));
+        paint.setTextSize(Math.max(7f, r * 0.43f));
+        paint.setColor(0xB8D7B477);
+        float labelY = white ? cy - r * 1.18f : cy + r * 1.48f;
+        c.drawText("OFF", cx, labelY, paint);
     }
 
     private int adjustedPointValue(int point) {
@@ -534,7 +548,8 @@ public class BackgammonBoardView extends View {
     }
 
     private float currentDieSize() {
-        return Math.min(checkerRadius() * 1.48f, (fieldBottom - fieldTop) * 0.09f);
+        float normal = Math.min(checkerRadius() * 1.48f, (fieldBottom - fieldTop) * 0.09f);
+        return openingPresentationActive ? normal * 1.18f : normal;
     }
 
     private void buildDieSprites(float size) {
@@ -566,7 +581,9 @@ public class BackgammonBoardView extends View {
         if (!game.hasRolled() && !diceRolling && !dicePreviewVisible) return;
         float size = currentDieSize();
         float gap = size * 0.34f;
-        float cx = fieldLeft + (fieldRight - fieldLeft) * 0.69f;
+        float cx = openingPresentationActive
+                ? (fieldLeft + fieldRight) * 0.5f
+                : fieldLeft + (fieldRight - fieldLeft) * 0.69f;
         float cy = (fieldTop + fieldBottom) / 2f;
         int d1 = diceRolling || dicePreviewVisible && !game.hasRolled() ? animatedDieOne : game.getDieOne();
         int d2 = diceRolling || dicePreviewVisible && !game.hasRolled() ? animatedDieTwo : game.getDieTwo();

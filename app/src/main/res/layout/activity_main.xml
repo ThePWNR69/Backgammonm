@@ -3,15 +3,15 @@
     android:id="@+id/gameplayRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/tabletop"
+    android:background="@drawable/screen_green_background"
     android:clipChildren="false"
     android:clipToPadding="false">
 
     <!--
-      v1.6.3 reference composition canvas.
-      GameActivity projects every major child from the approved 1672 x 941 master design
-      into the current safe landscape window. Horizontal and vertical reference coordinates
-      adapt independently so wide phones retain the approved board/HUD proportions.
+      v1.6.4 board-first gameplay canvas.
+      The HUD keeps the approved horizontal reference spacing. The physical board itself
+      always uses one uniform scale and is centred between slimmer top and bottom controls,
+      so the wood frame and triangles can never be stretched to fill a wide phone.
     -->
     <FrameLayout
         android:id="@+id/gameplayCanvas"
@@ -184,7 +184,7 @@
             android:minHeight="0dp"
             android:padding="0dp"
             android:background="@drawable/button_green"
-            android:text="⚄  Opening Roll"
+            android:text="⚄  Roll"
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="@color/button_text"

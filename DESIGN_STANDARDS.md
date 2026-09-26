@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.6.3)
+# Backgammon Legacy — locked production standards (v1.6.4)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 
@@ -125,36 +125,44 @@ Setup screens use the same two-panel pattern: settings on the left, rules/summar
 
 ## 12. Gameplay HUD proportions
 
-For wide landscape phones, keep the live match screen board-first and follow the canonical reference rectangles below. In the 1672 × 941 master composition:
-- top name/status plates occupy `y=14..94`
-- board occupies `y=104..795`
-- bottom controls occupy `y=811..891`
-- checker icons and round-score badges must remain fully inside the player nameplates
-- centre status uses small symmetrical gold ornaments, never extra gameplay metadata
-- bottom controls remain centred and compact
+The live match screen remains board-first. On extra-wide phones the physical board must be
+given a rectangle that already matches the production **2048:977** aspect ratio; do not
+stretch a board-sized View and rely on internal letterboxing.
 
-## 13. Canonical gameplay reference projection (v1.6.3)
+Top name/status plates and bottom controls should remain compact and share a common control
+height. Horizontal spacing can still derive from the approved 1672-wide reference. Vertical
+spacing is allowed to compress on short/wide phones so the board gets the maximum practical
+height.
 
-The approved match-screen concept is a **1672 × 941 reference coordinate system**. Do not return to independent LinearLayout weight sizing for the major gameplay regions.
+## 13. Uniform board scaling (v1.6.4)
 
-Canonical rectangles:
-- Player 1 plate: `101,14,493,80`
-- Status plate: `613,14,424,80`
-- Player 2 plate: `1053,14,495,80`
-- Board: `100,104,1448,691`
-- Undo: `445,811,151,80`
-- Main action: `611,811,432,80`
-- Menu: `1060,811,151,80`
+For gameplay:
 
-The reference is projected into the **full safe landscape window**, not uniformly fitted into a centred 16:9 island:
+- determine the safe landscape window,
+- reserve compact top HUD and bottom-control bands,
+- calculate the remaining board slot height,
+- size the board with one uniform scale using `BoardMap.MASTER_ASPECT`,
+- centre the board horizontally,
+- never independently scale board width and height.
 
-- `scaleX = availableWidth / 1672`
-- `scaleY = availableHeight / 941`
-- X positions and widths use `scaleX`
-- Y positions and heights use `scaleY`
-- typography, checker icons and circular score badges use `min(scaleX, scaleY)` so they do not distort
-- horizontal padding/gaps may use `scaleX`
+HUD text/icons may use their own UI scale, but the board art, point map, checker anchors,
+hitboxes and animation endpoints must all share the final board rectangle.
 
-This is required on wide phones such as the 1730 × 799 validation device. A uniform `min(widthScale, heightScale)` fit makes the board too narrow and is no longer the production rule.
+## 14. Symmetric master board art (v1.6.4)
 
-The BoardMap continues to scale only from the final displayed board rectangle, so gameplay geometry remains independent of device resolution. Score badges must remain fully within the nameplate. Centre status text must remain complete; shrink text within bounds instead of ellipsizing normal status messages.
+Production board size remains **2048 × 977 px**. The v1.6.4 master geometry is horizontally
+rebalanced around the centre bar. All production board themes use that same rebalance, and
+`BoardMap` stores the matching post-rebalance coordinates.
+
+Do not introduce a board skin based on the pre-v1.6.4 horizontal geometry. A new board must
+be authored/aligned to the current production template and validated with **Show Board Map**.
+
+## 15. Gameplay UI polish rules
+
+- Opening dice may be temporarily enlarged and centred for the opening-roll presentation.
+- Normal-turn dice return to the standard right-centre board position.
+- Opening-roll result text should appear briefly before AI movement begins.
+- Main action, Undo and Menu use one control height and one corner family.
+- Player plates contain checker identity, player name and match score only.
+- Bear-off trays may use a restrained `OFF` label; avoid adding dense metadata to the board.
+- The live gameplay background should remain visually quiet enough that the board is the hero.
