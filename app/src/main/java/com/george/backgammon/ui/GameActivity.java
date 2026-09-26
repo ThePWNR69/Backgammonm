@@ -12,6 +12,11 @@ import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.graphics.Rect;
+import android.os.Build;
+import android.util.TypedValue;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.ImageView;
@@ -54,8 +59,13 @@ public class GameActivity extends Activity {
     private ImageView playerTwoCheckerIcon;
     private View playerOnePanel;
     private View playerTwoPanel;
-    private View hudRow;
-    private View controlsRow;
+    private View statusPanel;
+    private View gameplayRoot;
+    private FrameLayout gameplayCanvas;
+    private View playerOneDivider;
+    private View playerTwoDivider;
+    private TextView statusLeftOrnament;
+    private TextView statusRightOrnament;
     private Button mainActionButton;
     private Button undoButton;
     private Button menuButton;
@@ -100,8 +110,13 @@ public class GameActivity extends Activity {
         playerTwoCheckerIcon = findViewById(R.id.playerTwoCheckerIcon);
         playerOnePanel = findViewById(R.id.playerOnePanel);
         playerTwoPanel = findViewById(R.id.playerTwoPanel);
-        hudRow = findViewById(R.id.hudRow);
-        controlsRow = findViewById(R.id.controlsRow);
+        statusPanel = findViewById(R.id.statusPanel);
+        gameplayRoot = findViewById(R.id.gameplayRoot);
+        gameplayCanvas = findViewById(R.id.gameplayCanvas);
+        playerOneDivider = findViewById(R.id.playerOneDivider);
+        playerTwoDivider = findViewById(R.id.playerTwoDivider);
+        statusLeftOrnament = findViewById(R.id.statusLeftOrnament);
+        statusRightOrnament = findViewById(R.id.statusRightOrnament);
         mainActionButton = findViewById(R.id.mainActionButton);
         undoButton = findViewById(R.id.undoButton);
         menuButton = findViewById(R.id.menuButton);
@@ -125,7 +140,7 @@ public class GameActivity extends Activity {
 
         menuButton.setOnClickListener(this::showGameMenu);
         refreshUi();
-        boardView.post(this::fitGameplayChromeToBoard);
+        gameplayRoot.post(this::applyReferenceComposition);
     }
 
     private void onMainAction() {
@@ -285,7 +300,7 @@ public class GameActivity extends Activity {
                 return true;
             }
             if (title.equals("About Backgammon Legacy")) {
-                statusTitle.setText("Backgammon Legacy v1.6.1 • Reference Proportion Pass");
+                statusTitle.setText("Backgammon Legacy v1.6.3 • Wide-Screen Reference Match");
                 boardView.postDelayed(this::refreshUi, 1400);
                 return true;
             }
@@ -353,7 +368,7 @@ public class GameActivity extends Activity {
             refreshUi();
         }
         enterImmersiveMode();
-        if (boardView != null) boardView.post(this::fitGameplayChromeToBoard);
+        if (gameplayRoot != null) gameplayRoot.post(this::applyReferenceComposition);
     }
 
     @Override protected void onDestroy() {
@@ -365,7 +380,7 @@ public class GameActivity extends Activity {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             enterImmersiveMode();
-            if (boardView != null) boardView.post(this::fitGameplayChromeToBoard);
+            if (gameplayRoot != null) gameplayRoot.post(this::applyReferenceComposition);
         }
     }
 
@@ -380,28 +395,160 @@ public class GameActivity extends Activity {
     }
 
     /**
-     * Keep the HUD and control group visually tied to the physical board rather than the
-     * full ultra-wide phone width. This mirrors the approved reference composition on
-     * different aspect ratios without stretching the board artwork.
+     * Project the approved 1672 x 941 gameplay reference into the actual safe landscape
+     * window. Phones are commonly much wider than the reference artwork, so horizontal
+     * and vertical coordinates intentionally use independent scales. This keeps the same
+     * reference composition on-screen instead of shrinking the whole game into a narrow
+     * centred 16:9 island. The BoardView receives the final displayed rectangle and its
+     * BoardMap/BoardGeometry continue to scale from that rectangle.
      */
-    private void fitGameplayChromeToBoard() {
-        if (boardView == null || hudRow == null || controlsRow == null) return;
-        int viewW = boardView.getWidth();
-        int viewH = boardView.getHeight();
-        if (viewW <= 0 || viewH <= 0) return;
+    private void applyReferenceComposition() {
+        if (gameplayRoot == null || gameplayCanvas == null || boardView == null) return;
 
-        int renderedBoardWidth = Math.min(viewW, Math.round(viewH * BoardMap.MASTER_ASPECT));
-        int hudWidth = Math.min(viewW, Math.round(renderedBoardWidth * 1.02f));
-        applyWidth(hudRow, hudWidth);
-        applyWidth(controlsRow, renderedBoardWidth);
+        final float REF_W = 1672f;
+        final float REF_H = 941f;
+
+        int rootW = gameplayRoot.getWidth();
+        int rootH = gameplayRoot.getHeight();
+        if (rootW <= 0 || rootH <= 0) return;
+
+        int safeLeft = 0, safeTop = 0, safeRight = 0, safeBottom = 0;
+        if (Build.VERSION.SDK_INT >= 28 && gameplayRoot.getRootWindowInsets() != null
+                && gameplayRoot.getRootWindowInsets().getDisplayCutout() != null) {
+            android.view.DisplayCutout cutout = gameplayRoot.getRootWindowInsets().getDisplayCutout();
+            safeLeft = cutout.getSafeInsetLeft();
+            safeTop = cutout.getSafeInsetTop();
+            safeRight = cutout.getSafeInsetRight();
+            safeBottom = cutout.getSafeInsetBottom();
+        }
+
+        int availableW = Math.max(1, rootW - safeLeft - safeRight);
+        int availableH = Math.max(1, rootH - safeTop - safeBottom);
+        float scaleX = availableW / REF_W;
+        float scaleY = availableH / REF_H;
+        float uiScale = Math.min(scaleX, scaleY);
+
+        // The canvas now owns the complete safe app window. Reference coordinates are
+        // projected into it instead of fitting a narrower 16:9 canvas inside the phone.
+        FrameLayout.LayoutParams canvasLp = (FrameLayout.LayoutParams) gameplayCanvas.getLayoutParams();
+        canvasLp.width = availableW;
+        canvasLp.height = availableH;
+        canvasLp.leftMargin = safeLeft;
+        canvasLp.topMargin = safeTop;
+        canvasLp.gravity = 0;
+        gameplayCanvas.setLayoutParams(canvasLp);
+
+        // Exact major rectangles measured from the approved reference. X/W follow the
+        // safe screen width; Y/H follow the safe screen height.
+        setFrame(playerOnePanel, 101, 14, 493, 80, scaleX, scaleY);
+        setFrame(statusPanel,    613, 14, 424, 80, scaleX, scaleY);
+        setFrame(playerTwoPanel,1053, 14, 495, 80, scaleX, scaleY);
+        setFrame(boardView,      100,104,1448,691, scaleX, scaleY);
+
+        setFrame(undoButton,       445,811,151,80, scaleX, scaleY);
+        setFrame(mainActionButton, 611,811,432,80, scaleX, scaleY);
+        setFrame(menuButton,      1060,811,151,80, scaleX, scaleY);
+
+        // Keep circular/detail elements visually round. Their size follows the smaller
+        // axis while horizontal spacing may use the extra width available on wide phones.
+        int icon = Math.max(1, Math.round(57f * uiScale));
+        int score = Math.max(1, Math.round(53f * uiScale));
+        int sidePad = Math.max(2, Math.round(14f * scaleX));
+        int iconGap = Math.max(2, Math.round(14f * scaleX));
+        int dividerH = Math.max(1, Math.round(43f * scaleY));
+        int dividerGap = Math.max(2, Math.round(14f * scaleX));
+
+        applyHorizontalPanelMetrics((LinearLayout) playerOnePanel, true, icon, score,
+                sidePad, iconGap, dividerH, dividerGap);
+        applyHorizontalPanelMetrics((LinearLayout) playerTwoPanel, false, icon, score,
+                sidePad, iconGap, dividerH, dividerGap);
+
+        setTextPx(playerOneName, 35f * uiScale);
+        setTextPx(playerTwoName, 35f * uiScale);
+        setTextPx(playerOneScoreText, 30f * uiScale);
+        setTextPx(playerTwoScoreText, 30f * uiScale);
+
+        int ornamentW = Math.max(1, Math.round(34f * uiScale));
+        setLinearWidth(statusLeftOrnament, ornamentW);
+        setLinearWidth(statusRightOrnament, ornamentW);
+        setTextPx(statusLeftOrnament, 16f * uiScale);
+        setTextPx(statusRightOrnament, 16f * uiScale);
+        setStatusTextSizeForCurrentMessage(uiScale);
+
+        setTextPx(undoButton, 29f * uiScale);
+        setTextPx(mainActionButton, 36f * uiScale);
+        setTextPx(menuButton, 42f * uiScale);
+
+        gameplayCanvas.requestLayout();
+        boardView.requestLayout();
     }
 
-    private void applyWidth(View view, int widthPx) {
-        ViewGroup.LayoutParams lp = view.getLayoutParams();
-        if (lp != null && lp.width != widthPx) {
-            lp.width = widthPx;
-            view.setLayoutParams(lp);
+    private void setFrame(View view, float x, float y, float w, float h,
+                          float scaleX, float scaleY) {
+        if (view == null) return;
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) view.getLayoutParams();
+        lp.width = Math.max(1, Math.round(w * scaleX));
+        lp.height = Math.max(1, Math.round(h * scaleY));
+        lp.leftMargin = Math.round(x * scaleX);
+        lp.topMargin = Math.round(y * scaleY);
+        lp.gravity = 0;
+        view.setLayoutParams(lp);
+    }
+
+    private void applyHorizontalPanelMetrics(LinearLayout panel, boolean playerOne,
+                                             int iconPx, int scorePx, int sidePad,
+                                             int iconGap, int dividerH, int dividerGap) {
+        if (panel == null) return;
+        panel.setPadding(sidePad, 0, sidePad, 0);
+
+        ImageView iconView = playerOne ? playerOneCheckerIcon : playerTwoCheckerIcon;
+        TextView scoreView = playerOne ? playerOneScoreText : playerTwoScoreText;
+        View divider = playerOne ? playerOneDivider : playerTwoDivider;
+
+        LinearLayout.LayoutParams iconLp = (LinearLayout.LayoutParams) iconView.getLayoutParams();
+        iconLp.width = iconPx;
+        iconLp.height = iconPx;
+        if (playerOne) {
+            iconLp.leftMargin = 0;
+            iconLp.rightMargin = iconGap;
+        } else {
+            iconLp.leftMargin = iconGap;
+            iconLp.rightMargin = 0;
         }
+        iconView.setLayoutParams(iconLp);
+
+        LinearLayout.LayoutParams scoreLp = (LinearLayout.LayoutParams) scoreView.getLayoutParams();
+        scoreLp.width = scorePx;
+        scoreLp.height = scorePx;
+        scoreView.setLayoutParams(scoreLp);
+
+        LinearLayout.LayoutParams dividerLp = (LinearLayout.LayoutParams) divider.getLayoutParams();
+        dividerLp.width = Math.max(1, Math.round(1.5f * getResources().getDisplayMetrics().density));
+        dividerLp.height = dividerH;
+        dividerLp.leftMargin = dividerGap;
+        dividerLp.rightMargin = dividerGap;
+        divider.setLayoutParams(dividerLp);
+    }
+
+    private void setLinearWidth(View view, int widthPx) {
+        if (view == null) return;
+        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) view.getLayoutParams();
+        lp.width = widthPx;
+        view.setLayoutParams(lp);
+    }
+
+    private void setTextPx(TextView view, float px) {
+        if (view != null) view.setTextSize(TypedValue.COMPLEX_UNIT_PX, Math.max(1f, px));
+    }
+
+    private void setStatusTextSizeForCurrentMessage(float scale) {
+        if (statusTitle == null) return;
+        String text = String.valueOf(statusTitle.getText());
+        float designPx = 35f;
+        if (text.length() > 20) designPx = 29f;
+        else if (text.length() > 17) designPx = 32f;
+        setTextPx(statusTitle, designPx * scale);
+        statusTitle.setEllipsize(null);
     }
 
     private void refreshUi() {
@@ -506,6 +653,9 @@ public class GameActivity extends Activity {
     }
 
     private void updatePlayerPanels() {
+        if (gameplayCanvas != null && gameplayCanvas.getHeight() > 0) {
+            setStatusTextSizeForCurrentMessage(gameplayCanvas.getHeight() / 941f);
+        }
         boolean opening = !game.isOpeningResolved();
         boolean p1Active = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == playerOneSide;
         boolean p2Active = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == -playerOneSide;

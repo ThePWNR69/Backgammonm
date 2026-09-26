@@ -1,44 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gameplayRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingLeft="4dp"
-    android:paddingTop="6dp"
-    android:paddingRight="4dp"
-    android:paddingBottom="22dp"
     android:background="@drawable/tabletop"
-    android:weightSum="10">
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
-    <!-- Compact luxury HUD: designed to stay fully inside the top band on wide phones. -->
-    <LinearLayout
-        android:id="@+id/hudRow"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.90"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:baselineAligned="false"
-        android:paddingLeft="4dp"
-        android:paddingRight="4dp">
+    <!--
+      v1.6.3 reference composition canvas.
+      GameActivity projects every major child from the approved 1672 x 941 master design
+      into the current safe landscape window. Horizontal and vertical reference coordinates
+      adapt independently so wide phones retain the approved board/HUD proportions.
+    -->
+    <FrameLayout
+        android:id="@+id/gameplayCanvas"
+        android:layout_width="1px"
+        android:layout_height="1px"
+        android:layout_gravity="center"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:id="@+id/playerOnePanel"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.10"
+            android:layout_width="1px"
+            android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
             android:background="@drawable/bg_panel_active">
 
             <ImageView
                 android:id="@+id/playerOneCheckerIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginRight="8dp"
+                android:layout_width="1px"
+                android:layout_height="1px"
                 android:scaleType="fitCenter"
                 android:contentDescription="Player 1 checker" />
 
@@ -51,51 +45,45 @@
                 android:includeFontPadding="false"
                 android:text="You"
                 android:textColor="@color/text_primary"
-                android:textSize="17sp"
                 android:textStyle="bold"
-                android:fontFamily="serif" />
+                android:fontFamily="serif"
+                android:maxLines="1" />
 
             <View
-                android:layout_width="1dp"
-                android:layout_height="24dp"
-                android:layout_marginLeft="6dp"
-                android:layout_marginRight="8dp"
+                android:id="@+id/playerOneDivider"
+                android:layout_width="1px"
+                android:layout_height="1px"
                 android:background="#8BC59A59" />
 
             <TextView
                 android:id="@+id/playerOneScore"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="1px"
+                android:layout_height="1px"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="0"
                 android:textColor="#FFE5A6"
-                android:textSize="13.5sp"
                 android:textStyle="bold"
                 android:fontFamily="serif"
                 android:background="@drawable/profile_avatar_bg" />
         </LinearLayout>
 
-        <Space android:layout_width="6dp" android:layout_height="1dp" />
-
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.82"
+            android:id="@+id/statusPanel"
+            android:layout_width="1px"
+            android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center"
-            android:background="@drawable/bg_status"
-            android:paddingLeft="6dp"
-            android:paddingRight="6dp">
+            android:background="@drawable/bg_status">
 
             <TextView
-                android:layout_width="18dp"
+                android:id="@+id/statusLeftOrnament"
+                android:layout_width="1px"
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="✦"
-                android:textColor="#E9C270"
-                android:textSize="9sp" />
+                android:textColor="#E9C270" />
 
             <TextView
                 android:id="@+id/statusTitle"
@@ -104,57 +92,46 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:includeFontPadding="false"
-                android:paddingLeft="2dp"
-                android:paddingRight="2dp"
                 android:text="Roll to Decide First"
                 android:textColor="@color/text_primary"
-                android:textSize="17sp"
                 android:textStyle="bold"
                 android:fontFamily="serif"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:maxLines="1" />
 
             <TextView
-                android:layout_width="18dp"
+                android:id="@+id/statusRightOrnament"
+                android:layout_width="1px"
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="✦"
-                android:textColor="#E9C270"
-                android:textSize="9sp" />
+                android:textColor="#E9C270" />
         </LinearLayout>
-
-        <Space android:layout_width="6dp" android:layout_height="1dp" />
 
         <LinearLayout
             android:id="@+id/playerTwoPanel"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.10"
+            android:layout_width="1px"
+            android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
             android:background="@drawable/bg_panel">
 
             <TextView
                 android:id="@+id/playerTwoScore"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="1px"
+                android:layout_height="1px"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="0"
                 android:textColor="#FFE5A6"
-                android:textSize="13.5sp"
                 android:textStyle="bold"
                 android:fontFamily="serif"
                 android:background="@drawable/profile_avatar_bg" />
 
             <View
-                android:layout_width="1dp"
-                android:layout_height="24dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="6dp"
+                android:id="@+id/playerTwoDivider"
+                android:layout_width="1px"
+                android:layout_height="1px"
                 android:background="#8BC59A59" />
 
             <TextView
@@ -166,63 +143,28 @@
                 android:includeFontPadding="false"
                 android:text="AI"
                 android:textColor="@color/text_primary"
-                android:textSize="17sp"
                 android:textStyle="bold"
-                android:fontFamily="serif" />
+                android:fontFamily="serif"
+                android:maxLines="1" />
 
             <ImageView
                 android:id="@+id/playerTwoCheckerIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginLeft="8dp"
+                android:layout_width="1px"
+                android:layout_height="1px"
                 android:scaleType="fitCenter"
                 android:contentDescription="Player 2 checker" />
         </LinearLayout>
-    </LinearLayout>
-
-    <Space
-        android:layout_width="1dp"
-        android:layout_height="4dp" />
-
-    <!-- Board remains the hero, with deliberate breathing room around the thicker HUD. -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="8.10"
-        android:foregroundGravity="center">
 
         <com.george.backgammon.rendering.BackgammonBoardView
             android:id="@+id/boardView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
+            android:layout_width="1px"
+            android:layout_height="1px"
             android:contentDescription="Backgammon board" />
-    </FrameLayout>
-
-    <Space
-        android:layout_width="1dp"
-        android:layout_height="6dp" />
-
-    <!-- Thicker controls matching the approved reference. -->
-    <LinearLayout
-        android:id="@+id/controlsRow"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1.00"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:baselineAligned="false"
-        android:paddingTop="1dp"
-        android:paddingBottom="1dp">
-
-        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1.04" />
 
         <Button
             android:id="@+id/undoButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.48"
+            android:layout_width="1px"
+            android:layout_height="1px"
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="0dp"
@@ -231,17 +173,13 @@
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="@color/button_text"
-            android:textSize="14.5sp"
             android:fontFamily="serif"
             android:stateListAnimator="@null" />
 
-        <Space android:layout_width="8dp" android:layout_height="1dp" />
-
         <Button
             android:id="@+id/mainActionButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.30"
+            android:layout_width="1px"
+            android:layout_height="1px"
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="0dp"
@@ -250,18 +188,14 @@
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="@color/button_text"
-            android:textSize="18sp"
             android:textStyle="bold"
             android:fontFamily="serif"
             android:stateListAnimator="@null" />
 
-        <Space android:layout_width="8dp" android:layout_height="1dp" />
-
         <Button
             android:id="@+id/menuButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.48"
+            android:layout_width="1px"
+            android:layout_height="1px"
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="0dp"
@@ -270,10 +204,8 @@
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="@color/button_text"
-            android:textSize="22sp"
             android:fontFamily="sans"
             android:stateListAnimator="@null" />
 
-        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1.04" />
-    </LinearLayout>
-</LinearLayout>
+    </FrameLayout>
+</FrameLayout>

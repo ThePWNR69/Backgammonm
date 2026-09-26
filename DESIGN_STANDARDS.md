@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.6.1)
+# Backgammon Legacy — locked production standards (v1.6.3)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 
@@ -125,22 +125,36 @@ Setup screens use the same two-panel pattern: settings on the left, rules/summar
 
 ## 12. Gameplay HUD proportions
 
-For wide landscape phones, keep the live match screen board-first:
-- top HUD band: about **7.2%** of available height
-- board band: about **85.8%**
-- bottom controls: about **7.0%**
+For wide landscape phones, keep the live match screen board-first and follow the canonical reference rectangles below. In the 1672 × 941 master composition:
+- top name/status plates occupy `y=14..94`
+- board occupies `y=104..795`
+- bottom controls occupy `y=811..891`
 - checker icons and round-score badges must remain fully inside the player nameplates
 - centre status uses small symmetrical gold ornaments, never extra gameplay metadata
-- bottom controls remain centred and compact; they must not force the board smaller than necessary
+- bottom controls remain centred and compact
 
-## Gameplay chrome reference proportions (v1.6.1)
+## 13. Canonical gameplay reference projection (v1.6.3)
 
-The approved luxury gameplay reference is treated as a composition target, not just a colour/style reference. On extra-wide phones the reference is effectively **fit by height** rather than stretched to the device width.
+The approved match-screen concept is a **1672 × 941 reference coordinate system**. Do not return to independent LinearLayout weight sizing for the major gameplay regions.
 
-- HUD row width tracks approximately **102% of the rendered board width** and is centred.
-- Bottom controls are laid out inside a row exactly equal to the rendered board width.
-- Player nameplates, centre status panel and bottom buttons must never stretch across unused ultrawide side space.
-- Score badges remain fully contained inside the player nameplates; they must not touch or overlap the nameplate border.
-- The gameplay board keeps its canonical aspect ratio. Never stretch the board horizontally to fill an ultrawide screen.
-- Extra horizontal room belongs to the tabletop/background environment.
-- On the primary 20:9 validation device, the intended vertical composition is approximately: 8% HUD, 74% board region, 9% controls, with deliberate top/bottom breathing room.
+Canonical rectangles:
+- Player 1 plate: `101,14,493,80`
+- Status plate: `613,14,424,80`
+- Player 2 plate: `1053,14,495,80`
+- Board: `100,104,1448,691`
+- Undo: `445,811,151,80`
+- Main action: `611,811,432,80`
+- Menu: `1060,811,151,80`
+
+The reference is projected into the **full safe landscape window**, not uniformly fitted into a centred 16:9 island:
+
+- `scaleX = availableWidth / 1672`
+- `scaleY = availableHeight / 941`
+- X positions and widths use `scaleX`
+- Y positions and heights use `scaleY`
+- typography, checker icons and circular score badges use `min(scaleX, scaleY)` so they do not distort
+- horizontal padding/gaps may use `scaleX`
+
+This is required on wide phones such as the 1730 × 799 validation device. A uniform `min(widthScale, heightScale)` fit makes the board too narrow and is no longer the production rule.
+
+The BoardMap continues to scale only from the final displayed board rectangle, so gameplay geometry remains independent of device resolution. Score badges must remain fully within the nameplate. Centre status text must remain complete; shrink text within bounds instead of ellipsizing normal status messages.
