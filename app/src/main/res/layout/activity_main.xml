@@ -8,7 +8,7 @@
     android:clipToPadding="false">
 
     <!--
-      v1.6.4 board-first gameplay canvas.
+      v1.6.5 board-first gameplay canvas.
       The HUD keeps the approved horizontal reference spacing. The physical board itself
       always uses one uniform scale and is centred between slimmer top and bottom controls,
       so the wood frame and triangles can never be stretched to fill a wide phone.

@@ -322,7 +322,7 @@ public class GameActivity extends Activity {
                 return true;
             }
             if (title.equals("About Backgammon Legacy")) {
-                statusTitle.setText("Backgammon Legacy v1.6.4 • Gameplay UI Polish");
+                statusTitle.setText("Backgammon Legacy v1.6.5 • Checker Geometry Lock");
                 boardView.postDelayed(this::refreshUi, 1400);
                 return true;
             }
@@ -420,7 +420,7 @@ public class GameActivity extends Activity {
     }
 
     /**
-     * v1.6.4 gameplay composition. The HUD still follows the approved horizontal
+     * v1.6.5 gameplay composition. The HUD still follows the approved horizontal
      * reference spacing, but the physical board is never stretched. The board owns
      * one uniform scale, is centred, and grows into the extra vertical room recovered
      * from the slimmer top and bottom controls.

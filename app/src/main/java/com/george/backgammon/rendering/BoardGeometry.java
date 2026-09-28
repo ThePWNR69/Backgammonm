@@ -2,6 +2,13 @@ package com.george.backgammon.rendering;
 
 /** Device-sized projection of the permanent {@link BoardMap}. */
 final class BoardGeometry {
+    // v1.6.5 locked checker geometry.  These are renderer rules, not theme preferences.
+    // A checker is 90% of the narrowest point-base width.  Five visible checkers
+    // must span the complete point from base to apex, with a tiny apex cover guard
+    // so anti-aliasing can never leave the triangle tip visibly poking through.
+    private static final float CHECKER_DIAMETER_TO_BASE = 0.90f;
+    private static final float FIVE_STACK_APEX_COVER_DIAMETERS = 0.025f;
+
     float outerLeft, outerTop, outerRight, outerBottom;
     float fieldLeft, fieldTop, fieldRight, fieldBottom;
     float leftTrayLeft, leftTrayRight;
@@ -76,9 +83,9 @@ final class BoardGeometry {
             minBasePx = Math.min(minBasePx, BoardMap.BOTTOM_BASE_RIGHT_PX[i] - BoardMap.BOTTOM_BASE_LEFT_PX[i]);
         }
         float baseWidthScreen = (outerRight - outerLeft) * (minBasePx / BoardMap.MASTER_WIDTH_PX);
-        // v1.6.4: slightly smaller pieces leave more triangle visible and make five-checker stacks cleaner.
-        // Diameter ~= 74% of the narrowest point base.
-        return baseWidthScreen * 0.37f;
+        // v1.6.5: user-approved proportion. A 100 px point base means a 90 px checker.
+        // Radius is therefore 45% of the narrowest point-base width.
+        return baseWidthScreen * (CHECKER_DIAMETER_TO_BASE * 0.5f);
     }
 
     /** Legacy/global spacing helper retained for code that needs a generic value. */
@@ -138,10 +145,18 @@ final class BoardGeometry {
         float baseY = yFromMaster(baseMasterY(topPoint));
         float apexY = yFromMaster(apexMasterY(topPoint, idx));
         float height = Math.abs(apexY - baseY);
-        // Five visible checker centres remain between the base and apex.  A little overlap
-        // is allowed, but the fifth checker never needs to wander beyond the point tip.
-        float exactFiveFit = Math.max(r * 0.92f, (height - 2f * r) / 4f);
-        return Math.min(r * 1.50f, exactFiveFit);
+
+        // Locked v1.6.5 rule:
+        //  - checker 1 touches the triangle base,
+        //  - checker 5 reaches the apex,
+        //  - the final checker extends a tiny amount past the apex to guarantee the painted
+        //    tip is visually hidden after raster scaling / anti-aliasing.
+        //
+        // For the approved 100 x 278 reference point with a 90 px checker this is:
+        // (278 - 90 + 2.25) / 4 = 47.5625 px centre-to-centre pitch.
+        float diameter = 2f * r;
+        float apexCover = diameter * FIVE_STACK_APEX_COVER_DIAMETERS;
+        return Math.max(0f, (height - diameter + apexCover) / 4f);
     }
 
     float[] landingCenter(int point, int existingCount) {

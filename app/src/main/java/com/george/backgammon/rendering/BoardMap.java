@@ -3,13 +3,13 @@ package com.george.backgammon.rendering;
 /**
  * Canonical invisible backgammon map for the premium board template.
  *
- * v1.6.4 keeps the measured-point mapping model: gameplay follows the
+ * v1.6.5 keeps the measured-point mapping model: gameplay follows the
  * actual geometry of every visible triangle rather than an evenly spaced grid.  Each point stores its base-left,
  * base-right and apex coordinates measured from the production artwork.  Checker
  * centres are calculated halfway between the two sloping triangle edges at the
  * checker's own Y position.
  *
- * The v1.6.4 production art is also horizontally rebalanced around the centre bar,
+ * The v1.6.5 production art is also horizontally rebalanced around the centre bar,
  * and these coordinates are the matching post-rebalance measurements. This keeps the
  * outer wood rails visually even without decoupling checker geometry from the artwork. All board themes must continue to use this exact
  * master geometry.

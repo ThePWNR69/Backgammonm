@@ -1,4 +1,4 @@
-# Backgammon Legacy — locked production standards (v1.6.4)
+# Backgammon Legacy — locked production standards (v1.6.5)
 
 These are architecture rules, not per-theme preferences. Future boards/checkers must follow them automatically.
 
@@ -166,3 +166,19 @@ be authored/aligned to the current production template and validated with **Show
 - Player plates contain checker identity, player name and match score only.
 - Bear-off trays may use a restrained `OFF` label; avoid adding dense metadata to the board.
 - The live gameplay background should remain visually quiet enough that the board is the hero.
+
+## 15. Five-checker point coverage (v1.6.5)
+
+Checker-to-point geometry is now a locked renderer invariant:
+
+- The gameplay checker diameter is **90% of the narrowest visible triangle base width**.
+- A five-checker stack begins flush with the triangle base and spans the complete triangle height.
+- The fifth checker reaches and slightly covers the apex so the triangle tip cannot remain visible after scaling or anti-aliasing.
+- The required centre-to-centre pitch is calculated independently for each measured point from its real base-to-apex height.
+- The stack remains centred on the measured midpoint between the two triangle edges at each checker Y position.
+- 1-4 checkers use the same pitch; 6+ continues to use the count-badge treatment until a later high-stack design is approved.
+
+Reference design relationship: a **100 px** triangle base uses a **90 px** checker. For a **278 px** point height, five 90 px checkers use approximately **47.56 px centre-to-centre pitch**, including the small apex-cover guard.
+
+Do not tune checker size or stack spacing independently per cosmetic theme.
+
