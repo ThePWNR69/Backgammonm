@@ -463,15 +463,9 @@ public class GameActivity extends Activity {
     }
 
     /**
-     * v1.6.5 gameplay composition. The HUD still follows the approved horizontal
-     * reference spacing, but the physical board is never stretched. The board owns
-     * one uniform scale, is centred, and grows into the extra vertical room recovered
-     * from the slimmer top and bottom controls.
-     */
-    /**
-     * Exact v1.10 gameplay composition measured from the approved Classic Burgundy concept.
-     * The whole UI is one 510 x 280 logical frame. It scales uniformly and is centred, so the
-     * relationship between HUD, board and controls is identical across landscape devices.
+     * v1.11.0 approved gameplay composition. The whole UI is one 510 x 280 logical frame
+     * that scales uniformly and remains centred on landscape devices. Top and bottom chrome
+     * are deliberately slim so the live BoardMap projection receives most of the screen height.
      */
     private void applyReferenceComposition() {
         if (gameplayRoot == null || gameplayCanvas == null || boardView == null) return;
@@ -509,53 +503,54 @@ public class GameActivity extends Activity {
         canvasLp.gravity = 0;
         gameplayCanvas.setLayoutParams(canvasLp);
 
-        // Top deck: compact menu | player | gold turn plaque | opponent | settings.
-        setFrameRef(menuButton, 0f, 0f, 42f, 42f, scale);
-        setFrameRef(playerOnePanel, 46f, 0f, 144f, 42f, scale);
-        setFrameRef(statusPanel, 194f, 0f, 132f, 42f, scale);
-        setFrameRef(playerTwoPanel, 330f, 0f, 138f, 42f, scale);
-        setFrameRef(settingsButton, 472f, 0f, 38f, 42f, scale);
+        // v1.11.0: slimmer premium top deck. The board, not the chrome, is the hero.
+        setFrameRef(menuButton, 0f, 0f, 30f, 30f, scale);
+        setFrameRef(playerOnePanel, 34f, 0f, 146f, 30f, scale);
+        setFrameRef(statusPanel, 184f, 0f, 142f, 30f, scale);
+        setFrameRef(playerTwoPanel, 330f, 0f, 146f, 30f, scale);
+        setFrameRef(settingsButton, 480f, 0f, 30f, 30f, scale);
 
-        // Approved wide/short physical board. The renderer projects the same BoardMap into it.
-        setFrameRef(boardView, 0f, 44f, 510f, 178f, scale);
+        // Recover vertical room for gameplay. BoardMap/checker geometry is unchanged; only the
+        // projection rectangle grows vertically so the board no longer looks crushed by the HUD.
+        setFrameRef(boardView, 0f, 32f, 510f, 207f, scale);
 
-        // Bottom control deck measured from the same reference.
-        setFrameRef(bottomControlBar, 0f, 224f, 510f, 56f, scale);
-        setFrameRef(dieOneView, 34f, 233f, 38f, 38f, scale);
-        setFrameRef(dieTwoView, 82f, 233f, 38f, 38f, scale);
-        setFrameRef(mainActionButton, 162f, 229f, 178f, 46f, scale);
-        setFrameRef(undoButton, 364f, 228f, 60f, 48f, scale);
-        setFrameRef(hintButton, 430f, 228f, 64f, 48f, scale);
+        // v1.11.0: compact integrated control deck. Dice remain fixed at left; controls never shift.
+        setFrameRef(bottomControlBar, 0f, 241f, 510f, 39f, scale);
+        setFrameRef(dieOneView, 34f, 247f, 27f, 27f, scale);
+        setFrameRef(dieTwoView, 67f, 247f, 27f, 27f, scale);
+        setFrameRef(mainActionButton, 164f, 245f, 174f, 31f, scale);
+        setFrameRef(undoButton, 378f, 245f, 58f, 31f, scale);
+        setFrameRef(hintButton, 440f, 245f, 58f, 31f, scale);
 
         gameplayUiScale = scale;
-        int icon = Math.max(1, Math.round(30f * scale));
-        int score = Math.max(1, Math.round(29f * scale));
-        int sidePad = Math.max(2, Math.round(6f * scale));
-        int iconGap = Math.max(2, Math.round(5f * scale));
-        int dividerH = Math.max(1, Math.round(24f * scale));
-        int dividerGap = Math.max(2, Math.round(5f * scale));
+        int icon = Math.max(1, Math.round(22f * scale));
+        int score = Math.max(1, Math.round(21f * scale));
+        int sidePad = Math.max(2, Math.round(4f * scale));
+        int iconGap = Math.max(2, Math.round(3.5f * scale));
+        int dividerH = Math.max(1, Math.round(17f * scale));
+        int dividerGap = Math.max(2, Math.round(3.5f * scale));
         applyHorizontalPanelMetrics((LinearLayout) playerOnePanel, true, icon, score,
                 sidePad, iconGap, dividerH, dividerGap);
         applyHorizontalPanelMetrics((LinearLayout) playerTwoPanel, false, icon, score,
                 sidePad, iconGap, dividerH, dividerGap);
 
-        setTextPx(playerOneName, 12f * scale);
-        setTextPx(playerTwoName, 11f * scale);
-        setTextPx(playerOneScoreText, 13f * scale);
-        setTextPx(playerTwoScoreText, 13f * scale);
+        setTextPx(playerOneName, 9.6f * scale);
+        setTextPx(playerTwoName, 9.2f * scale);
+        setTextPx(playerOneScoreText, 10.5f * scale);
+        setTextPx(playerTwoScoreText, 10.5f * scale);
 
-        int ornamentW = Math.max(1, Math.round(11f * scale));
+        int ornamentW = Math.max(1, Math.round(8f * scale));
         setLinearWidth(statusLeftOrnament, ornamentW);
         setLinearWidth(statusRightOrnament, ornamentW);
-        setTextPx(statusLeftOrnament, 6f * scale);
-        setTextPx(statusRightOrnament, 6f * scale);
+        setTextPx(statusLeftOrnament, 4.5f * scale);
+        setTextPx(statusRightOrnament, 4.5f * scale);
         setStatusTextSizeForCurrentMessage(scale);
 
-        setTextPx(mainActionButton, 12f * scale);
-        setTextPx(undoButton, 8f * scale);
-        setTextPx(hintButton, 8f * scale);
-        setTextPx(menuButton, 18f * scale);
-        setTextPx(settingsButton, 16f * scale);
+        setTextPx(mainActionButton, 9.3f * scale);
+        setTextPx(undoButton, 7.0f * scale);
+        setTextPx(hintButton, 7.0f * scale);
+        setTextPx(menuButton, 14f * scale);
+        setTextPx(settingsButton, 12.5f * scale);
 
         gameplayCanvas.requestLayout();
         boardView.requestLayout();
@@ -626,9 +621,9 @@ public class GameActivity extends Activity {
     private void setStatusTextSizeForCurrentMessage(float scale) {
         if (statusTitle == null) return;
         String text = String.valueOf(statusTitle.getText());
-        float designPx = 11f;
-        if (text.length() > 20) designPx = 8.7f;
-        else if (text.length() > 16) designPx = 9.7f;
+        float designPx = 9.3f;
+        if (text.length() > 20) designPx = 7.3f;
+        else if (text.length() > 16) designPx = 8.2f;
         setTextPx(statusTitle, designPx * scale);
         statusTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
     }

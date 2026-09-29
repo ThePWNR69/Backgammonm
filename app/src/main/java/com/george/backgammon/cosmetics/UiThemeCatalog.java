@@ -7,9 +7,9 @@ public final class UiThemeCatalog {
     private UiThemeCatalog() {}
 
     /**
-     * Production baseline measured from design/reference/CLASSIC_BURGUNDY_APPROVED.png.
-     * These are raster chrome assets authored at exactly 4x the 510 x 280 logical frame,
-     * so they scale back into the locked rectangles without changing their proportions.
+     * Classic Burgundy baseline. The overall match composition still uses the 510 x 280 logical frame,
+     * while v1.11.0 uses slimmer 30-unit top chrome and a 39-unit bottom deck so the board
+     * regains visual height. Raster assets are authored at 4x their locked logical rectangles.
      */
     public static final UiTheme CLASSIC_BURGUNDY = new UiTheme(
             "classic_burgundy", "Classic Burgundy",

@@ -20,11 +20,16 @@ java = (ROOT / 'app/src/main/java/com/george/backgammon/ui/GameActivity.java').r
 required_layout_tokens = [
     'final float REF_W = 510f;',
     'final float REF_H = 280f;',
-    'setFrameRef(boardView, 0f, 44f, 510f, 178f, scale);',
-    'setFrameRef(bottomControlBar, 0f, 224f, 510f, 56f, scale);',
-    'setFrameRef(mainActionButton, 162f, 229f, 178f, 46f, scale);',
-    'setFrameRef(undoButton, 364f, 228f, 60f, 48f, scale);',
-    'setFrameRef(hintButton, 430f, 228f, 64f, 48f, scale);',
+    'setFrameRef(menuButton, 0f, 0f, 30f, 30f, scale);',
+    'setFrameRef(playerOnePanel, 34f, 0f, 146f, 30f, scale);',
+    'setFrameRef(statusPanel, 184f, 0f, 142f, 30f, scale);',
+    'setFrameRef(playerTwoPanel, 330f, 0f, 146f, 30f, scale);',
+    'setFrameRef(settingsButton, 480f, 0f, 30f, 30f, scale);',
+    'setFrameRef(boardView, 0f, 32f, 510f, 207f, scale);',
+    'setFrameRef(bottomControlBar, 0f, 241f, 510f, 39f, scale);',
+    'setFrameRef(mainActionButton, 164f, 245f, 174f, 31f, scale);',
+    'setFrameRef(undoButton, 378f, 245f, 58f, 31f, scale);',
+    'setFrameRef(hintButton, 440f, 245f, 58f, 31f, scale);',
 ]
 for token in required_layout_tokens:
     if token not in java:
@@ -49,12 +54,15 @@ if 'void computeStretched(float width, float height)' not in board_geometry:
     errors.append('Approved gameplay BoardMap projection is missing')
 
 board_view = (ROOT / 'app/src/main/java/com/george/backgammon/rendering/BackgammonBoardView.java').read_text()
-if 'Dice are rendered exclusively in the fixed bottom control deck in v1.10.0.' not in board_view:
+if 'Dice are rendered exclusively in the fixed bottom control deck in v1.11.0.' not in board_view:
     errors.append('Board renderer may be drawing dice over the approved board area')
 
 reference = ROOT / 'design/reference/CLASSIC_BURGUNDY_APPROVED.png'
 if not reference.exists():
     errors.append('Approved Classic Burgundy reference image is missing')
+runtime_reference = ROOT / 'design/reference/V1_11_RUNTIME_COMPOSITION.png'
+if not runtime_reference.exists():
+    errors.append('v1.11 runtime composition reference image is missing')
 
 premium_assets = [
     'premium_player_left.webp', 'premium_player_right.webp', 'premium_status.webp',
@@ -72,18 +80,18 @@ for name in premium_assets:
 try:
     from PIL import Image
     expected_sizes = {
-        'premium_player_left.webp': (576, 168),
-        'premium_player_right.webp': (552, 168),
-        'premium_status.webp': (528, 168),
-        'premium_bottom_deck.webp': (2040, 224),
-        'premium_primary_normal.webp': (712, 184),
-        'premium_primary_pressed.webp': (712, 184),
-        'premium_primary_disabled.webp': (712, 184),
-        'premium_secondary_normal.webp': (256, 192),
-        'premium_secondary_pressed.webp': (256, 192),
-        'premium_secondary_disabled.webp': (256, 192),
-        'premium_square_normal.webp': (168, 168),
-        'premium_square_pressed.webp': (168, 168),
+        'premium_player_left.webp': (584, 120),
+        'premium_player_right.webp': (584, 120),
+        'premium_status.webp': (560, 120),
+        'premium_bottom_deck.webp': (2040, 156),
+        'premium_primary_normal.webp': (696, 124),
+        'premium_primary_pressed.webp': (696, 124),
+        'premium_primary_disabled.webp': (696, 124),
+        'premium_secondary_normal.webp': (232, 124),
+        'premium_secondary_pressed.webp': (232, 124),
+        'premium_secondary_disabled.webp': (232, 124),
+        'premium_square_normal.webp': (120, 120),
+        'premium_square_pressed.webp': (120, 120),
     }
     for name, size in expected_sizes.items():
         path = asset_dir / name
@@ -102,14 +110,14 @@ for token in ['R.drawable.premium_player_left', 'R.drawable.premium_player_right
         errors.append(f'Classic Burgundy theme is not wired to {token}')
 
 build = (ROOT / 'app/build.gradle.kts').read_text()
-if 'versionName = "1.10.0"' not in build or 'versionCode = 28' not in build:
-    errors.append('App version is not v1.10.0 / code 28')
+if 'versionName = "1.11.0"' not in build or 'versionCode = 29' not in build:
+    errors.append('App version is not v1.11.0 / code 29')
 
 workflow = (ROOT / '.github/workflows/build-apk.yml').read_text()
-if 'Backgammon-Legacy-v1.10.0.apk' not in workflow:
-    errors.append('GitHub workflow does not output Backgammon-Legacy-v1.10.0.apk')
+if 'Backgammon-Legacy-v1.11.0.apk' not in workflow:
+    errors.append('GitHub workflow does not output Backgammon-Legacy-v1.11.0.apk')
 
 if errors:
     print('\n'.join('ERROR: ' + e for e in errors))
     sys.exit(1)
-print('Project validation passed: approved v1.10.0 gameplay composition and premium theme wiring are intact.')
+print('Project validation passed: approved v1.11.0 slim premium composition and theme wiring are intact.')

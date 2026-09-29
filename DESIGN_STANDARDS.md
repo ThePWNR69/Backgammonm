@@ -192,3 +192,16 @@ The approved match screen is a single **510 × 280 logical composition**. The bo
 The board source assets themselves remain 2048×977 and Store/Customise previews may still show the canonical source aspect. Do not change the live gameplay rectangle without replacing the approved reference and updating `APPROVED_GAMEPLAY_LAYOUT.md` in the same release.
 
 Classic Burgundy UI chrome is stored as raster theme resources at 4× logical size in `res/drawable-nodpi/premium_*`. Button state selectors must use Normal / Pressed / Disabled assets rather than substituting generic Android button styling.
+
+## 17. v1.11.0 slim-chrome gameplay override
+
+v1.11.0 supersedes the v1.10.0 live-match rectangles in section 16 after in-game review showed the 42-unit top HUD and 56-unit bottom deck visually compressing the board.
+
+The overall logical frame remains **510 × 280**, but the live match now uses:
+- top controls: **30** logical units high,
+- live board: `0,32,510,207`,
+- bottom control deck: **39** logical units high.
+
+The board must remain the dominant visual element. Do not increase HUD/control height to solve text or icon problems; refine typography/assets within the locked chrome instead.
+
+Classic Burgundy chrome uses thin double antique-gold edges, restrained leather texture, compact faceted score/turn treatments and no glow. Normal / Pressed / Disabled button states remain mandatory.

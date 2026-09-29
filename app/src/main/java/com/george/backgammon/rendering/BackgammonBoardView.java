@@ -239,7 +239,7 @@ public class BackgammonBoardView extends View {
         else staticRenderer.draw(c, geometry, loadout.board);
 
         drawOffCounts(c);
-        // Dice are rendered exclusively in the fixed bottom control deck in v1.10.0.
+        // Dice are rendered exclusively in the fixed bottom control deck in v1.11.0.
         drawMoveHints(c);
         for (int p = 1; p <= 24; p++) drawCheckersAtPoint(c, p, adjustedPointValue(p));
         drawBarCheckers(c);
