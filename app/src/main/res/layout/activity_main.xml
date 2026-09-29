@@ -47,6 +47,10 @@
                 android:includeFontPadding="false"
                 android:text="Player 1"
                 android:textColor="#FFF5E5"
+                android:shadowColor="#AA17040A"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="1.2"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="1" />
@@ -65,6 +69,10 @@
                 android:includeFontPadding="false"
                 android:text="0"
                 android:textColor="#FFF1CF"
+                android:shadowColor="#B0000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="1"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:background="@android:color/transparent" />
@@ -85,7 +93,7 @@
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="◆"
-                android:textColor="#5A3514" />
+                android:textColor="#76182A" />
 
             <TextView
                 android:id="@+id/statusTitle"
@@ -107,7 +115,7 @@
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="◆"
-                android:textColor="#5A3514" />
+                android:textColor="#76182A" />
         </LinearLayout>
 
         <LinearLayout
@@ -126,6 +134,10 @@
                 android:includeFontPadding="false"
                 android:text="0"
                 android:textColor="#FFF1CF"
+                android:shadowColor="#B0000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="1"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:background="@android:color/transparent" />
@@ -145,6 +157,10 @@
                 android:includeFontPadding="false"
                 android:text="AI - Normal"
                 android:textColor="#FFF5E5"
+                android:shadowColor="#AA17040A"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="1.2"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="1" />
@@ -229,6 +245,10 @@
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="#FFF2CF"
+            android:shadowColor="#B0000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="1.2"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium"
             android:stateListAnimator="@null" />
@@ -245,6 +265,10 @@
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="#FFE9B6"
+            android:shadowColor="#A0000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="1"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:stateListAnimator="@null" />
@@ -257,10 +281,14 @@
             android:minHeight="0dp"
             android:padding="0dp"
             android:background="@drawable/premium_secondary_button_selector"
-            android:text="♧  HINT"
+            android:text="✦  HINT"
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="#FFE9B6"
+            android:shadowColor="#A0000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="1"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:stateListAnimator="@null" />

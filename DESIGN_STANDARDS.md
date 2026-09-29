@@ -205,3 +205,21 @@ The overall logical frame remains **510 × 280**, but the live match now uses:
 The board must remain the dominant visual element. Do not increase HUD/control height to solve text or icon problems; refine typography/assets within the locked chrome instead.
 
 Classic Burgundy chrome uses thin double antique-gold edges, restrained leather texture, compact faceted score/turn treatments and no glow. Normal / Pressed / Disabled button states remain mandatory.
+
+
+## 18. v1.12.0 detailed premium chrome lock
+
+v1.12.0 keeps every v1.11 runtime rectangle unchanged. The screenshot at `design/reference/V1_12_SIZE_REFERENCE.jpg` is the accepted size/proportion reference; future polish work must not make the top or bottom chrome taller unless a later explicit design decision replaces this lock.
+
+Classic Burgundy detail requirements:
+- layered antique-gold outer rim plus darker inner hairline,
+- subtle leather grain and restrained stitched seams,
+- faceted recessed score bays,
+- small metal rivet/stud details used sparingly,
+- a brushed-metal centre turn plaque with a subtle inset title plate,
+- recessed framed dice wells in the bottom deck,
+- visual separators between dice / primary action / utility control zones,
+- Normal / Pressed / Disabled button assets with shadow/compression changes,
+- no neon glow or oversized ornamentation.
+
+The board remains the hero. Additional detail should come from material treatment, depth, fine trim, typography and icon polish rather than increasing chrome size.

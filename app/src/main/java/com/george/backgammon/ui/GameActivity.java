@@ -463,7 +463,7 @@ public class GameActivity extends Activity {
     }
 
     /**
-     * v1.11.0 approved gameplay composition. The whole UI is one 510 x 280 logical frame
+     * v1.12.0 approved gameplay composition (v1.11 sizing lock, detailed chrome). The whole UI is one 510 x 280 logical frame
      * that scales uniformly and remains centred on landscape devices. Top and bottom chrome
      * are deliberately slim so the live BoardMap projection receives most of the screen height.
      */
@@ -503,7 +503,7 @@ public class GameActivity extends Activity {
         canvasLp.gravity = 0;
         gameplayCanvas.setLayoutParams(canvasLp);
 
-        // v1.11.0: slimmer premium top deck. The board, not the chrome, is the hero.
+        // v1.12.0: v1.11 sizing remains locked; detailed premium chrome is asset-only.
         setFrameRef(menuButton, 0f, 0f, 30f, 30f, scale);
         setFrameRef(playerOnePanel, 34f, 0f, 146f, 30f, scale);
         setFrameRef(statusPanel, 184f, 0f, 142f, 30f, scale);
@@ -514,7 +514,7 @@ public class GameActivity extends Activity {
         // projection rectangle grows vertically so the board no longer looks crushed by the HUD.
         setFrameRef(boardView, 0f, 32f, 510f, 207f, scale);
 
-        // v1.11.0: compact integrated control deck. Dice remain fixed at left; controls never shift.
+        // v1.12.0: compact integrated control deck with richer trim; geometry remains unchanged.
         setFrameRef(bottomControlBar, 0f, 241f, 510f, 39f, scale);
         setFrameRef(dieOneView, 34f, 247f, 27f, 27f, scale);
         setFrameRef(dieTwoView, 67f, 247f, 27f, 27f, scale);

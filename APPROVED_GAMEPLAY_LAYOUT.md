@@ -47,3 +47,7 @@ The live board therefore occupies about **74% of the composition height**, up fr
 The canonical board art and BoardMap remain **2048 × 977**. The live screen projects that BoardMap into the v1.11 rectangle above. The BoardMap source coordinates, touch regions, checker anchors, bar/tray anchors and animation endpoints are unchanged.
 
 Checker sprites remain circular and keep the locked 90%-of-point-base sizing rule. This release changes presentation space only; it does not change game/rules geometry.
+
+
+## v1.12 detail-pass note
+The v1.11 rectangles above remain unchanged. `design/reference/V1_12_SIZE_REFERENCE.jpg` confirms the accepted in-game sizing. v1.12 adds detail only: richer leather grain, double metal edging, score-bay depth, recessed dice wells, fine separators/rivets and more dimensional button states.

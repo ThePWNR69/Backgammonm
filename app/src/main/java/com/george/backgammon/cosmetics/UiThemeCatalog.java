@@ -8,7 +8,7 @@ public final class UiThemeCatalog {
 
     /**
      * Classic Burgundy baseline. The overall match composition still uses the 510 x 280 logical frame,
-     * while v1.11.0 uses slimmer 30-unit top chrome and a 39-unit bottom deck so the board
+     * while v1.12.0 retains the v1.11 slimmer 30-unit top chrome and 39-unit bottom deck, while detailed raster chrome keeps the board
      * regains visual height. Raster assets are authored at 4x their locked logical rectangles.
      */
     public static final UiTheme CLASSIC_BURGUNDY = new UiTheme(
