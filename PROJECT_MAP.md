@@ -20,7 +20,9 @@ Use this map before editing so future updates stay targeted.
 For visual-only gameplay updates, normally edit only `cosmetics/`, `ui/GameActivity`, relevant `res/drawable*` assets, and the selected board asset. Do not touch `game/`, `progression/`, AI or BoardMap unless the requested feature actually changes them.
 
 
-CLASSIC BURGUNDY PREVIEW LOCK
-- approved static preview source: /mnt/data/luxurious_backgammon_board_interface.png
-- HUD chrome assets: app/src/main/res/drawable-nodpi/premium_*
-- board skin: app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp
+## v1.14 Classic Burgundy final implementation
+- Approved visual: `design/reference/CLASSIC_BURGUNDY_FINAL_APPROVED.png`
+- Gameplay chrome assets: `app/src/main/res/drawable-nodpi/premium_*`
+- Classic board art: `app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp`
+- Runtime placement: `ui/GameActivity.applyReferenceComposition()`
+- Board logic remains in `rendering/BoardMap.java` and `BoardGeometry.java`.

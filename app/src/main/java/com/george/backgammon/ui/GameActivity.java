@@ -503,7 +503,7 @@ public class GameActivity extends Activity {
         canvasLp.gravity = 0;
         gameplayCanvas.setLayoutParams(canvasLp);
 
-        // v1.12.0: v1.11 sizing remains locked; detailed premium chrome is asset-only.
+        // v1.14.0 final Classic Burgundy composition: approved preview proportions.
         setFrameRef(menuButton, 0f, 0f, 30f, 30f, scale);
         setFrameRef(playerOnePanel, 34f, 0f, 146f, 30f, scale);
         setFrameRef(statusPanel, 184f, 0f, 142f, 30f, scale);
@@ -512,15 +512,15 @@ public class GameActivity extends Activity {
 
         // Recover vertical room for gameplay. BoardMap/checker geometry is unchanged; only the
         // projection rectangle grows vertically so the board no longer looks crushed by the HUD.
-        setFrameRef(boardView, 0f, 32f, 510f, 207f, scale);
+        setFrameRef(boardView, 2f, 31f, 506f, 213f, scale);
 
-        // v1.12.0: compact integrated control deck with richer trim; geometry remains unchanged.
-        setFrameRef(bottomControlBar, 0f, 241f, 510f, 39f, scale);
-        setFrameRef(dieOneView, 34f, 247f, 27f, 27f, scale);
-        setFrameRef(dieTwoView, 67f, 247f, 27f, 27f, scale);
-        setFrameRef(mainActionButton, 164f, 245f, 174f, 31f, scale);
-        setFrameRef(undoButton, 378f, 245f, 58f, 31f, scale);
-        setFrameRef(hintButton, 440f, 245f, 58f, 31f, scale);
+        // v1.14.0: compact integrated control deck matched to the approved preview.
+        setFrameRef(bottomControlBar, 0f, 245f, 510f, 35f, scale);
+        setFrameRef(dieOneView, 33f, 250f, 24f, 24f, scale);
+        setFrameRef(dieTwoView, 66f, 250f, 24f, 24f, scale);
+        setFrameRef(mainActionButton, 164f, 248f, 174f, 29f, scale);
+        setFrameRef(undoButton, 378f, 248f, 58f, 29f, scale);
+        setFrameRef(hintButton, 440f, 248f, 58f, 29f, scale);
 
         gameplayUiScale = scale;
         int icon = Math.max(1, Math.round(22f * scale));

@@ -79,7 +79,9 @@ The approved premium gameplay reference is the production target for Classic Wal
 - polished ivory/walnut checkers
 - brass/gold trim
 - dark emerald luxury tabletop
-- dark brown player panels and emerald/gold status/action controls
+- burgundy leather player panels and bottom controls with restrained antique-gold edging
+- faceted brushed-gold turn/status plaque
+- dark secondary Undo/Hint buttons with gold trim
 - compact UI so the board remains the focus
 
 ## 8. New board workflow

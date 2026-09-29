@@ -25,11 +25,13 @@ required_layout_tokens = [
     'setFrameRef(statusPanel, 184f, 0f, 142f, 30f, scale);',
     'setFrameRef(playerTwoPanel, 330f, 0f, 146f, 30f, scale);',
     'setFrameRef(settingsButton, 480f, 0f, 30f, 30f, scale);',
-    'setFrameRef(boardView, 0f, 32f, 510f, 207f, scale);',
-    'setFrameRef(bottomControlBar, 0f, 241f, 510f, 39f, scale);',
-    'setFrameRef(mainActionButton, 164f, 245f, 174f, 31f, scale);',
-    'setFrameRef(undoButton, 378f, 245f, 58f, 31f, scale);',
-    'setFrameRef(hintButton, 440f, 245f, 58f, 31f, scale);',
+    'setFrameRef(boardView, 2f, 31f, 506f, 213f, scale);',
+    'setFrameRef(bottomControlBar, 0f, 245f, 510f, 35f, scale);',
+    'setFrameRef(dieOneView, 33f, 250f, 24f, 24f, scale);',
+    'setFrameRef(dieTwoView, 66f, 250f, 24f, 24f, scale);',
+    'setFrameRef(mainActionButton, 164f, 248f, 174f, 29f, scale);',
+    'setFrameRef(undoButton, 378f, 248f, 58f, 29f, scale);',
+    'setFrameRef(hintButton, 440f, 248f, 58f, 29f, scale);',
 ]
 for token in required_layout_tokens:
     if token not in java:
@@ -54,8 +56,16 @@ if 'void computeStretched(float width, float height)' not in board_geometry:
     errors.append('Approved gameplay BoardMap projection is missing')
 
 board_view = (ROOT / 'app/src/main/java/com/george/backgammon/rendering/BackgammonBoardView.java').read_text()
-if 'Dice are rendered exclusively in the fixed bottom control deck in v1.12.0.' not in board_view:
+if 'Dice are rendered exclusively in the fixed bottom control deck.' not in board_view:
     errors.append('Board renderer may be drawing dice over the approved board area')
+
+
+final_reference = ROOT / 'design/reference/CLASSIC_BURGUNDY_FINAL_APPROVED.png'
+if not final_reference.exists():
+    errors.append('Final approved Classic Burgundy preview is missing')
+board_asset = ROOT / 'app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp'
+if not board_asset.exists():
+    errors.append('Classic Burgundy board asset is missing')
 
 reference = ROOT / 'design/reference/CLASSIC_BURGUNDY_APPROVED.png'
 if not reference.exists():
@@ -100,6 +110,8 @@ try:
         path = asset_dir / name
         if path.exists() and Image.open(path).size != size:
             errors.append(f'{name} has wrong pixel size: {Image.open(path).size}, expected {size}')
+    if board_asset.exists() and Image.open(board_asset).size != (2048, 977):
+        errors.append(f'Classic Burgundy board has wrong size: {Image.open(board_asset).size}, expected (2048, 977)')
 except ImportError:
     pass
 
@@ -113,14 +125,14 @@ for token in ['R.drawable.premium_player_left', 'R.drawable.premium_player_right
         errors.append(f'Classic Burgundy theme is not wired to {token}')
 
 build = (ROOT / 'app/build.gradle.kts').read_text()
-if 'versionName = "1.12.0"' not in build or 'versionCode = 30' not in build:
-    errors.append('App version is not v1.12.0 / code 30')
+if 'versionName = "1.14.0"' not in build or 'versionCode = 32' not in build:
+    errors.append('App version is not v1.14.0 / code 32')
 
 workflow = (ROOT / '.github/workflows/build-apk.yml').read_text()
-if 'Backgammon-Legacy-v1.12.0.apk' not in workflow:
-    errors.append('GitHub workflow does not output Backgammon-Legacy-v1.12.0.apk')
+if 'Backgammon-Legacy-v1.14.0.apk' not in workflow:
+    errors.append('GitHub workflow does not output Backgammon-Legacy-v1.14.0.apk')
 
 if errors:
     print('\n'.join('ERROR: ' + e for e in errors))
     sys.exit(1)
-print('Project validation passed: v1.12.0 detailed premium chrome is wired while v1.11 sizing remains locked.')
+print('Project validation passed: v1.14.0 approved Classic Burgundy implementation is wired.')
