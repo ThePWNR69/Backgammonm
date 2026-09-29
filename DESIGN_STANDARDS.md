@@ -182,3 +182,13 @@ Reference design relationship: a **100 px** triangle base uses a **90 px** check
 
 Do not tune checker size or stack spacing independently per cosmetic theme.
 
+
+## 16. v1.10.0 approved gameplay-layout override
+
+For the **live match screen only**, sections 12–13's older uniform-aspect gameplay-board rule are superseded by `APPROVED_GAMEPLAY_LAYOUT.md` and `design/reference/CLASSIC_BURGUNDY_APPROVED.png`.
+
+The approved match screen is a single **510 × 280 logical composition**. The board occupies `0,44,510,178` inside that composition and the canonical 2048×977 `BoardMap` is projected independently on X/Y into that exact rectangle. This intentional presentation projection is what makes the runtime screen match the approved wide/short concept while preserving one map for artwork, anchors, hit regions and animation endpoints.
+
+The board source assets themselves remain 2048×977 and Store/Customise previews may still show the canonical source aspect. Do not change the live gameplay rectangle without replacing the approved reference and updating `APPROVED_GAMEPLAY_LAYOUT.md` in the same release.
+
+Classic Burgundy UI chrome is stored as raster theme resources at 4× logical size in `res/drawable-nodpi/premium_*`. Button state selectors must use Normal / Pressed / Disabled assets rather than substituting generic Android button styling.

@@ -106,6 +106,8 @@ public class BackgammonBoardView extends View {
     public void setOnGameChangedListener(OnGameChangedListener l) { listener = l; }
     public boolean isAnimating() { return animating || diceRolling; }
     public boolean isDiceRolling() { return diceRolling; }
+    public int getAnimatedDieOne() { return animatedDieOne; }
+    public int getAnimatedDieTwo() { return animatedDieTwo; }
     public void setOpeningPresentationActive(boolean active) {
         if (openingPresentationActive == active) return;
         openingPresentationActive = active;
@@ -197,6 +199,10 @@ public class BackgammonBoardView extends View {
                 lastDiceVisualStep = step;
                 animatedDieOne = diceVisualRandom.nextInt(6) + 1;
                 animatedDieTwo = diceVisualRandom.nextInt(6) + 1;
+                // v1.10.0: the approved design keeps dice in the bottom control deck.
+                // Notify only when the displayed face changes (roughly 12 times per roll),
+                // rather than refreshing the whole UI on every animation frame.
+                if (listener != null) listener.onGameChanged();
             }
             if (diceRollProgress >= 0.88f) {
                 animatedDieOne = finalDieOne;
@@ -233,7 +239,7 @@ public class BackgammonBoardView extends View {
         else staticRenderer.draw(c, geometry, loadout.board);
 
         drawOffCounts(c);
-        if (openingPresentationActive || diceRolling) drawDice(c);
+        // Dice are rendered exclusively in the fixed bottom control deck in v1.10.0.
         drawMoveHints(c);
         for (int p = 1; p <= 24; p++) drawCheckersAtPoint(c, p, adjustedPointValue(p));
         drawBarCheckers(c);
@@ -285,9 +291,9 @@ public class BackgammonBoardView extends View {
         }
     }
 
-    /** Keeps the physical board close to physical backgammon proportions instead of stretching to 16:9. */
+    /** Projects the permanent BoardMap into the approved wide premium gameplay frame. */
     private void computeGeometry() {
-        geometry.compute(getWidth(), getHeight());
+        geometry.computeStretched(getWidth(), getHeight());
         outerLeft = geometry.outerLeft; outerTop = geometry.outerTop;
         outerRight = geometry.outerRight; outerBottom = geometry.outerBottom;
         fieldLeft = geometry.fieldLeft; fieldTop = geometry.fieldTop;

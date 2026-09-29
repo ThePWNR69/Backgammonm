@@ -79,6 +79,7 @@ public class GameActivity extends Activity {
     private Button mainActionButton;
     private Button undoButton;
     private Button menuButton;
+    private Button settingsButton;
     private Button hintButton;
     private ImageView dieOneView;
     private ImageView dieTwoView;
@@ -145,6 +146,7 @@ public class GameActivity extends Activity {
         mainActionButton = findViewById(R.id.mainActionButton);
         undoButton = findViewById(R.id.undoButton);
         menuButton = findViewById(R.id.menuButton);
+        settingsButton = findViewById(R.id.settingsButton);
         hintButton = findViewById(R.id.hintButton);
         dieOneView = findViewById(R.id.dieOneView);
         dieTwoView = findViewById(R.id.dieTwoView);
@@ -168,6 +170,7 @@ public class GameActivity extends Activity {
         });
 
         menuButton.setOnClickListener(this::showGameMenu);
+        settingsButton.setOnClickListener(this::showGameMenu);
         hintButton.setOnClickListener(v -> {
             if (boardView.isAnimating() || isAiTurn() || !game.hasRolled()) return;
             if (!hintsEnabled) return;
@@ -357,7 +360,7 @@ public class GameActivity extends Activity {
                 return true;
             }
             if (title.equals("About Backgammon Legacy")) {
-                statusTitle.setText("Backgammon Legacy v1.6.5 • Checker Geometry Lock");
+                statusTitle.setText("Backgammon Legacy v1.10.0 • Approved Premium Layout");
                 boardView.postDelayed(this::refreshUi, 1400);
                 return true;
             }
@@ -383,11 +386,15 @@ public class GameActivity extends Activity {
 
 
     private void updatePlayerCheckerIcons() {
-        if (loadout == null || loadout.checkers == null) return;
-        String p1 = playerOneLight ? loadout.checkers.lightAsset : loadout.checkers.darkAsset;
-        String p2 = playerOneLight ? loadout.checkers.darkAsset : loadout.checkers.lightAsset;
-        setAssetImage(playerOneCheckerIcon, p1);
-        setAssetImage(playerTwoCheckerIcon, p2);
+        // The approved HUD uses identity icons, while checker colours stay on the board itself.
+        if (playerOneCheckerIcon != null) {
+            playerOneCheckerIcon.setImageResource(R.drawable.ic_profile);
+            playerOneCheckerIcon.setColorFilter(0xFFFFD47A);
+        }
+        if (playerTwoCheckerIcon != null) {
+            playerTwoCheckerIcon.setImageResource(versusAi ? R.drawable.ic_robot : R.drawable.ic_profile);
+            playerTwoCheckerIcon.setColorFilter(versusAi ? 0xFF5CB8FF : 0xFFFFD47A);
+        }
     }
 
     private void setAssetImage(ImageView view, String relativeAssetPath) {
@@ -461,11 +468,16 @@ public class GameActivity extends Activity {
      * one uniform scale, is centred, and grows into the extra vertical room recovered
      * from the slimmer top and bottom controls.
      */
+    /**
+     * Exact v1.10 gameplay composition measured from the approved Classic Burgundy concept.
+     * The whole UI is one 510 x 280 logical frame. It scales uniformly and is centred, so the
+     * relationship between HUD, board and controls is identical across landscape devices.
+     */
     private void applyReferenceComposition() {
         if (gameplayRoot == null || gameplayCanvas == null || boardView == null) return;
 
-        final float REF_W = 1672f;
-        final float REF_H = 941f;
+        final float REF_W = 510f;
+        final float REF_H = 280f;
 
         int rootW = gameplayRoot.getWidth();
         int rootH = gameplayRoot.getHeight();
@@ -483,91 +495,75 @@ public class GameActivity extends Activity {
 
         int availableW = Math.max(1, rootW - safeLeft - safeRight);
         int availableH = Math.max(1, rootH - safeTop - safeBottom);
-        float scaleX = availableW / REF_W;
-        float scaleY = availableH / REF_H;
+        float scale = Math.min(availableW / REF_W, availableH / REF_H) * 0.968f;
+        int canvasW = Math.max(1, Math.round(REF_W * scale));
+        int canvasH = Math.max(1, Math.round(REF_H * scale));
+        int canvasX = safeLeft + (availableW - canvasW) / 2;
+        int canvasY = safeTop + (availableH - canvasH) / 2;
 
         FrameLayout.LayoutParams canvasLp = (FrameLayout.LayoutParams) gameplayCanvas.getLayoutParams();
-        canvasLp.width = availableW;
-        canvasLp.height = availableH;
-        canvasLp.leftMargin = safeLeft;
-        canvasLp.topMargin = safeTop;
+        canvasLp.width = canvasW;
+        canvasLp.height = canvasH;
+        canvasLp.leftMargin = canvasX;
+        canvasLp.topMargin = canvasY;
         canvasLp.gravity = 0;
         gameplayCanvas.setLayoutParams(canvasLp);
 
-        int topMargin = Math.max(6, Math.round(11f * scaleY));
-        int hudH = Math.max(40, Math.round(62f * scaleY));
-        int controlH = Math.max(44, Math.round(66f * scaleY));
-        int gap = Math.max(4, Math.round(7f * scaleY));
-        int bottomMargin = topMargin;
+        // Top deck: compact menu | player | gold turn plaque | opponent | settings.
+        setFrameRef(menuButton, 0f, 0f, 42f, 42f, scale);
+        setFrameRef(playerOnePanel, 46f, 0f, 144f, 42f, scale);
+        setFrameRef(statusPanel, 194f, 0f, 132f, 42f, scale);
+        setFrameRef(playerTwoPanel, 330f, 0f, 138f, 42f, scale);
+        setFrameRef(settingsButton, 472f, 0f, 38f, 42f, scale);
 
-        int boardSlotH = Math.max(1, availableH - topMargin - hudH - gap
-                - controlH - gap - bottomMargin);
-        float maxBoardW = availableW * 0.94f;
-        float boardW = Math.min(maxBoardW, boardSlotH * BoardMap.MASTER_ASPECT);
-        float boardH = boardW / BoardMap.MASTER_ASPECT;
-        int boardWidthPx = Math.max(1, Math.round(boardW));
-        int boardHeightPx = Math.max(1, Math.round(boardH));
-        int boardX = (availableW - boardWidthPx) / 2;
-        int boardY = topMargin + hudH + gap + Math.max(0, (boardSlotH - boardHeightPx) / 2);
-        int controlsY = topMargin + hudH + gap + boardSlotH + gap;
+        // Approved wide/short physical board. The renderer projects the same BoardMap into it.
+        setFrameRef(boardView, 0f, 44f, 510f, 178f, scale);
 
-        // Horizontal positions remain anchored to the approved reference, while all
-        // vertical sizing is intentionally slimmer to give the board more room.
-        setFramePx(playerOnePanel, Math.round(101f * scaleX), topMargin,
-                Math.round(493f * scaleX), hudH);
-        setFramePx(statusPanel, Math.round(613f * scaleX), topMargin,
-                Math.round(424f * scaleX), hudH);
-        setFramePx(playerTwoPanel, Math.round(1053f * scaleX), topMargin,
-                Math.round(495f * scaleX), hudH);
-        setFramePx(boardView, boardX, boardY, boardWidthPx, boardHeightPx);
+        // Bottom control deck measured from the same reference.
+        setFrameRef(bottomControlBar, 0f, 224f, 510f, 56f, scale);
+        setFrameRef(dieOneView, 34f, 233f, 38f, 38f, scale);
+        setFrameRef(dieTwoView, 82f, 233f, 38f, 38f, scale);
+        setFrameRef(mainActionButton, 162f, 229f, 178f, 46f, scale);
+        setFrameRef(undoButton, 364f, 228f, 60f, 48f, scale);
+        setFrameRef(hintButton, 430f, 228f, 64f, 48f, scale);
 
-        int dieSize = Math.max(34, Math.round(58f * scaleY));
-        int dieY = controlsY + Math.max(0, (controlH - dieSize) / 2);
-        setFramePx(bottomControlBar, Math.round(84f * scaleX), controlsY, Math.round(1504f * scaleX), controlH);
-        setFramePx(dieOneView, Math.round(112f * scaleX), dieY, dieSize, dieSize);
-        setFramePx(dieTwoView, Math.round(180f * scaleX), dieY, dieSize, dieSize);
-        setFramePx(mainActionButton, Math.round(570f * scaleX), controlsY + Math.max(2, Math.round(5f * scaleY)),
-                Math.round(470f * scaleX), controlH - Math.max(4, Math.round(10f * scaleY)));
-        setFramePx(undoButton, Math.round(1190f * scaleX), controlsY + Math.max(2, Math.round(5f * scaleY)),
-                Math.round(145f * scaleX), controlH - Math.max(4, Math.round(10f * scaleY)));
-        setFramePx(hintButton, Math.round(1350f * scaleX), controlsY + Math.max(2, Math.round(5f * scaleY)),
-                Math.round(145f * scaleX), controlH - Math.max(4, Math.round(10f * scaleY)));
-        setFramePx(menuButton, Math.round(22f * scaleX), topMargin,
-                Math.round(62f * scaleX), hudH);
-
-        gameplayUiScale = Math.min(scaleX, hudH / 80f);
-
-        int icon = Math.max(1, Math.round(57f * gameplayUiScale));
-        int score = Math.max(1, Math.round(53f * gameplayUiScale));
-        int sidePad = Math.max(2, Math.round(14f * scaleX));
-        int iconGap = Math.max(2, Math.round(11f * scaleX));
-        int dividerH = Math.max(1, Math.round(hudH * 0.58f));
-        int dividerGap = Math.max(2, Math.round(12f * scaleX));
-
+        gameplayUiScale = scale;
+        int icon = Math.max(1, Math.round(30f * scale));
+        int score = Math.max(1, Math.round(29f * scale));
+        int sidePad = Math.max(2, Math.round(6f * scale));
+        int iconGap = Math.max(2, Math.round(5f * scale));
+        int dividerH = Math.max(1, Math.round(24f * scale));
+        int dividerGap = Math.max(2, Math.round(5f * scale));
         applyHorizontalPanelMetrics((LinearLayout) playerOnePanel, true, icon, score,
                 sidePad, iconGap, dividerH, dividerGap);
         applyHorizontalPanelMetrics((LinearLayout) playerTwoPanel, false, icon, score,
                 sidePad, iconGap, dividerH, dividerGap);
 
-        setTextPx(playerOneName, 35f * gameplayUiScale);
-        setTextPx(playerTwoName, 35f * gameplayUiScale);
-        setTextPx(playerOneScoreText, 30f * gameplayUiScale);
-        setTextPx(playerTwoScoreText, 30f * gameplayUiScale);
+        setTextPx(playerOneName, 12f * scale);
+        setTextPx(playerTwoName, 11f * scale);
+        setTextPx(playerOneScoreText, 13f * scale);
+        setTextPx(playerTwoScoreText, 13f * scale);
 
-        int ornamentW = Math.max(1, Math.round(31f * gameplayUiScale));
+        int ornamentW = Math.max(1, Math.round(11f * scale));
         setLinearWidth(statusLeftOrnament, ornamentW);
         setLinearWidth(statusRightOrnament, ornamentW);
-        setTextPx(statusLeftOrnament, 15f * gameplayUiScale);
-        setTextPx(statusRightOrnament, 15f * gameplayUiScale);
-        setStatusTextSizeForCurrentMessage(gameplayUiScale);
+        setTextPx(statusLeftOrnament, 6f * scale);
+        setTextPx(statusRightOrnament, 6f * scale);
+        setStatusTextSizeForCurrentMessage(scale);
 
-        setTextPx(undoButton, 28f * gameplayUiScale);
-        setTextPx(mainActionButton, 34f * gameplayUiScale);
-        setTextPx(menuButton, 32f * gameplayUiScale);
-        setTextPx(hintButton, 24f * gameplayUiScale);
+        setTextPx(mainActionButton, 12f * scale);
+        setTextPx(undoButton, 8f * scale);
+        setTextPx(hintButton, 8f * scale);
+        setTextPx(menuButton, 18f * scale);
+        setTextPx(settingsButton, 16f * scale);
 
         gameplayCanvas.requestLayout();
         boardView.requestLayout();
+    }
+
+    private void setFrameRef(View view, float x, float y, float w, float h, float scale) {
+        setFramePx(view, Math.round(x * scale), Math.round(y * scale),
+                Math.round(w * scale), Math.round(h * scale));
     }
 
     private void setFramePx(View view, int x, int y, int w, int h) {
@@ -630,23 +626,24 @@ public class GameActivity extends Activity {
     private void setStatusTextSizeForCurrentMessage(float scale) {
         if (statusTitle == null) return;
         String text = String.valueOf(statusTitle.getText());
-        float designPx = 35f;
-        if (text.length() > 20) designPx = 29f;
-        else if (text.length() > 17) designPx = 32f;
+        float designPx = 11f;
+        if (text.length() > 20) designPx = 8.7f;
+        else if (text.length() > 16) designPx = 9.7f;
         setTextPx(statusTitle, designPx * scale);
-        statusTitle.setEllipsize(null);
+        statusTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
     }
 
     private void applyUiTheme() {
         if (uiTheme == null) uiTheme = UiThemeCatalog.defaultTheme();
-        if (playerOnePanel != null) playerOnePanel.setBackgroundResource(uiTheme.topBarDrawable);
-        if (playerTwoPanel != null) playerTwoPanel.setBackgroundResource(uiTheme.topBarDrawable);
-        if (statusPanel != null) statusPanel.setBackgroundResource(uiTheme.topBarDrawable);
+        if (playerOnePanel != null) playerOnePanel.setBackgroundResource(uiTheme.playerOnePanelDrawable);
+        if (playerTwoPanel != null) playerTwoPanel.setBackgroundResource(uiTheme.playerTwoPanelDrawable);
+        if (statusPanel != null) statusPanel.setBackgroundResource(uiTheme.statusBarDrawable);
         if (bottomControlBar != null) bottomControlBar.setBackgroundResource(uiTheme.bottomBarDrawable);
         if (mainActionButton != null) mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
         if (undoButton != null) undoButton.setBackgroundResource(uiTheme.secondaryButtonDrawable);
         if (hintButton != null) hintButton.setBackgroundResource(uiTheme.secondaryButtonDrawable);
-        if (menuButton != null) menuButton.setBackgroundResource(uiTheme.secondaryButtonDrawable);
+        if (menuButton != null) menuButton.setBackgroundResource(uiTheme.squareButtonDrawable);
+        if (settingsButton != null) settingsButton.setBackgroundResource(uiTheme.squareButtonDrawable);
     }
 
     private void refreshUi() {
@@ -656,7 +653,7 @@ public class GameActivity extends Activity {
         boolean aiTurn = isAiTurn();
         boardView.setInputEnabled(!aiTurn && !aiBusy && game.isOpeningResolved());
 
-        playerOneName.setText(versusAi ? "You" : "Player 1");
+        playerOneName.setText("Player 1");
         playerTwoName.setText(versusAi ? "AI - " + difficultyName() : "Player 2");
 
         int winner = game.getWinner();
@@ -672,8 +669,8 @@ public class GameActivity extends Activity {
             statusTitle.setText(matchOver
                     ? name + " Wins Match"
                     : name + " Wins Game");
-            mainActionButton.setText(matchOver ? "Match Over" : "Next Game");
-            mainActionButton.setBackgroundResource(matchOver ? R.drawable.button_dark : R.drawable.button_burgundy);
+            mainActionButton.setText(matchOver ? "MATCH OVER" : "NEXT GAME");
+            mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(!matchOver);
             undoButton.setEnabled(false);
             updatePlayerPanels();
@@ -681,8 +678,8 @@ public class GameActivity extends Activity {
         }
 
         if (boardView.isDiceRolling()) {
-            statusTitle.setText(game.isOpeningResolved() ? "Rolling…" : "Opening Roll…");
-            mainActionButton.setText("Rolling…");
+            statusTitle.setText(game.isOpeningResolved() ? "ROLLING…" : "OPENING ROLL…");
+            mainActionButton.setText("ROLLING…");
             mainActionButton.setEnabled(false);
             undoButton.setEnabled(false);
             updatePlayerPanels();
@@ -691,8 +688,8 @@ public class GameActivity extends Activity {
 
         if (openingResultVisible) {
             statusTitle.setText(openingResultText);
-            mainActionButton.setText(game.isOpeningResolved() ? "First Player Set" : "Tie");
-            mainActionButton.setBackgroundResource(R.drawable.button_dark);
+            mainActionButton.setText(game.isOpeningResolved() ? "FIRST PLAYER SET" : "Tie");
+            mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(false);
             undoButton.setEnabled(false);
             updatePlayerPanels();
@@ -701,11 +698,11 @@ public class GameActivity extends Activity {
 
         if (!game.isOpeningResolved()) {
             if (game.wasOpeningTie()) {
-                statusTitle.setText("Tie • Roll Again");
-                mainActionButton.setText("⚄  Roll Again");
+                statusTitle.setText("TIE • ROLL AGAIN");
+                mainActionButton.setText("⚄  ROLL AGAIN");
             } else {
-                statusTitle.setText("Roll to Decide First");
-                mainActionButton.setText("⚄  Roll");
+                statusTitle.setText("ROLL TO DECIDE FIRST");
+                mainActionButton.setText("⚄  ROLL");
             }
             mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(!aiBusy);
@@ -716,9 +713,9 @@ public class GameActivity extends Activity {
 
         String currentName = displayName(game.getCurrentPlayer());
         if (aiTurn || aiBusy) {
-            statusTitle.setText(game.hasRolled() ? "AI Thinking…" : "AI Turn");
-            mainActionButton.setText("AI Turn");
-            mainActionButton.setBackgroundResource(R.drawable.button_dark);
+            statusTitle.setText(game.hasRolled() ? "AI THINKING…" : "AI TURN");
+            mainActionButton.setText("AI TURN");
+            mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(false);
             undoButton.setEnabled(false);
             updatePlayerPanels();
@@ -726,19 +723,19 @@ public class GameActivity extends Activity {
         }
 
         if (!game.hasRolled()) {
-            statusTitle.setText(versusAi && game.getCurrentPlayer() == playerOneSide ? "Your Turn" : currentName + " Turn");
-            mainActionButton.setText("⚄  Roll Dice");
+            statusTitle.setText(versusAi && game.getCurrentPlayer() == playerOneSide ? "YOUR TURN" : currentName + " Turn");
+            mainActionButton.setText("⚄  ROLL");
             mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(!boardView.isAnimating());
         } else {
             if (game.canEndTurn()) {
-                statusTitle.setText(game.getMovesMadeThisTurn() > 0 ? "Review Move" : "No Legal Move");
+                statusTitle.setText(game.getMovesMadeThisTurn() > 0 ? "REVIEW MOVE" : "NO LEGAL MOVE");
             } else if (game.getMovesMadeThisTurn() == 0) {
                 statusTitle.setText(currentName + " Starts • " + diceText());
             } else {
                 statusTitle.setText(currentName + " • " + diceText());
             }
-            mainActionButton.setText("✓  End Turn");
+            mainActionButton.setText("⚄  END TURN");
             mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(game.canEndTurn() && !boardView.isAnimating());
         }
@@ -781,13 +778,26 @@ public class GameActivity extends Activity {
 
     private void updateDiceControls() {
         if (dieOneView == null || dieTwoView == null) return;
-        boolean show = game.hasRolled() || boardView.isDiceRolling();
-        dieOneView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
-        dieTwoView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
-        if (!show) return;
-        int d1 = Math.max(1, Math.min(6, game.getDieOne()));
-        int d2 = Math.max(1, Math.min(6, game.getDieTwo()));
+        boolean liveDice = game.hasRolled() || boardView.isDiceRolling();
         int[] faces = {0, R.drawable.die_1, R.drawable.die_2, R.drawable.die_3, R.drawable.die_4, R.drawable.die_5, R.drawable.die_6};
+        if (!liveDice) {
+            // Keep the two dice bays present like the approved control deck without implying a roll.
+            dieOneView.setVisibility(View.VISIBLE);
+            dieTwoView.setVisibility(View.VISIBLE);
+            dieOneView.setImageResource(R.drawable.die_1);
+            dieTwoView.setImageResource(R.drawable.die_1);
+            dieOneView.setAlpha(0.28f);
+            dieTwoView.setAlpha(0.28f);
+            return;
+        }
+        dieOneView.setVisibility(View.VISIBLE);
+        dieTwoView.setVisibility(View.VISIBLE);
+        dieOneView.setAlpha(1f);
+        dieTwoView.setAlpha(1f);
+        int d1 = boardView.isDiceRolling() ? boardView.getAnimatedDieOne() : game.getDieOne();
+        int d2 = boardView.isDiceRolling() ? boardView.getAnimatedDieTwo() : game.getDieTwo();
+        d1 = Math.max(1, Math.min(6, d1));
+        d2 = Math.max(1, Math.min(6, d2));
         dieOneView.setImageResource(faces[d1]);
         dieTwoView.setImageResource(faces[d2]);
     }
@@ -816,8 +826,8 @@ public class GameActivity extends Activity {
         boolean opening = !game.isOpeningResolved();
         boolean p1Active = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == playerOneSide;
         boolean p2Active = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == -playerOneSide;
-        playerOnePanel.setBackgroundResource(uiTheme.topBarDrawable);
-        playerTwoPanel.setBackgroundResource(uiTheme.topBarDrawable);
+        playerOnePanel.setBackgroundResource(uiTheme.playerOnePanelDrawable);
+        playerTwoPanel.setBackgroundResource(uiTheme.playerTwoPanelDrawable);
 
         playerOneScoreText.setText(String.valueOf(playerOneScore));
         playerTwoScoreText.setText(String.valueOf(playerTwoScore));

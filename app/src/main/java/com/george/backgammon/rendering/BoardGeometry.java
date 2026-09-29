@@ -53,6 +53,38 @@ final class BoardGeometry {
         frame = boardH * 0.058f;
     }
 
+    /**
+     * Gameplay presentation used by the locked premium HUD. The approved visual design uses
+     * a deliberately wider/shorter physical board than the source-art aspect ratio. The BoardMap
+     * remains the single source of truth: X and Y are projected independently into this rectangle,
+     * so points, touch zones, bar/off anchors and animations all stay aligned with the same map.
+     * Checker sprites remain circular because their diameter is derived from horizontal point width.
+     */
+    void computeStretched(float width, float height) {
+        float pad = Math.max(1f, Math.min(width, height) * 0.0025f);
+        outerLeft = pad;
+        outerTop = pad;
+        outerRight = Math.max(outerLeft + 1f, width - pad);
+        outerBottom = Math.max(outerTop + 1f, height - pad);
+
+        fieldLeft = x(BoardMap.FIELD_LEFT);
+        fieldRight = x(BoardMap.FIELD_RIGHT);
+        fieldTop = y(BoardMap.FIELD_TOP);
+        fieldBottom = y(BoardMap.FIELD_BOTTOM);
+        leftTrayLeft = x(BoardMap.LEFT_TRAY_LEFT);
+        leftTrayRight = x(BoardMap.LEFT_TRAY_RIGHT);
+        offLeft = x(BoardMap.RIGHT_TRAY_LEFT);
+        offRight = x(BoardMap.RIGHT_TRAY_RIGHT);
+        barLeft = x(BoardMap.BAR_LEFT);
+        barRight = x(BoardMap.BAR_RIGHT);
+        triangleHeight = (outerBottom - outerTop) * BoardMap.TRIANGLE_HEIGHT;
+
+        leftColWidth = (x(BoardMap.BAR_LEFT) - x(BoardMap.FIELD_LEFT)) / 6f;
+        rightColWidth = (x(BoardMap.FIELD_RIGHT) - x(BoardMap.BAR_RIGHT)) / 6f;
+        colWidth = (leftColWidth + rightColWidth) * 0.5f;
+        frame = (outerBottom - outerTop) * 0.058f;
+    }
+
     float x(float normalized) { return outerLeft + (outerRight - outerLeft) * normalized; }
     float y(float normalized) { return outerTop + (outerBottom - outerTop) * normalized; }
 

@@ -8,10 +8,9 @@
     android:clipToPadding="false">
 
     <!--
-      v1.7.0 premium gameplay canvas.
-      The HUD keeps the approved horizontal reference spacing. The physical board itself
-      always uses one uniform scale and is centred between slimmer top and bottom controls,
-      so the wood frame and triangles can never be stretched to fill a wide phone.
+      v1.10.0 approved gameplay composition.
+      All child geometry is placed by GameActivity against the single 510 x 280
+      reference frame measured from the approved Classic Burgundy concept.
     -->
     <FrameLayout
         android:id="@+id/gameplayCanvas"
@@ -27,14 +26,17 @@
             android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/gameplay_bar_burgundy">
+            android:background="@drawable/premium_player_left">
 
             <ImageView
                 android:id="@+id/playerOneCheckerIcon"
                 android:layout_width="1px"
                 android:layout_height="1px"
+                android:padding="5dp"
                 android:scaleType="fitCenter"
-                android:contentDescription="Player 1 checker" />
+                android:background="@drawable/hud_avatar_ring"
+                android:src="@drawable/ic_profile"
+                android:contentDescription="Player 1" />
 
             <TextView
                 android:id="@+id/playerOneName"
@@ -43,17 +45,17 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:includeFontPadding="false"
-                android:text="You"
-                android:textColor="@color/text_primary"
+                android:text="Player 1"
+                android:textColor="#FFF5E5"
                 android:textStyle="bold"
-                android:fontFamily="serif"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1" />
 
             <View
                 android:id="@+id/playerOneDivider"
                 android:layout_width="1px"
                 android:layout_height="1px"
-                android:background="#8BC59A59" />
+                android:background="@android:color/transparent" />
 
             <TextView
                 android:id="@+id/playerOneScore"
@@ -62,10 +64,10 @@
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="0"
-                android:textColor="#FFE5A6"
+                android:textColor="#FFF1CF"
                 android:textStyle="bold"
-                android:fontFamily="serif"
-                android:background="@drawable/profile_avatar_bg" />
+                android:fontFamily="sans-serif-medium"
+                android:background="@android:color/transparent" />
         </LinearLayout>
 
         <LinearLayout
@@ -74,7 +76,7 @@
             android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center"
-            android:background="@drawable/gameplay_bar_burgundy">
+            android:background="@drawable/premium_status">
 
             <TextView
                 android:id="@+id/statusLeftOrnament"
@@ -82,8 +84,8 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:includeFontPadding="false"
-                android:text="✦"
-                android:textColor="#E9C270" />
+                android:text="◆"
+                android:textColor="#5A3514" />
 
             <TextView
                 android:id="@+id/statusTitle"
@@ -92,10 +94,10 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:includeFontPadding="false"
-                android:text="Roll to Decide First"
-                android:textColor="@color/text_primary"
+                android:text="ROLL TO DECIDE FIRST"
+                android:textColor="#2A180C"
                 android:textStyle="bold"
-                android:fontFamily="serif"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1" />
 
             <TextView
@@ -104,8 +106,8 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:includeFontPadding="false"
-                android:text="✦"
-                android:textColor="#E9C270" />
+                android:text="◆"
+                android:textColor="#5A3514" />
         </LinearLayout>
 
         <LinearLayout
@@ -114,7 +116,7 @@
             android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/gameplay_bar_burgundy">
+            android:background="@drawable/premium_player_right">
 
             <TextView
                 android:id="@+id/playerTwoScore"
@@ -123,16 +125,16 @@
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="0"
-                android:textColor="#FFE5A6"
+                android:textColor="#FFF1CF"
                 android:textStyle="bold"
-                android:fontFamily="serif"
-                android:background="@drawable/profile_avatar_bg" />
+                android:fontFamily="sans-serif-medium"
+                android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/playerTwoDivider"
                 android:layout_width="1px"
                 android:layout_height="1px"
-                android:background="#8BC59A59" />
+                android:background="@android:color/transparent" />
 
             <TextView
                 android:id="@+id/playerTwoName"
@@ -141,62 +143,23 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical|right"
                 android:includeFontPadding="false"
-                android:text="AI"
-                android:textColor="@color/text_primary"
+                android:text="AI - Normal"
+                android:textColor="#FFF5E5"
                 android:textStyle="bold"
-                android:fontFamily="serif"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1" />
 
             <ImageView
                 android:id="@+id/playerTwoCheckerIcon"
                 android:layout_width="1px"
                 android:layout_height="1px"
+                android:padding="5dp"
                 android:scaleType="fitCenter"
-                android:contentDescription="Player 2 checker" />
+                android:background="@drawable/hud_avatar_ring_ai"
+                android:src="@drawable/ic_robot"
+                android:tint="#5CB8FF"
+                android:contentDescription="Player 2" />
         </LinearLayout>
-
-        <View
-            android:id="@+id/bottomControlBar"
-            android:layout_width="1px"
-            android:layout_height="1px"
-            android:background="@drawable/gameplay_bottom_bar" />
-
-        <com.george.backgammon.rendering.BackgammonBoardView
-            android:id="@+id/boardView"
-            android:layout_width="1px"
-            android:layout_height="1px"
-            android:contentDescription="Backgammon board" />
-
-        <Button
-            android:id="@+id/undoButton"
-            android:layout_width="1px"
-            android:layout_height="1px"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:padding="0dp"
-            android:background="@drawable/button_brown_gold"
-            android:text="↶  Undo"
-            android:textAllCaps="false"
-            android:includeFontPadding="false"
-            android:textColor="@color/button_text"
-            android:fontFamily="serif"
-            android:stateListAnimator="@null" />
-
-        <Button
-            android:id="@+id/mainActionButton"
-            android:layout_width="1px"
-            android:layout_height="1px"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:padding="0dp"
-            android:background="@drawable/button_burgundy"
-            android:text="⚄  Roll"
-            android:textAllCaps="false"
-            android:includeFontPadding="false"
-            android:textColor="@color/button_text"
-            android:textStyle="bold"
-            android:fontFamily="serif"
-            android:stateListAnimator="@null" />
 
         <Button
             android:id="@+id/menuButton"
@@ -205,17 +168,102 @@
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="0dp"
-            android:background="@drawable/button_brown_gold"
+            android:background="@drawable/premium_square_button_selector"
             android:text="☰"
             android:textAllCaps="false"
             android:includeFontPadding="false"
-            android:textColor="@color/button_text"
-            android:fontFamily="sans"
+            android:textColor="#FFE9B6"
+            android:fontFamily="sans-serif-medium"
             android:stateListAnimator="@null" />
 
-        <ImageView android:id="@+id/dieOneView" android:layout_width="1px" android:layout_height="1px" android:scaleType="fitCenter" android:contentDescription="Die one" />
-        <ImageView android:id="@+id/dieTwoView" android:layout_width="1px" android:layout_height="1px" android:scaleType="fitCenter" android:contentDescription="Die two" />
-        <Button android:id="@+id/hintButton" android:layout_width="1px" android:layout_height="1px" android:minWidth="0dp" android:minHeight="0dp" android:padding="0dp" android:background="@drawable/button_brown_gold" android:text="♧  Hint" android:textAllCaps="false" android:includeFontPadding="false" android:textColor="@color/button_text" android:fontFamily="serif" android:stateListAnimator="@null" />
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:background="@drawable/premium_square_button_selector"
+            android:text="⚙"
+            android:textAllCaps="false"
+            android:includeFontPadding="false"
+            android:textColor="#FFE9B6"
+            android:fontFamily="sans-serif-medium"
+            android:stateListAnimator="@null" />
+
+        <com.george.backgammon.rendering.BackgammonBoardView
+            android:id="@+id/boardView"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:contentDescription="Backgammon board" />
+
+        <View
+            android:id="@+id/bottomControlBar"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:background="@drawable/premium_bottom_deck" />
+
+        <ImageView
+            android:id="@+id/dieOneView"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:scaleType="fitCenter"
+            android:contentDescription="Die one" />
+
+        <ImageView
+            android:id="@+id/dieTwoView"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:scaleType="fitCenter"
+            android:contentDescription="Die two" />
+
+        <Button
+            android:id="@+id/mainActionButton"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:background="@drawable/premium_primary_button_selector"
+            android:text="⚄  ROLL"
+            android:textAllCaps="false"
+            android:includeFontPadding="false"
+            android:textColor="#FFF2CF"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:stateListAnimator="@null" />
+
+        <Button
+            android:id="@+id/undoButton"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:background="@drawable/premium_secondary_button_selector"
+            android:text="↶\nUNDO"
+            android:textAllCaps="false"
+            android:includeFontPadding="false"
+            android:textColor="#FFE9B6"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:stateListAnimator="@null" />
+
+        <Button
+            android:id="@+id/hintButton"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:background="@drawable/premium_secondary_button_selector"
+            android:text="♧\nHINT"
+            android:textAllCaps="false"
+            android:includeFontPadding="false"
+            android:textColor="#FFE9B6"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:stateListAnimator="@null" />
 
     </FrameLayout>
 </FrameLayout>

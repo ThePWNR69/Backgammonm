@@ -12,10 +12,10 @@ public final class CosmeticCatalog {
     private CosmeticCatalog() {}
 
     public static final BoardTheme CLASSIC_WALNUT = new BoardTheme(
-            "board_classic_walnut", "Classic Walnut",
+            "board_classic_walnut", "Classic Burgundy",
             0xFF5A2E17, 0xFF7D4624, 0xFF211813,
-            0xFFF0E2C2, 0xFF8D452E, 0xFFC79243, 0xFFB77B3E,
-            "boards/classic_walnut/board.webp",
+            0xFFF0E2C2, 0xFF771B29, 0xFFC79243, 0xFFB77B3E,
+            "boards/classic_burgundy/board.webp",
             null, null, null, null);
 
     public static final BoardTheme GREEK_MARBLE = new BoardTheme(
