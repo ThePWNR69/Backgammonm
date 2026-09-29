@@ -30,6 +30,8 @@ import com.george.backgammon.cosmetics.CosmeticCatalog;
 import com.george.backgammon.cosmetics.BoardTheme;
 import com.george.backgammon.cosmetics.CheckerTheme;
 import com.george.backgammon.cosmetics.PlayerLoadout;
+import com.george.backgammon.cosmetics.UiTheme;
+import com.george.backgammon.cosmetics.UiThemeCatalog;
 import com.george.backgammon.animation.MoveAnimationStyle;
 import com.george.backgammon.game.BackgammonGame;
 import com.george.backgammon.game.Move;
@@ -67,6 +69,8 @@ public class GameActivity extends Activity {
     private View playerTwoPanel;
     private View statusPanel;
     private View gameplayRoot;
+    private View bottomControlBar;
+    private UiTheme uiTheme = UiThemeCatalog.defaultTheme();
     private FrameLayout gameplayCanvas;
     private View playerOneDivider;
     private View playerTwoDivider;
@@ -132,6 +136,7 @@ public class GameActivity extends Activity {
         playerTwoPanel = findViewById(R.id.playerTwoPanel);
         statusPanel = findViewById(R.id.statusPanel);
         gameplayRoot = findViewById(R.id.gameplayRoot);
+        bottomControlBar = findViewById(R.id.bottomControlBar);
         gameplayCanvas = findViewById(R.id.gameplayCanvas);
         playerOneDivider = findViewById(R.id.playerOneDivider);
         playerTwoDivider = findViewById(R.id.playerTwoDivider);
@@ -143,6 +148,7 @@ public class GameActivity extends Activity {
         hintButton = findViewById(R.id.hintButton);
         dieOneView = findViewById(R.id.dieOneView);
         dieTwoView = findViewById(R.id.dieTwoView);
+        applyUiTheme();
 
         boardView.setGame(game);
         prefs = getSharedPreferences("backgammon_visuals", MODE_PRIVATE);
@@ -490,7 +496,7 @@ public class GameActivity extends Activity {
 
         int topMargin = Math.max(6, Math.round(11f * scaleY));
         int hudH = Math.max(40, Math.round(62f * scaleY));
-        int controlH = hudH;
+        int controlH = Math.max(44, Math.round(66f * scaleY));
         int gap = Math.max(4, Math.round(7f * scaleY));
         int bottomMargin = topMargin;
 
@@ -517,14 +523,15 @@ public class GameActivity extends Activity {
 
         int dieSize = Math.max(34, Math.round(58f * scaleY));
         int dieY = controlsY + Math.max(0, (controlH - dieSize) / 2);
-        setFramePx(dieOneView, Math.round(104f * scaleX), dieY, dieSize, dieSize);
-        setFramePx(dieTwoView, Math.round(174f * scaleX), dieY, dieSize, dieSize);
-        setFramePx(mainActionButton, Math.round(560f * scaleX), controlsY,
-                Math.round(500f * scaleX), controlH);
-        setFramePx(undoButton, Math.round(1180f * scaleX), controlsY,
-                Math.round(145f * scaleX), controlH);
-        setFramePx(hintButton, Math.round(1340f * scaleX), controlsY,
-                Math.round(145f * scaleX), controlH);
+        setFramePx(bottomControlBar, Math.round(84f * scaleX), controlsY, Math.round(1504f * scaleX), controlH);
+        setFramePx(dieOneView, Math.round(112f * scaleX), dieY, dieSize, dieSize);
+        setFramePx(dieTwoView, Math.round(180f * scaleX), dieY, dieSize, dieSize);
+        setFramePx(mainActionButton, Math.round(570f * scaleX), controlsY + Math.max(2, Math.round(5f * scaleY)),
+                Math.round(470f * scaleX), controlH - Math.max(4, Math.round(10f * scaleY)));
+        setFramePx(undoButton, Math.round(1190f * scaleX), controlsY + Math.max(2, Math.round(5f * scaleY)),
+                Math.round(145f * scaleX), controlH - Math.max(4, Math.round(10f * scaleY)));
+        setFramePx(hintButton, Math.round(1350f * scaleX), controlsY + Math.max(2, Math.round(5f * scaleY)),
+                Math.round(145f * scaleX), controlH - Math.max(4, Math.round(10f * scaleY)));
         setFramePx(menuButton, Math.round(22f * scaleX), topMargin,
                 Math.round(62f * scaleX), hudH);
 
@@ -630,6 +637,18 @@ public class GameActivity extends Activity {
         statusTitle.setEllipsize(null);
     }
 
+    private void applyUiTheme() {
+        if (uiTheme == null) uiTheme = UiThemeCatalog.defaultTheme();
+        if (playerOnePanel != null) playerOnePanel.setBackgroundResource(uiTheme.topBarDrawable);
+        if (playerTwoPanel != null) playerTwoPanel.setBackgroundResource(uiTheme.topBarDrawable);
+        if (statusPanel != null) statusPanel.setBackgroundResource(uiTheme.topBarDrawable);
+        if (bottomControlBar != null) bottomControlBar.setBackgroundResource(uiTheme.bottomBarDrawable);
+        if (mainActionButton != null) mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
+        if (undoButton != null) undoButton.setBackgroundResource(uiTheme.secondaryButtonDrawable);
+        if (hintButton != null) hintButton.setBackgroundResource(uiTheme.secondaryButtonDrawable);
+        if (menuButton != null) menuButton.setBackgroundResource(uiTheme.secondaryButtonDrawable);
+    }
+
     private void refreshUi() {
         boardView.invalidate();
         updateDiceControls();
@@ -688,7 +707,7 @@ public class GameActivity extends Activity {
                 statusTitle.setText("Roll to Decide First");
                 mainActionButton.setText("⚄  Roll");
             }
-            mainActionButton.setBackgroundResource(R.drawable.button_burgundy);
+            mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(!aiBusy);
             undoButton.setEnabled(false);
             updatePlayerPanels();
@@ -709,7 +728,7 @@ public class GameActivity extends Activity {
         if (!game.hasRolled()) {
             statusTitle.setText(versusAi && game.getCurrentPlayer() == playerOneSide ? "Your Turn" : currentName + " Turn");
             mainActionButton.setText("⚄  Roll Dice");
-            mainActionButton.setBackgroundResource(R.drawable.button_burgundy);
+            mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(!boardView.isAnimating());
         } else {
             if (game.canEndTurn()) {
@@ -720,7 +739,7 @@ public class GameActivity extends Activity {
                 statusTitle.setText(currentName + " • " + diceText());
             }
             mainActionButton.setText("✓  End Turn");
-            mainActionButton.setBackgroundResource(R.drawable.button_burgundy);
+            mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
             mainActionButton.setEnabled(game.canEndTurn() && !boardView.isAnimating());
         }
 
@@ -797,8 +816,8 @@ public class GameActivity extends Activity {
         boolean opening = !game.isOpeningResolved();
         boolean p1Active = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == playerOneSide;
         boolean p2Active = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == -playerOneSide;
-        playerOnePanel.setBackgroundResource(R.drawable.gameplay_bar_burgundy);
-        playerTwoPanel.setBackgroundResource(R.drawable.gameplay_bar_burgundy);
+        playerOnePanel.setBackgroundResource(uiTheme.topBarDrawable);
+        playerTwoPanel.setBackgroundResource(uiTheme.topBarDrawable);
 
         playerOneScoreText.setText(String.valueOf(playerOneScore));
         playerTwoScoreText.setText(String.valueOf(playerTwoScore));

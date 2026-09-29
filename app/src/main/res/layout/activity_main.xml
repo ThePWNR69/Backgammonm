@@ -155,6 +155,12 @@
                 android:contentDescription="Player 2 checker" />
         </LinearLayout>
 
+        <View
+            android:id="@+id/bottomControlBar"
+            android:layout_width="1px"
+            android:layout_height="1px"
+            android:background="@drawable/gameplay_bottom_bar" />
+
         <com.george.backgammon.rendering.BackgammonBoardView
             android:id="@+id/boardView"
             android:layout_width="1px"
