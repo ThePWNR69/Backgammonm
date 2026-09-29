@@ -3,12 +3,12 @@
     android:id="@+id/gameplayRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/screen_green_background"
+    android:background="@drawable/tabletop"
     android:clipChildren="false"
     android:clipToPadding="false">
 
     <!--
-      v1.6.5 board-first gameplay canvas.
+      v1.7.0 premium gameplay canvas.
       The HUD keeps the approved horizontal reference spacing. The physical board itself
       always uses one uniform scale and is centred between slimmer top and bottom controls,
       so the wood frame and triangles can never be stretched to fill a wide phone.
@@ -27,7 +27,7 @@
             android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/bg_panel_active">
+            android:background="@drawable/gameplay_bar_burgundy">
 
             <ImageView
                 android:id="@+id/playerOneCheckerIcon"
@@ -74,7 +74,7 @@
             android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center"
-            android:background="@drawable/bg_status">
+            android:background="@drawable/gameplay_bar_burgundy">
 
             <TextView
                 android:id="@+id/statusLeftOrnament"
@@ -114,7 +114,7 @@
             android:layout_height="1px"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/bg_panel">
+            android:background="@drawable/gameplay_bar_burgundy">
 
             <TextView
                 android:id="@+id/playerTwoScore"
@@ -168,7 +168,7 @@
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="0dp"
-            android:background="@drawable/button_dark"
+            android:background="@drawable/button_brown_gold"
             android:text="↶  Undo"
             android:textAllCaps="false"
             android:includeFontPadding="false"
@@ -183,7 +183,7 @@
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="0dp"
-            android:background="@drawable/button_green"
+            android:background="@drawable/button_burgundy"
             android:text="⚄  Roll"
             android:textAllCaps="false"
             android:includeFontPadding="false"
@@ -199,13 +199,17 @@
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="0dp"
-            android:background="@drawable/button_dark"
+            android:background="@drawable/button_brown_gold"
             android:text="☰"
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="@color/button_text"
             android:fontFamily="sans"
             android:stateListAnimator="@null" />
+
+        <ImageView android:id="@+id/dieOneView" android:layout_width="1px" android:layout_height="1px" android:scaleType="fitCenter" android:contentDescription="Die one" />
+        <ImageView android:id="@+id/dieTwoView" android:layout_width="1px" android:layout_height="1px" android:scaleType="fitCenter" android:contentDescription="Die two" />
+        <Button android:id="@+id/hintButton" android:layout_width="1px" android:layout_height="1px" android:minWidth="0dp" android:minHeight="0dp" android:padding="0dp" android:background="@drawable/button_brown_gold" android:text="♧  Hint" android:textAllCaps="false" android:includeFontPadding="false" android:textColor="@color/button_text" android:fontFamily="serif" android:stateListAnimator="@null" />
 
     </FrameLayout>
 </FrameLayout>

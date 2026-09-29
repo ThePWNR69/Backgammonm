@@ -33,6 +33,7 @@ public final class BackgammonGame {
     }
 
     private final Random random;
+    private final GameVariant variant;
     private GameState state = new GameState();
     private int currentPlayer = WHITE;
     private final List<Integer> diceRemaining = new ArrayList<>();
@@ -44,22 +45,24 @@ public final class BackgammonGame {
     private boolean openingResolved;
     private boolean openingTie;
 
-    public BackgammonGame() { this(new Random()); }
-    public BackgammonGame(Random random) {
+    public BackgammonGame() { this(GameVariant.BACKGAMMON, new Random()); }
+    public BackgammonGame(GameVariant variant) { this(variant, new Random()); }
+    public BackgammonGame(Random random) { this(GameVariant.BACKGAMMON, random); }
+    public BackgammonGame(GameVariant variant, Random random) {
+        this.variant = variant == null ? GameVariant.BACKGAMMON : variant;
         this.random = random;
         reset();
     }
 
     public void reset() {
         state = new GameState();
-        state.points[24] = 2;
-        state.points[13] = 5;
-        state.points[8] = 3;
-        state.points[6] = 5;
-        state.points[1] = -2;
-        state.points[12] = -5;
-        state.points[17] = -3;
-        state.points[19] = -5;
+        if (variant == GameVariant.BACKGAMMON) {
+            state.points[24] = 2; state.points[13] = 5; state.points[8] = 3; state.points[6] = 5;
+            state.points[1] = -2; state.points[12] = -5; state.points[17] = -3; state.points[19] = -5;
+        } else {
+            state.points[24] = 15;
+            state.points[1] = -15;
+        }
         currentPlayer = WHITE;
         diceRemaining.clear();
         undoHistory.clear();
@@ -70,6 +73,7 @@ public final class BackgammonGame {
         openingTie = false;
     }
 
+    public GameVariant getVariant() { return variant; }
     public int getCurrentPlayer() { return currentPlayer; }
     public int getWinner() { return winner; }
     public boolean hasRolled() { return rolled; }
@@ -93,7 +97,7 @@ public final class BackgammonGame {
     /** Exposed for pluggable AI strategies; returned sequences are detached from mutable game state. */
     public List<List<Move>> getPlayableSequencesSnapshot() {
         if (!rolled || winner != 0) return Collections.emptyList();
-        List<List<Move>> source = RulesEngine.playableSequences(state, currentPlayer, diceRemaining);
+        List<List<Move>> source = RulesEngine.playableSequences(state, currentPlayer, diceRemaining, variant);
         List<List<Move>> copy = new ArrayList<>();
         for (List<Move> seq : source) copy.add(new ArrayList<>(seq));
         return copy;
@@ -135,7 +139,7 @@ public final class BackgammonGame {
 
     public List<Move> getAllowedFirstMoves() {
         if (!rolled || winner != 0) return Collections.emptyList();
-        return RulesEngine.allowedFirstMoves(state, currentPlayer, diceRemaining);
+        return RulesEngine.allowedFirstMoves(state, currentPlayer, diceRemaining, variant);
     }
 
     public boolean applyMove(Move requested) {
@@ -145,9 +149,9 @@ public final class BackgammonGame {
             if (m.equals(requested)) { chosen = m; break; }
         }
         if (chosen == null) return false;
-        boolean hit = RulesEngine.isHit(state, currentPlayer, chosen);
+        boolean hit = RulesEngine.isHit(state, currentPlayer, chosen, variant);
         undoHistory.push(new TurnSnapshot(state, diceRemaining, chosen, hit));
-        RulesEngine.apply(state, currentPlayer, chosen);
+        RulesEngine.apply(state, currentPlayer, chosen, variant);
         diceRemaining.remove(Integer.valueOf(chosen.die));
         return true;
     }

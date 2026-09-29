@@ -7,6 +7,8 @@ public final class GameState {
     int blackBar;
     int whiteOff;
     int blackOff;
+    final boolean[] whitePins = new boolean[25];
+    final boolean[] blackPins = new boolean[25];
 
     public GameState copy() {
         GameState s = new GameState();
@@ -15,6 +17,8 @@ public final class GameState {
         s.blackBar = blackBar;
         s.whiteOff = whiteOff;
         s.blackOff = blackOff;
+        System.arraycopy(whitePins, 0, s.whitePins, 0, whitePins.length);
+        System.arraycopy(blackPins, 0, s.blackPins, 0, blackPins.length);
         return s;
     }
 
@@ -23,4 +27,6 @@ public final class GameState {
     public int getBlackBar() { return blackBar; }
     public int getWhiteOff() { return whiteOff; }
     public int getBlackOff() { return blackOff; }
+    public boolean isWhitePinningAt(int point) { return whitePins[point]; }
+    public boolean isBlackPinningAt(int point) { return blackPins[point]; }
 }

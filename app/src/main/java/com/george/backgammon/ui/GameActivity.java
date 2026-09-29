@@ -33,6 +33,10 @@ import com.george.backgammon.cosmetics.PlayerLoadout;
 import com.george.backgammon.animation.MoveAnimationStyle;
 import com.george.backgammon.game.BackgammonGame;
 import com.george.backgammon.game.Move;
+import com.george.backgammon.game.GameVariant;
+import com.george.backgammon.progression.MatchReward;
+import com.george.backgammon.progression.RewardCalculator;
+import com.george.backgammon.progression.ProgressStore;
 import com.george.backgammon.rendering.BackgammonBoardView;
 import com.george.backgammon.rendering.BoardMap;
 
@@ -46,6 +50,8 @@ public class GameActivity extends Activity {
     public static final String EXTRA_PLAYER_ONE_LIGHT = "player_one_light";
     public static final String EXTRA_MATCH_TARGET = "match_target";
     public static final String EXTRA_DIFFICULTY = "difficulty";
+    public static final String EXTRA_GAME_VARIANT = "game_variant";
+    public static final String EXTRA_HINTS_ENABLED = "hints_enabled";
 
     private BackgammonGame game;
     private AiStrategy aiStrategy;
@@ -69,6 +75,13 @@ public class GameActivity extends Activity {
     private Button mainActionButton;
     private Button undoButton;
     private Button menuButton;
+    private Button hintButton;
+    private ImageView dieOneView;
+    private ImageView dieTwoView;
+    private int difficultyLevel = 1;
+    private GameVariant gameVariant = GameVariant.BACKGAMMON;
+    private boolean hintsEnabled = true;
+    private int hintsUsedThisGame = 0;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private boolean versusAi = true;
@@ -99,10 +112,14 @@ public class GameActivity extends Activity {
         playerOneLight = getIntent().getBooleanExtra(EXTRA_PLAYER_ONE_LIGHT, true);
         matchTarget = Math.max(1, getIntent().getIntExtra(EXTRA_MATCH_TARGET, 1));
         int difficulty = getIntent().getIntExtra(EXTRA_DIFFICULTY, 1);
+        difficultyLevel = difficulty;
+        int variantIndex = getIntent().getIntExtra(EXTRA_GAME_VARIANT, 0);
+        gameVariant = variantIndex == 1 ? GameVariant.MAHBOUSEH : (variantIndex == 2 ? GameVariant.TAWLA_31 : GameVariant.BACKGAMMON);
+        hintsEnabled = getIntent().getBooleanExtra(EXTRA_HINTS_ENABLED, true);
         double aiNoise = difficulty <= 0 ? 12.0 : (difficulty >= 2 ? 0.0 : 0.35);
         aiStrategy = new PositionalAi(aiNoise);
 
-        game = new BackgammonGame();
+        game = new BackgammonGame(gameVariant);
         boardView = findViewById(R.id.boardView);
         statusTitle = findViewById(R.id.statusTitle);
         playerOneName = findViewById(R.id.playerOneName);
@@ -123,6 +140,9 @@ public class GameActivity extends Activity {
         mainActionButton = findViewById(R.id.mainActionButton);
         undoButton = findViewById(R.id.undoButton);
         menuButton = findViewById(R.id.menuButton);
+        hintButton = findViewById(R.id.hintButton);
+        dieOneView = findViewById(R.id.dieOneView);
+        dieTwoView = findViewById(R.id.dieTwoView);
 
         boardView.setGame(game);
         prefs = getSharedPreferences("backgammon_visuals", MODE_PRIVATE);
@@ -142,6 +162,15 @@ public class GameActivity extends Activity {
         });
 
         menuButton.setOnClickListener(this::showGameMenu);
+        hintButton.setOnClickListener(v -> {
+            if (boardView.isAnimating() || isAiTurn() || !game.hasRolled()) return;
+            if (!hintsEnabled) return;
+            List<Move> moves = game.getAllowedFirstMoves();
+            if (!moves.isEmpty()) {
+                hintsUsedThisGame++;
+                boardView.showHint(moves.get(0));
+            }
+        });
         refreshUi();
         gameplayRoot.post(this::applyReferenceComposition);
     }
@@ -379,6 +408,7 @@ public class GameActivity extends Activity {
         openingResultText = "";
         boardView.setOpeningPresentationActive(false);
         game.reset();
+        hintsUsedThisGame = 0;
         boardView.cancelAnimationsAndReset();
         refreshUi();
     }
@@ -485,12 +515,18 @@ public class GameActivity extends Activity {
                 Math.round(495f * scaleX), hudH);
         setFramePx(boardView, boardX, boardY, boardWidthPx, boardHeightPx);
 
-        setFramePx(undoButton, Math.round(445f * scaleX), controlsY,
-                Math.round(151f * scaleX), controlH);
-        setFramePx(mainActionButton, Math.round(611f * scaleX), controlsY,
-                Math.round(432f * scaleX), controlH);
-        setFramePx(menuButton, Math.round(1060f * scaleX), controlsY,
-                Math.round(151f * scaleX), controlH);
+        int dieSize = Math.max(34, Math.round(58f * scaleY));
+        int dieY = controlsY + Math.max(0, (controlH - dieSize) / 2);
+        setFramePx(dieOneView, Math.round(104f * scaleX), dieY, dieSize, dieSize);
+        setFramePx(dieTwoView, Math.round(174f * scaleX), dieY, dieSize, dieSize);
+        setFramePx(mainActionButton, Math.round(560f * scaleX), controlsY,
+                Math.round(500f * scaleX), controlH);
+        setFramePx(undoButton, Math.round(1180f * scaleX), controlsY,
+                Math.round(145f * scaleX), controlH);
+        setFramePx(hintButton, Math.round(1340f * scaleX), controlsY,
+                Math.round(145f * scaleX), controlH);
+        setFramePx(menuButton, Math.round(22f * scaleX), topMargin,
+                Math.round(62f * scaleX), hudH);
 
         gameplayUiScale = Math.min(scaleX, hudH / 80f);
 
@@ -520,7 +556,8 @@ public class GameActivity extends Activity {
 
         setTextPx(undoButton, 28f * gameplayUiScale);
         setTextPx(mainActionButton, 34f * gameplayUiScale);
-        setTextPx(menuButton, 39f * gameplayUiScale);
+        setTextPx(menuButton, 32f * gameplayUiScale);
+        setTextPx(hintButton, 24f * gameplayUiScale);
 
         gameplayCanvas.requestLayout();
         boardView.requestLayout();
@@ -595,16 +632,20 @@ public class GameActivity extends Activity {
 
     private void refreshUi() {
         boardView.invalidate();
+        updateDiceControls();
+        if (hintButton != null) hintButton.setEnabled(false);
         boolean aiTurn = isAiTurn();
         boardView.setInputEnabled(!aiTurn && !aiBusy && game.isOpeningResolved());
 
         playerOneName.setText(versusAi ? "You" : "Player 1");
-        playerTwoName.setText(versusAi ? "AI" : "Player 2");
+        playerTwoName.setText(versusAi ? "AI - " + difficultyName() : "Player 2");
 
         int winner = game.getWinner();
         if (winner != 0) {
             if (!winnerScored) {
-                if (winner == playerOneSide) playerOneScore++; else playerTwoScore++;
+                int roundPoints = pointsForRound(winner);
+                if (winner == playerOneSide) playerOneScore += roundPoints; else playerTwoScore += roundPoints;
+                awardProgression(winner);
                 winnerScored = true;
             }
             boolean matchOver = playerOneScore >= matchTarget || playerTwoScore >= matchTarget;
@@ -613,7 +654,7 @@ public class GameActivity extends Activity {
                     ? name + " Wins Match"
                     : name + " Wins Game");
             mainActionButton.setText(matchOver ? "Match Over" : "Next Game");
-            mainActionButton.setBackgroundResource(matchOver ? R.drawable.button_dark : R.drawable.button_green);
+            mainActionButton.setBackgroundResource(matchOver ? R.drawable.button_dark : R.drawable.button_burgundy);
             mainActionButton.setEnabled(!matchOver);
             undoButton.setEnabled(false);
             updatePlayerPanels();
@@ -647,7 +688,7 @@ public class GameActivity extends Activity {
                 statusTitle.setText("Roll to Decide First");
                 mainActionButton.setText("⚄  Roll");
             }
-            mainActionButton.setBackgroundResource(R.drawable.button_green);
+            mainActionButton.setBackgroundResource(R.drawable.button_burgundy);
             mainActionButton.setEnabled(!aiBusy);
             undoButton.setEnabled(false);
             updatePlayerPanels();
@@ -668,7 +709,7 @@ public class GameActivity extends Activity {
         if (!game.hasRolled()) {
             statusTitle.setText(versusAi && game.getCurrentPlayer() == playerOneSide ? "Your Turn" : currentName + " Turn");
             mainActionButton.setText("⚄  Roll Dice");
-            mainActionButton.setBackgroundResource(R.drawable.button_green);
+            mainActionButton.setBackgroundResource(R.drawable.button_burgundy);
             mainActionButton.setEnabled(!boardView.isAnimating());
         } else {
             if (game.canEndTurn()) {
@@ -679,12 +720,57 @@ public class GameActivity extends Activity {
                 statusTitle.setText(currentName + " • " + diceText());
             }
             mainActionButton.setText("✓  End Turn");
-            mainActionButton.setBackgroundResource(R.drawable.button_green);
+            mainActionButton.setBackgroundResource(R.drawable.button_burgundy);
             mainActionButton.setEnabled(game.canEndTurn() && !boardView.isAnimating());
         }
 
         undoButton.setEnabled(game.canUndo() && !boardView.isAnimating());
+        hintButton.setVisibility(hintsEnabled ? View.VISIBLE : View.INVISIBLE);
+        hintButton.setEnabled(hintsEnabled && game.hasRolled() && !isAiTurn() && !boardView.isAnimating() && !game.getAllowedFirstMoves().isEmpty());
+        updateDiceControls();
         updatePlayerPanels();
+    }
+
+    private int pointsForRound(int winner) {
+        if (gameVariant != GameVariant.TAWLA_31) return 1;
+        int loser = -winner;
+        int loserOff = loser == BackgammonGame.WHITE ? game.getWhiteOff() : game.getBlackOff();
+        return Math.max(1, 15 - loserOff);
+    }
+
+    private void awardProgression(int winner) {
+        boolean playerOneWon = winner == playerOneSide;
+        int borneOff = playerOneSide == BackgammonGame.WHITE ? game.getWhiteOff() : game.getBlackOff();
+        MatchReward reward = RewardCalculator.calculate(playerOneWon, borneOff, difficultyLevel, hintsUsedThisGame, versusAi, gameVariant);
+        ProgressStore.add(this, reward);
+        int level = ProgressStore.getLevel(this);
+        int gold = ProgressStore.getGold(this);
+        String hintLine = hintsUsedThisGame > 0 ? "\nHint modifier: " + reward.hintPercent + "%" : "\nNo hints used";
+        new AlertDialog.Builder(this)
+                .setTitle(playerOneWon ? "Rewards Earned" : "Progress Earned")
+                .setMessage("+" + reward.xp + " XP\n+" + reward.gold + " Gold" + hintLine +
+                        "\n\nLevel " + level + "  •  " + gold + " Gold")
+                .setPositiveButton("Continue", null)
+                .show();
+    }
+
+    private String difficultyName() {
+        if (difficultyLevel <= 0) return "Beginner";
+        if (difficultyLevel >= 2) return "Hard";
+        return "Normal";
+    }
+
+    private void updateDiceControls() {
+        if (dieOneView == null || dieTwoView == null) return;
+        boolean show = game.hasRolled() || boardView.isDiceRolling();
+        dieOneView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+        dieTwoView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+        if (!show) return;
+        int d1 = Math.max(1, Math.min(6, game.getDieOne()));
+        int d2 = Math.max(1, Math.min(6, game.getDieTwo()));
+        int[] faces = {0, R.drawable.die_1, R.drawable.die_2, R.drawable.die_3, R.drawable.die_4, R.drawable.die_5, R.drawable.die_6};
+        dieOneView.setImageResource(faces[d1]);
+        dieTwoView.setImageResource(faces[d2]);
     }
 
     private String displayName(int player) {
@@ -711,8 +797,8 @@ public class GameActivity extends Activity {
         boolean opening = !game.isOpeningResolved();
         boolean p1Active = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == playerOneSide;
         boolean p2Active = !opening && game.getWinner() == 0 && game.getCurrentPlayer() == -playerOneSide;
-        playerOnePanel.setBackgroundResource(p1Active ? R.drawable.bg_panel_active : R.drawable.bg_panel);
-        playerTwoPanel.setBackgroundResource(p2Active ? R.drawable.bg_panel_active : R.drawable.bg_panel);
+        playerOnePanel.setBackgroundResource(R.drawable.gameplay_bar_burgundy);
+        playerTwoPanel.setBackgroundResource(R.drawable.gameplay_bar_burgundy);
 
         playerOneScoreText.setText(String.valueOf(playerOneScore));
         playerTwoScoreText.setText(String.valueOf(playerTwoScore));

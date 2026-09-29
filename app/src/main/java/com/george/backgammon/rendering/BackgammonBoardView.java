@@ -148,6 +148,15 @@ public class BackgammonBoardView extends View {
         invalidate();
     }
 
+    /** Highlights the source checker for a UI-level hint without changing game state. */
+    public void showHint(Move move) {
+        if (move == null || animating || diceRolling) return;
+        selectedFrom = move.from;
+        invalidDestination = INVALID_NONE;
+        invalidate();
+    }
+
+
     public void cancelAnimationsAndReset() {
         if (moveAnimator != null) moveAnimator.cancel();
         if (diceAnimator != null) diceAnimator.cancel();
@@ -224,7 +233,7 @@ public class BackgammonBoardView extends View {
         else staticRenderer.draw(c, geometry, loadout.board);
 
         drawOffCounts(c);
-        drawDice(c);
+        if (openingPresentationActive || diceRolling) drawDice(c);
         drawMoveHints(c);
         for (int p = 1; p <= 24; p++) drawCheckersAtPoint(c, p, adjustedPointValue(p));
         drawBarCheckers(c);
@@ -292,9 +301,8 @@ public class BackgammonBoardView extends View {
     private float columnX(int visualIndex) { return geometry.columnX(visualIndex); }
 
     private void drawOffCounts(Canvas c) {
-        float cx = (offLeft + offRight) / 2f;
-        drawOffCount(c, cx, offCenter(true)[1], adjustedOffCount(true), true);
-        drawOffCount(c, cx, offCenter(false)[1], adjustedOffCount(false), false);
+        drawOffProgress(c, adjustedOffCount(true), true);
+        drawOffProgress(c, adjustedOffCount(false), false);
     }
 
     private int adjustedOffCount(boolean white) {
@@ -307,21 +315,44 @@ public class BackgammonBoardView extends View {
         return count;
     }
 
-    private void drawOffCount(Canvas c, float cx, float cy, int count, boolean white) {
-        float r = Math.min((offRight - offLeft) * 0.31f, checkerRadius() * 0.55f);
-        if (count > 0) drawChecker(c, cx, cy, r, white, false, 1f);
+    /**
+     * v1.7.0 bear-off presentation: one right-side tray, with both players' borne-off
+     * checkers shown edge-on. White grows down from the top, black grows up from the
+     * bottom, so the two progress stacks visually approach the middle.
+     */
+    private void drawOffProgress(Canvas c, int count, boolean white) {
+        if (count <= 0) return;
+        int visible = Math.min(15, count);
+        float trayW = offRight - offLeft;
+        float trayH = fieldBottom - fieldTop;
+        float centerY = (fieldTop + fieldBottom) * 0.5f;
+        float halfH = trayH * 0.47f;
+        float gap = Math.max(1f, trayH * 0.004f);
+        float segmentH = Math.min(checkerRadius() * 0.34f, (halfH - gap * 14f) / 15f);
+        float segmentW = Math.min(trayW * 0.72f, checkerRadius() * 1.18f);
+        float cx = (offLeft + offRight) * 0.5f;
+        float radius = segmentH * 0.48f;
+        for (int i = 0; i < visible; i++) {
+            float cy = white
+                    ? fieldTop + segmentH * 0.5f + i * (segmentH + gap)
+                    : fieldBottom - segmentH * 0.5f - i * (segmentH + gap);
+            if (white && cy + segmentH * 0.5f >= centerY) break;
+            if (!white && cy - segmentH * 0.5f <= centerY) break;
+            paint.setShader(new LinearGradient(cx - segmentW/2f, cy, cx + segmentW/2f, cy,
+                    white ? 0xFFF8E8CB : 0xFF111111,
+                    white ? 0xFFCDAF82 : 0xFF343434, Shader.TileMode.CLAMP));
+            paint.setStyle(Paint.Style.FILL);
+            paint.setShadowLayer(Math.max(1f, segmentH * .28f), 0, segmentH * .16f, 0x88000000);
+            c.drawRoundRect(new RectF(cx-segmentW/2f, cy-segmentH/2f, cx+segmentW/2f, cy+segmentH/2f), radius, radius, paint);
+            paint.clearShadowLayer();
+            paint.setShader(null);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(1f, segmentH * .08f));
+            paint.setColor(white ? 0xFFD7BA88 : 0xFF090909);
+            c.drawRoundRect(new RectF(cx-segmentW/2f, cy-segmentH/2f, cx+segmentW/2f, cy+segmentH/2f), radius, radius, paint);
+        }
+        paint.setShader(null);
         paint.setStyle(Paint.Style.FILL);
-        paint.setTextAlign(Paint.Align.CENTER);
-        paint.setTypeface(android.graphics.Typeface.create("sans", android.graphics.Typeface.BOLD));
-        paint.setTextSize(Math.max(10f, r * 0.88f));
-        paint.setColor(count == 0 ? 0xFFB8915B : (white ? 0xFF241A13 : 0xFFF2DEC0));
-        c.drawText(String.valueOf(count), cx, cy + paint.getTextSize() * 0.34f, paint);
-
-        paint.setTypeface(android.graphics.Typeface.create("sans", android.graphics.Typeface.NORMAL));
-        paint.setTextSize(Math.max(7f, r * 0.43f));
-        paint.setColor(0xB8D7B477);
-        float labelY = white ? cy - r * 1.18f : cy + r * 1.48f;
-        c.drawText("OFF", cx, labelY, paint);
     }
 
     private int adjustedPointValue(int point) {

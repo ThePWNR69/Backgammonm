@@ -30,7 +30,7 @@ public final class PositionalAi implements AiStrategy {
         List<Move> bestSequence = Collections.emptyList();
         for (List<Move> seq : sequences) {
             GameState next = before.copy();
-            for (Move m : seq) RulesEngine.apply(next, player, m);
+            for (Move m : seq) RulesEngine.apply(next, player, m, game.getVariant());
             double score = evaluateState(next, player) + tacticalBonus(before, next, player, seq);
             score += random.nextDouble() * noise;
             if (score > best) {

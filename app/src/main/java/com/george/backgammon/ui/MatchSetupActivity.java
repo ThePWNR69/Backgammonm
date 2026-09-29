@@ -33,6 +33,7 @@ public class MatchSetupActivity extends Activity {
     private Spinner directionSpinner;
     private Spinner colourSpinner;
     private Spinner matchSpinner;
+    private Spinner hintsSpinner;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,8 +85,8 @@ public class MatchSetupActivity extends Activity {
 
         versionSpinner = addChoice(left, "⚄", "Game version", new String[]{
                 "Backgammon / Sheish Beish",
-                "Mahbouseh — coming soon",
-                "Tawle 31 — coming soon"
+                "Mahbouseh",
+                "Tawla 31"
         });
 
         if (!GameActivity.MODE_TWO_PLAYER.equals(mode)) {
@@ -100,6 +101,7 @@ public class MatchSetupActivity extends Activity {
         matchSpinner = addChoice(left, "♛", "Match length", new String[]{
                 "1 Match", "First to 3", "First to 5", "First to 7"
         });
+        hintsSpinner = addChoice(left, "?", "Hints", new String[]{"On", "Off"});
 
         TextView rulesTitle = text("MATCH RULES", 18, true);
         rulesTitle.setGravity(Gravity.CENTER);
@@ -110,7 +112,8 @@ public class MatchSetupActivity extends Activity {
         addRule(right, "↔", "Player 2 automatically travels in the opposite direction.");
         addRule(right, "◐", "Checker colour is visual only and does not change movement rules.");
         addRule(right, "⚄", "Opening roll: each side rolls one die; ties reroll; the higher die starts using both opening dice.");
-        addRule(right, "▲", "Mahbouseh and Tawle 31 are prepared in setup, but this build enables standard Backgammon / Sheish Beish only.");
+        addRule(right, "▲", "Mahbouseh pins a lone opposing checker instead of hitting it. Tawla 31 is a no-hit blocking race with all 15 checkers starting together.");
+        addRule(right, "★", "XP and Gold are earned after every completed game, including losses. Using hints reduces bonus rewards, never the protected participation reward.");
 
         View flex = new View(this);
         right.addView(flex, new LinearLayout.LayoutParams(-1, 0, 1f));
@@ -196,18 +199,16 @@ public class MatchSetupActivity extends Activity {
     }
 
     private void startMatch() {
-        if (versionSpinner.getSelectedItemPosition() != 0) {
-            Toast.makeText(this, "That ruleset is not playable yet.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
         Intent intent = new Intent(this, GameActivity.class);
         intent.putExtra(GameActivity.EXTRA_MODE, mode);
         int direction = directionSpinner.getSelectedItemPosition();
         int p1Side = direction == 0 ? BackgammonGame.WHITE : BackgammonGame.BLACK;
         intent.putExtra(GameActivity.EXTRA_PLAYER_ONE_SIDE, p1Side);
         intent.putExtra(GameActivity.EXTRA_PLAYER_ONE_LIGHT, colourSpinner.getSelectedItemPosition() == 0);
-        intent.putExtra(GameActivity.EXTRA_MATCH_TARGET, matchTarget(matchSpinner.getSelectedItemPosition()));
+        int variantIndex = versionSpinner.getSelectedItemPosition();
+        intent.putExtra(GameActivity.EXTRA_MATCH_TARGET, variantIndex == 2 ? 31 : matchTarget(matchSpinner.getSelectedItemPosition()));
+        intent.putExtra(GameActivity.EXTRA_GAME_VARIANT, variantIndex);
+        intent.putExtra(GameActivity.EXTRA_HINTS_ENABLED, hintsSpinner.getSelectedItemPosition() == 0);
         if (difficultySpinner != null) {
             intent.putExtra(GameActivity.EXTRA_DIFFICULTY, difficultySpinner.getSelectedItemPosition());
         }
