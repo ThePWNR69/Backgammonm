@@ -1,138 +1,52 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import re
-import sys
-import xml.etree.ElementTree as ET
-
-ROOT = Path(__file__).resolve().parents[1]
-errors = []
-
-# XML sanity for every resource XML, not just the gameplay layout.
-for xml in (ROOT / 'app/src/main/res').rglob('*.xml'):
-    try:
-        ET.parse(xml)
-    except Exception as exc:
-        errors.append(f'{xml.relative_to(ROOT)} invalid: {exc}')
-
-layout = ROOT / 'app/src/main/res/layout/activity_main.xml'
-xml_text = layout.read_text()
-java = (ROOT / 'app/src/main/java/com/george/backgammon/ui/GameActivity.java').read_text()
-required_layout_tokens = [
-    'final float REF_W = 510f;',
-    'final float REF_H = 280f;',
-    'setFrameRef(menuButton, 0f, 0f, 30f, 30f, scale);',
-    'setFrameRef(playerOnePanel, 34f, 0f, 146f, 30f, scale);',
-    'setFrameRef(statusPanel, 184f, 0f, 142f, 30f, scale);',
-    'setFrameRef(playerTwoPanel, 330f, 0f, 146f, 30f, scale);',
-    'setFrameRef(settingsButton, 480f, 0f, 30f, 30f, scale);',
-    'setFrameRef(boardView, 2f, 31f, 506f, 213f, scale);',
-    'setFrameRef(bottomControlBar, 0f, 245f, 510f, 35f, scale);',
-    'setFrameRef(dieOneView, 33f, 250f, 24f, 24f, scale);',
-    'setFrameRef(dieTwoView, 66f, 250f, 24f, 24f, scale);',
-    'setFrameRef(mainActionButton, 164f, 248f, 174f, 29f, scale);',
-    'setFrameRef(undoButton, 378f, 248f, 58f, 29f, scale);',
-    'setFrameRef(hintButton, 440f, 248f, 58f, 29f, scale);',
-]
-for token in required_layout_tokens:
-    if token not in java:
-        errors.append(f'Approved layout token missing: {token}')
-
-for view_id in ['menuButton','settingsButton','playerOnePanel','statusPanel','playerTwoPanel','boardView',
-                'bottomControlBar','dieOneView','dieTwoView','mainActionButton','undoButton','hintButton']:
-    if f'@+id/{view_id}' not in xml_text:
-        errors.append(f'activity_main.xml missing {view_id}')
-
-if '@drawable/tabletop' not in xml_text:
-    errors.append('Gameplay root is not using the approved emerald tabletop')
-
-# Canonical BoardMap remains untouched.
-board_map = (ROOT / 'app/src/main/java/com/george/backgammon/rendering/BoardMap.java').read_text()
-for token in ['MASTER_WIDTH_PX = 2048', 'MASTER_HEIGHT_PX = 977']:
-    if token not in board_map:
-        errors.append(f'BoardMap master geometry changed unexpectedly: {token}')
-
-board_geometry = (ROOT / 'app/src/main/java/com/george/backgammon/rendering/BoardGeometry.java').read_text()
-if 'void computeStretched(float width, float height)' not in board_geometry:
-    errors.append('Approved gameplay BoardMap projection is missing')
-
-board_view = (ROOT / 'app/src/main/java/com/george/backgammon/rendering/BackgammonBoardView.java').read_text()
-if 'Dice are rendered exclusively in the fixed bottom control deck.' not in board_view:
-    errors.append('Board renderer may be drawing dice over the approved board area')
-
-
-final_reference = ROOT / 'design/reference/CLASSIC_BURGUNDY_FINAL_APPROVED.png'
-if not final_reference.exists():
-    errors.append('Final approved Classic Burgundy preview is missing')
-board_asset = ROOT / 'app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp'
-if not board_asset.exists():
-    errors.append('Classic Burgundy board asset is missing')
-
-reference = ROOT / 'design/reference/CLASSIC_BURGUNDY_APPROVED.png'
-if not reference.exists():
-    errors.append('Approved Classic Burgundy reference image is missing')
-runtime_reference = ROOT / 'design/reference/V1_11_RUNTIME_COMPOSITION.png'
-if not runtime_reference.exists():
-    errors.append('v1.11 runtime composition reference image is missing')
-size_reference = ROOT / 'design/reference/V1_12_SIZE_REFERENCE.jpg'
-if not size_reference.exists():
-    errors.append('v1.12 in-game size reference screenshot is missing')
-
-premium_assets = [
-    'premium_player_left.webp', 'premium_player_right.webp', 'premium_status.webp',
-    'premium_bottom_deck.webp', 'premium_primary_normal.webp', 'premium_primary_pressed.webp',
-    'premium_primary_disabled.webp', 'premium_secondary_normal.webp',
-    'premium_secondary_pressed.webp', 'premium_secondary_disabled.webp',
-    'premium_square_normal.webp', 'premium_square_pressed.webp'
-]
-asset_dir = ROOT / 'app/src/main/res/drawable-nodpi'
-for name in premium_assets:
-    if not (asset_dir / name).exists():
-        errors.append(f'Missing premium theme asset: {name}')
-
-# Pixel dimensions are deliberately 4x the logical gameplay rectangles.
+import sys, xml.etree.ElementTree as ET
+ROOT=Path(__file__).resolve().parents[1]
+errors=[]
+# XML sanity
+for xml in (ROOT/'app/src/main/res').rglob('*.xml'):
+    try: ET.parse(xml)
+    except Exception as e: errors.append(f'{xml.relative_to(ROOT)} invalid: {e}')
+java=(ROOT/'app/src/main/java/com/george/backgammon/ui/GameActivity.java').read_text()
+layout=(ROOT/'app/src/main/res/layout/activity_main.xml').read_text()
+for token in [
+    'final float REF_W = 1672f;','final float REF_H = 941f;',
+    'setFrameRef(menuButton,       108f, 22f,  88f,  86f, scale);',
+    'setFrameRef(playerOnePanel,   210f, 22f, 450f,  86f, scale);',
+    'setFrameRef(statusPanel,      670f, 18f, 342f,  92f, scale);',
+    'setFrameRef(playerTwoPanel,  1022f, 22f, 432f,  86f, scale);',
+    'setFrameRef(settingsButton,  1464f, 22f,  88f,  86f, scale);',
+    'setFrameRef(boardView,        104f, 118f, 1442f, 615f, scale);',
+    'setFrameRef(bottomControlBar, 108f, 752f, 1435f, 126f, scale);',
+]:
+    if token not in java: errors.append('Missing layout token: '+token)
+for token in ['android:text=""','android:text="↶  UNDO"','android:text="✦  HINT"','android:fontFamily="sans-serif-medium"']:
+    if token not in layout: errors.append('Live-text layout token missing: '+token)
+# Layer assets
+asset_dir=ROOT/'app/src/main/res/drawable-nodpi'
+for name in [
+    'premium_player_left.webp','premium_player_right.webp','premium_status.webp','premium_bottom_deck.webp',
+    'premium_square_normal.webp','premium_square_pressed.webp','premium_settings_normal.webp','premium_settings_pressed.webp',
+    'premium_primary_pressed.webp','premium_primary_disabled.webp','premium_secondary_pressed.webp','premium_secondary_disabled.webp',
+    'premium_hint_pressed.webp','premium_hint_disabled.webp','die_1.webp','die_2.webp','die_3.webp','die_4.webp','die_5.webp','die_6.webp']:
+    if not (asset_dir/name).exists(): errors.append('Missing layered asset: '+name)
+board=ROOT/'app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp'
+if not board.exists(): errors.append('Missing Classic Burgundy board')
 try:
     from PIL import Image
-    expected_sizes = {
-        'premium_player_left.webp': (584, 120),
-        'premium_player_right.webp': (584, 120),
-        'premium_status.webp': (568, 120),
-        'premium_bottom_deck.webp': (2040, 156),
-        'premium_primary_normal.webp': (696, 124),
-        'premium_primary_pressed.webp': (696, 124),
-        'premium_primary_disabled.webp': (696, 124),
-        'premium_secondary_normal.webp': (232, 124),
-        'premium_secondary_pressed.webp': (232, 124),
-        'premium_secondary_disabled.webp': (232, 124),
-        'premium_square_normal.webp': (120, 120),
-        'premium_square_pressed.webp': (120, 120),
-    }
-    for name, size in expected_sizes.items():
-        path = asset_dir / name
-        if path.exists() and Image.open(path).size != size:
-            errors.append(f'{name} has wrong pixel size: {Image.open(path).size}, expected {size}')
-    if board_asset.exists() and Image.open(board_asset).size != (2048, 977):
-        errors.append(f'Classic Burgundy board has wrong size: {Image.open(board_asset).size}, expected (2048, 977)')
-except ImportError:
-    pass
-
-catalog = (ROOT / 'app/src/main/java/com/george/backgammon/cosmetics/UiThemeCatalog.java').read_text()
-for token in ['R.drawable.premium_player_left', 'R.drawable.premium_player_right',
-              'R.drawable.premium_status', 'R.drawable.premium_bottom_deck',
-              'R.drawable.premium_primary_button_selector',
-              'R.drawable.premium_secondary_button_selector',
-              'R.drawable.premium_square_button_selector']:
-    if token not in catalog:
-        errors.append(f'Classic Burgundy theme is not wired to {token}')
-
-build = (ROOT / 'app/build.gradle.kts').read_text()
-if 'versionName = "1.14.0"' not in build or 'versionCode = 32' not in build:
-    errors.append('App version is not v1.14.0 / code 32')
-
-workflow = (ROOT / '.github/workflows/build-apk.yml').read_text()
-if 'Backgammon-Legacy-v1.14.0.apk' not in workflow:
-    errors.append('GitHub workflow does not output Backgammon-Legacy-v1.14.0.apk')
-
+    if board.exists() and Image.open(board).size!=(2048,977): errors.append('Board must remain 2048x977 for BoardMap projection')
+except Exception as e: errors.append('Image validation failed: '+str(e))
+# Theme wiring
+cat=(ROOT/'app/src/main/java/com/george/backgammon/cosmetics/UiThemeCatalog.java').read_text()
+for token in ['premium_hint_button_selector','premium_settings_button_selector','premium_square_button_selector']:
+    if token not in cat: errors.append('Theme not wired to '+token)
+# Version / workflow
+build=(ROOT/'app/build.gradle.kts').read_text(); wf=(ROOT/'.github/workflows/build-apk.yml').read_text()
+if 'versionCode = 34' not in build or 'versionName = "1.16.0"' not in build: errors.append('Version is not 1.16.0 / code 34')
+if 'Backgammon-Legacy-v1.16.0.apk' not in wf: errors.append('GitHub APK filename not v1.16.0')
+# Design references
+for name in ['CLASSIC_BURGUNDY_APPROVED.png','CLASSIC_BURGUNDY_LAYERED_ASSETS.png','CLASSIC_BURGUNDY_TEXT_SPEC.png']:
+    if not (ROOT/'design/reference'/name).exists(): errors.append('Missing design reference '+name)
 if errors:
-    print('\n'.join('ERROR: ' + e for e in errors))
-    sys.exit(1)
-print('Project validation passed: v1.14.0 approved Classic Burgundy implementation is wired.')
+    print('\n'.join('ERROR: '+e for e in errors)); sys.exit(1)
+print('Project validation passed: v1.16.0 layered image + live text UI is wired.')

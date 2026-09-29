@@ -26,3 +26,19 @@ For visual-only gameplay updates, normally edit only `cosmetics/`, `ui/GameActiv
 - Classic board art: `app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp`
 - Runtime placement: `ui/GameActivity.applyReferenceComposition()`
 - Board logic remains in `rendering/BoardMap.java` and `BoardGeometry.java`.
+
+
+## v1.15.0 fidelity lock
+- Classic Burgundy board is authored from the permanent BoardMap geometry using material references from the approved preview.
+- Runtime chrome uses dedicated texture assets in drawable-nodpi; gameplay sizing remains unchanged.
+- Preview-first validation is required before future visual packaging.
+
+## v1.16.0 layered gameplay presentation
+- `design/reference/CLASSIC_BURGUNDY_APPROVED.png` — final visual reference.
+- `design/reference/CLASSIC_BURGUNDY_LAYERED_ASSETS.png` — approved separated asset specification.
+- `design/reference/CLASSIC_BURGUNDY_TEXT_SPEC.png` — approved live-text specification.
+- `design/reference/V1_16_LAYERED_RUNTIME_PREVIEW.png` — preview assembled from the runtime asset layers.
+- `app/src/main/res/drawable/tabletop.webp` — gameplay tabletop background.
+- `app/src/main/res/drawable-nodpi/premium_*` — HUD/button layer assets.
+- `app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp` — replaceable board skin.
+- `GameActivity.applyReferenceComposition()` — one 1672×941 master coordinate system.

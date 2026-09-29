@@ -151,6 +151,10 @@ public class GameActivity extends Activity {
         dieOneView = findViewById(R.id.dieOneView);
         dieTwoView = findViewById(R.id.dieTwoView);
         applyUiTheme();
+        if (playerOneCheckerIcon != null) playerOneCheckerIcon.setVisibility(View.INVISIBLE);
+        if (playerTwoCheckerIcon != null) playerTwoCheckerIcon.setVisibility(View.INVISIBLE);
+        if (statusLeftOrnament != null) statusLeftOrnament.setVisibility(View.GONE);
+        if (statusRightOrnament != null) statusRightOrnament.setVisibility(View.GONE);
 
         boardView.setGame(game);
         prefs = getSharedPreferences("backgammon_visuals", MODE_PRIVATE);
@@ -463,15 +467,17 @@ public class GameActivity extends Activity {
     }
 
     /**
-     * v1.12.0 approved gameplay composition (v1.11 sizing lock, detailed chrome). The whole UI is one 510 x 280 logical frame
-     * that scales uniformly and remains centred on landscape devices. Top and bottom chrome
-     * are deliberately slim so the live BoardMap projection receives most of the screen height.
+     * v1.16.0 layered-image composition.
+     *
+     * The approved 1672 x 941 design is the master coordinate system. Every visual layer is
+     * placed in that coordinate system and the entire canvas scales uniformly. Individual
+     * board/HUD/button assets are never independently repositioned to "fit" a device.
      */
     private void applyReferenceComposition() {
         if (gameplayRoot == null || gameplayCanvas == null || boardView == null) return;
 
-        final float REF_W = 510f;
-        final float REF_H = 280f;
+        final float REF_W = 1672f;
+        final float REF_H = 941f;
 
         int rootW = gameplayRoot.getWidth();
         int rootH = gameplayRoot.getHeight();
@@ -489,7 +495,7 @@ public class GameActivity extends Activity {
 
         int availableW = Math.max(1, rootW - safeLeft - safeRight);
         int availableH = Math.max(1, rootH - safeTop - safeBottom);
-        float scale = Math.min(availableW / REF_W, availableH / REF_H) * 0.968f;
+        float scale = Math.min(availableW / REF_W, availableH / REF_H);
         int canvasW = Math.max(1, Math.round(REF_W * scale));
         int canvasH = Math.max(1, Math.round(REF_H * scale));
         int canvasX = safeLeft + (availableW - canvasW) / 2;
@@ -503,54 +509,48 @@ public class GameActivity extends Activity {
         canvasLp.gravity = 0;
         gameplayCanvas.setLayoutParams(canvasLp);
 
-        // v1.14.0 final Classic Burgundy composition: approved preview proportions.
-        setFrameRef(menuButton, 0f, 0f, 30f, 30f, scale);
-        setFrameRef(playerOnePanel, 34f, 0f, 146f, 30f, scale);
-        setFrameRef(statusPanel, 184f, 0f, 142f, 30f, scale);
-        setFrameRef(playerTwoPanel, 330f, 0f, 146f, 30f, scale);
-        setFrameRef(settingsButton, 480f, 0f, 30f, 30f, scale);
+        // Top HUD — exact approved reference placement.
+        setFrameRef(menuButton,       108f, 22f,  88f,  86f, scale);
+        setFrameRef(playerOnePanel,   210f, 22f, 450f,  86f, scale);
+        setFrameRef(statusPanel,      670f, 18f, 342f,  92f, scale);
+        setFrameRef(playerTwoPanel,  1022f, 22f, 432f,  86f, scale);
+        setFrameRef(settingsButton,  1464f, 22f,  88f,  86f, scale);
 
-        // Recover vertical room for gameplay. BoardMap/checker geometry is unchanged; only the
-        // projection rectangle grows vertically so the board no longer looks crushed by the HUD.
-        setFrameRef(boardView, 2f, 31f, 506f, 213f, scale);
+        // Board skin. Dynamic checkers/highlights are rendered by BackgammonBoardView on top.
+        setFrameRef(boardView,        104f, 118f, 1442f, 615f, scale);
 
-        // v1.14.0: compact integrated control deck matched to the approved preview.
-        setFrameRef(bottomControlBar, 0f, 245f, 510f, 35f, scale);
-        setFrameRef(dieOneView, 33f, 250f, 24f, 24f, scale);
-        setFrameRef(dieTwoView, 66f, 250f, 24f, 24f, scale);
-        setFrameRef(mainActionButton, 164f, 248f, 174f, 29f, scale);
-        setFrameRef(undoButton, 378f, 248f, 58f, 29f, scale);
-        setFrameRef(hintButton, 440f, 248f, 58f, 29f, scale);
+        // Bottom deck — background, then live dice and independently stateful buttons.
+        setFrameRef(bottomControlBar, 108f, 752f, 1435f, 126f, scale);
+        setFrameRef(dieOneView,       223f, 786f,   80f,  78f, scale);
+        setFrameRef(dieTwoView,       331f, 786f,   81f,  78f, scale);
+        setFrameRef(mainActionButton, 571f, 780f,  451f,  87f, scale);
+        setFrameRef(undoButton,      1090f, 782f,  197f,  82f, scale);
+        setFrameRef(hintButton,      1309f, 782f,  195f,  82f, scale);
 
         gameplayUiScale = scale;
-        int icon = Math.max(1, Math.round(22f * scale));
-        int score = Math.max(1, Math.round(21f * scale));
-        int sidePad = Math.max(2, Math.round(4f * scale));
-        int iconGap = Math.max(2, Math.round(3.5f * scale));
-        int dividerH = Math.max(1, Math.round(17f * scale));
-        int dividerGap = Math.max(2, Math.round(3.5f * scale));
+
+        // Player plaque internals: avatar/robot art is part of the image asset, so invisible
+        // spacer views reserve those exact areas while all text remains live Android text.
+        int icon = Math.max(1, Math.round(82f * scale));
+        int score = Math.max(1, Math.round(92f * scale));
+        int sidePad = Math.max(1, Math.round(5f * scale));
+        int iconGap = Math.max(1, Math.round(6f * scale));
+        int dividerH = Math.max(1, Math.round(50f * scale));
+        int dividerGap = Math.max(1, Math.round(4f * scale));
         applyHorizontalPanelMetrics((LinearLayout) playerOnePanel, true, icon, score,
                 sidePad, iconGap, dividerH, dividerGap);
         applyHorizontalPanelMetrics((LinearLayout) playerTwoPanel, false, icon, score,
                 sidePad, iconGap, dividerH, dividerGap);
 
-        setTextPx(playerOneName, 9.6f * scale);
-        setTextPx(playerTwoName, 9.2f * scale);
-        setTextPx(playerOneScoreText, 10.5f * scale);
-        setTextPx(playerTwoScoreText, 10.5f * scale);
-
-        int ornamentW = Math.max(1, Math.round(8f * scale));
-        setLinearWidth(statusLeftOrnament, ornamentW);
-        setLinearWidth(statusRightOrnament, ornamentW);
-        setTextPx(statusLeftOrnament, 4.5f * scale);
-        setTextPx(statusRightOrnament, 4.5f * scale);
+        setTextPx(playerOneName, 30f * scale);
+        setTextPx(playerTwoName, 28f * scale);
+        setTextPx(playerOneScoreText, 32f * scale);
+        setTextPx(playerTwoScoreText, 32f * scale);
         setStatusTextSizeForCurrentMessage(scale);
 
-        setTextPx(mainActionButton, 9.3f * scale);
-        setTextPx(undoButton, 7.0f * scale);
-        setTextPx(hintButton, 7.0f * scale);
-        setTextPx(menuButton, 14f * scale);
-        setTextPx(settingsButton, 12.5f * scale);
+        setTextPx(mainActionButton, 31f * scale);
+        setTextPx(undoButton, 22f * scale);
+        setTextPx(hintButton, 22f * scale);
 
         gameplayCanvas.requestLayout();
         boardView.requestLayout();
@@ -621,9 +621,9 @@ public class GameActivity extends Activity {
     private void setStatusTextSizeForCurrentMessage(float scale) {
         if (statusTitle == null) return;
         String text = String.valueOf(statusTitle.getText());
-        float designPx = 9.3f;
-        if (text.length() > 20) designPx = 7.3f;
-        else if (text.length() > 16) designPx = 8.2f;
+        float designPx = 27f;
+        if (text.length() > 20) designPx = 21f;
+        else if (text.length() > 16) designPx = 24f;
         setTextPx(statusTitle, designPx * scale);
         statusTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
     }
@@ -636,9 +636,9 @@ public class GameActivity extends Activity {
         if (bottomControlBar != null) bottomControlBar.setBackgroundResource(uiTheme.bottomBarDrawable);
         if (mainActionButton != null) mainActionButton.setBackgroundResource(uiTheme.primaryButtonDrawable);
         if (undoButton != null) undoButton.setBackgroundResource(uiTheme.secondaryButtonDrawable);
-        if (hintButton != null) hintButton.setBackgroundResource(uiTheme.secondaryButtonDrawable);
-        if (menuButton != null) menuButton.setBackgroundResource(uiTheme.squareButtonDrawable);
-        if (settingsButton != null) settingsButton.setBackgroundResource(uiTheme.squareButtonDrawable);
+        if (hintButton != null) hintButton.setBackgroundResource(uiTheme.hintButtonDrawable);
+        if (menuButton != null) menuButton.setBackgroundResource(uiTheme.menuButtonDrawable);
+        if (settingsButton != null) settingsButton.setBackgroundResource(uiTheme.settingsButtonDrawable);
     }
 
     private void refreshUi() {

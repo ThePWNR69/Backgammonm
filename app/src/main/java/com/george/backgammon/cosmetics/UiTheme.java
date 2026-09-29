@@ -2,10 +2,7 @@ package com.george.backgammon.cosmetics;
 
 /**
  * Complete gameplay chrome paired with a board family.
- *
  * Geometry and gameplay never live here: a theme only chooses visual resources.
- * The left and right identity plaques are separate resources because the approved
- * design mirrors the shaped score bay rather than stretching one generic panel.
  */
 public final class UiTheme {
     public final String id;
@@ -16,13 +13,16 @@ public final class UiTheme {
     public final int bottomBarDrawable;
     public final int primaryButtonDrawable;
     public final int secondaryButtonDrawable;
-    public final int squareButtonDrawable;
+    public final int hintButtonDrawable;
+    public final int menuButtonDrawable;
+    public final int settingsButtonDrawable;
 
     public UiTheme(String id, String displayName,
                    int playerOnePanelDrawable, int playerTwoPanelDrawable,
                    int statusBarDrawable, int bottomBarDrawable,
                    int primaryButtonDrawable, int secondaryButtonDrawable,
-                   int squareButtonDrawable) {
+                   int hintButtonDrawable, int menuButtonDrawable,
+                   int settingsButtonDrawable) {
         this.id = id;
         this.displayName = displayName;
         this.playerOnePanelDrawable = playerOnePanelDrawable;
@@ -31,6 +31,8 @@ public final class UiTheme {
         this.bottomBarDrawable = bottomBarDrawable;
         this.primaryButtonDrawable = primaryButtonDrawable;
         this.secondaryButtonDrawable = secondaryButtonDrawable;
-        this.squareButtonDrawable = squareButtonDrawable;
+        this.hintButtonDrawable = hintButtonDrawable;
+        this.menuButtonDrawable = menuButtonDrawable;
+        this.settingsButtonDrawable = settingsButtonDrawable;
     }
 }

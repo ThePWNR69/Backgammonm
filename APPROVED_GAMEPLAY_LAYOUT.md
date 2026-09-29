@@ -1,31 +1,28 @@
-# Approved gameplay layout — v1.14.0
+# Approved gameplay layout — v1.16.0
 
-The exact visual direction is `design/reference/CLASSIC_BURGUNDY_FINAL_APPROVED.png`.
-This is now the implementation target, not an inspiration image.
+Master coordinate system: **1672 × 941**.
 
-## Reference frame
-The match screen uses one 510 × 280 logical frame, uniformly scaled and centred in the safe landscape window.
+The complete gameplay composition is scaled uniformly. Individual visual elements must not be independently stretched to fill a device.
 
-### Locked rectangles (x, y, width, height)
-- Menu: `0, 0, 30, 30`
-- Player 1: `34, 0, 146, 30`
-- Turn/status: `184, 0, 142, 30`
-- Player 2 / AI: `330, 0, 146, 30`
-- Settings: `480, 0, 30, 30`
-- Live board: `2, 31, 506, 213`
-- Bottom control deck: `0, 245, 510, 35`
-- Die 1: `33, 250, 24, 24`
-- Die 2: `66, 250, 24, 24`
-- Roll / End Turn: `164, 248, 174, 29`
-- Undo: `378, 248, 58, 29`
-- Hint: `440, 248, 58, 29`
+## Top HUD
+- Menu: x108 y22 w88 h86
+- Player 1 plaque: x210 y22 w450 h86
+- Status plaque: x670 y18 w342 h92
+- Player 2 plaque: x1022 y22 w432 h86
+- Settings: x1464 y22 w88 h86
 
-## Locked visual rules
-- Board frame is straight-on and symmetrical: no perspective/skew in the wood rails.
-- Board has rounded transparent corners and is grounded into the emerald tabletop by the renderer shadow.
-- Player score bays are sized to the live score fields and stay inside each player plaque.
-- Top UI is burgundy leather with restrained double antique-gold edging.
-- The turn plaque is faceted brushed gold.
-- Bottom controls are one integrated burgundy deck with recessed dice wells, a burgundy main action button and dark secondary buttons.
-- Buttons retain Normal / Pressed / Disabled states and never glow.
-- BoardMap, checker anchors, hit regions and rules geometry are unchanged.
+## Board
+- x104 y118 w1442 h615
+- The clean board artwork contains no checker sprites.
+- Checkers, highlights and animations remain live renderer layers.
+
+## Bottom deck
+- Deck: x108 y752 w1435 h126
+- Dice 1: x223 y786 w80 h78
+- Dice 2: x331 y786 w81 h78
+- Main action hit target: x571 y780 w451 h87
+- Undo hit target: x1090 y782 w197 h82
+- Hint hit target: x1309 y782 w195 h82
+
+## Text rule
+All player names, scores, turn/status messages and button labels are live Android text using system sans-serif fonts. They must never be baked into the theme artwork.

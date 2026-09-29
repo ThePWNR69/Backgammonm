@@ -30,6 +30,7 @@
 
             <ImageView
                 android:id="@+id/playerOneCheckerIcon"
+                android:visibility="invisible"
                 android:layout_width="1px"
                 android:layout_height="1px"
                 android:padding="5dp"
@@ -88,6 +89,7 @@
 
             <TextView
                 android:id="@+id/statusLeftOrnament"
+                android:visibility="gone"
                 android:layout_width="1px"
                 android:layout_height="match_parent"
                 android:gravity="center"
@@ -110,6 +112,7 @@
 
             <TextView
                 android:id="@+id/statusRightOrnament"
+                android:visibility="gone"
                 android:layout_width="1px"
                 android:layout_height="match_parent"
                 android:gravity="center"
@@ -167,6 +170,7 @@
 
             <ImageView
                 android:id="@+id/playerTwoCheckerIcon"
+                android:visibility="invisible"
                 android:layout_width="1px"
                 android:layout_height="1px"
                 android:padding="5dp"
@@ -185,7 +189,7 @@
             android:minHeight="0dp"
             android:padding="0dp"
             android:background="@drawable/premium_square_button_selector"
-            android:text="☰"
+            android:text=""
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="#FFE9B6"
@@ -200,7 +204,7 @@
             android:minHeight="0dp"
             android:padding="0dp"
             android:background="@drawable/premium_square_button_selector"
-            android:text="⚙"
+            android:text=""
             android:textAllCaps="false"
             android:includeFontPadding="false"
             android:textColor="#FFE9B6"

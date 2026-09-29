@@ -33,8 +33,8 @@ final class StaticBoardRenderer {
             // rectangular image pasted on top.  This shadow is baked into the static cache,
             // so it has zero per-frame animation cost.
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(0x52000000);
-            paint.setShadowLayer(Math.max(12f, g.frame * 0.92f), 0f, Math.max(4f, g.frame * 0.24f), 0xC4000000);
+            paint.setColor(0x2C000000);
+            paint.setShadowLayer(Math.max(8f, g.frame * 0.55f), 0f, Math.max(3f, g.frame * 0.16f), 0x78000000);
             c.drawRoundRect(new RectF(outer.left + 3f, outer.top + 2f, outer.right - 3f, outer.bottom - 1f),
                     Math.max(18f, g.frame * 0.52f), Math.max(18f, g.frame * 0.52f), paint);
             paint.clearShadowLayer();
