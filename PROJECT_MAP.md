@@ -42,3 +42,22 @@ For visual-only gameplay updates, normally edit only `cosmetics/`, `ui/GameActiv
 - `app/src/main/res/drawable-nodpi/premium_*` — HUD/button layer assets.
 - `app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp` — replaceable board skin.
 - `GameActivity.applyReferenceComposition()` — one 1672×941 master coordinate system.
+
+## v1.18 Match Setup
+- `ui/MatchSetupActivity.java`
+  - Builds VS Bot / Local 2-player setup dynamically.
+  - Uses `SlidingChoice` instead of Android Spinner/dropdown menus.
+  - Owns game-version-specific rule summaries and setup labels.
+  - Opponent colour selector: Auto / Light / Dark.
+- `cosmetics/CheckerTheme.java`
+  - `SIDE_LIGHT` / `SIDE_DARK` metadata tags.
+  - light/dark tags are gameplay-side metadata, not literal visual colours.
+- `ui/CustomiseActivity.java` + `activity_customise.xml`
+  - Persists player's preferred checker gameplay side as `checker_side` in `backgammon_visuals`.
+
+
+## v1.19 SETUP CHROME
+- Setup screen logic: `app/src/main/java/com/george/backgammon/ui/MatchSetupActivity.java`
+- 3D setup raster assets: `app/src/main/res/drawable-xxhdpi/setup_*`
+- Setup selectors/dividers: `app/src/main/res/drawable/setup_*`
+- Layout geometry remains the approved v1.18 programmatic setup layout.

@@ -2,38 +2,44 @@ package com.george.backgammon.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.george.backgammon.R;
+import com.george.backgammon.cosmetics.CheckerTheme;
 import com.george.backgammon.game.BackgammonGame;
 
-/** Premium pre-match setup shared by bot and local two-player matches. */
+/**
+ * v1.19 premium pre-match setup.
+ *
+ * Dropdowns were deliberately removed. Every setting uses a compact left/right sliding selector,
+ * which keeps the screen readable in landscape and makes all choices visible without pop-up menus.
+ */
 public class MatchSetupActivity extends Activity {
     public static final String EXTRA_MODE = "setup_mode";
 
-    private static final int CREAM = Color.rgb(248, 229, 181);
-    private static final int GOLD = Color.rgb(229, 194, 120);
-    private static final int MUTED = Color.rgb(207, 195, 166);
+    private static final int CREAM = Color.rgb(255, 237, 194);
+    private static final int GOLD = Color.rgb(244, 202, 111);
+    private static final int MUTED = Color.rgb(229, 214, 181);
 
     private String mode;
-    private Spinner versionSpinner;
-    private Spinner difficultySpinner;
-    private Spinner directionSpinner;
-    private Spinner colourSpinner;
-    private Spinner matchSpinner;
-    private Spinner hintsSpinner;
+    private SlidingChoice versionChoice;
+    private SlidingChoice difficultyChoice;
+    private SlidingChoice directionChoice;
+    private SlidingChoice opponentColourChoice;
+    private SlidingChoice matchChoice;
+    private SlidingChoice hintsChoice;
+    private LinearLayout rulesContainer;
+    private TextView opponentColourLabel;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,176 +47,235 @@ public class MatchSetupActivity extends Activity {
         mode = getIntent().getStringExtra(EXTRA_MODE);
         if (mode == null) mode = GameActivity.MODE_AI;
         setContentView(buildUi());
+        updateRules();
     }
 
     private View buildUi() {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(14), dp(8), dp(14), dp(10));
+        root.setPadding(dp(12), dp(7), dp(12), dp(9));
         root.setBackgroundResource(R.drawable.tabletop);
 
+        // Compact header: gives the option cards more breathing room than the previous screen.
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        root.addView(header, new LinearLayout.LayoutParams(-1, dp(48)));
+        root.addView(header, new LinearLayout.LayoutParams(-1, dp(44)));
 
         ImageButton back = new ImageButton(this);
         back.setImageResource(R.drawable.ic_back);
-        back.setPadding(dp(9), dp(9), dp(9), dp(9));
-        back.setBackgroundResource(R.drawable.premium_small_button);
+        back.setPadding(dp(8), dp(8), dp(8), dp(8));
+        back.setBackgroundResource(R.drawable.setup_back_button_selector);
+        back.setColorFilter(CREAM);
+        back.setElevation(dp(5));
         back.setOnClickListener(v -> finish());
-        header.addView(back, new LinearLayout.LayoutParams(dp(46), dp(44)));
+        header.addView(back, new LinearLayout.LayoutParams(dp(42), dp(40)));
 
         TextView title = text(GameActivity.MODE_TWO_PLAYER.equals(mode) ? "2-PLAYER SETUP" : "VS BOT SETUP", 25, true);
+        title.setShadowLayer(dp(2), 0f, dp(2), Color.argb(170, 0, 0, 0));
         title.setGravity(Gravity.CENTER);
-        title.setLetterSpacing(0.04f);
+        title.setLetterSpacing(0.045f);
         header.addView(title, new LinearLayout.LayoutParams(0, -1, 1f));
-        header.addView(new View(this), new LinearLayout.LayoutParams(dp(46), 1));
+        header.addView(new View(this), new LinearLayout.LayoutParams(dp(42), 1));
 
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.HORIZONTAL);
         content.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams contentLp = new LinearLayout.LayoutParams(-1, 0, 1f);
-        contentLp.topMargin = dp(6);
+        contentLp.topMargin = dp(5);
         root.addView(content, contentLp);
 
         LinearLayout left = panel();
         LinearLayout right = panel();
-        LinearLayout.LayoutParams leftLp = new LinearLayout.LayoutParams(0, -1, 1.12f);
-        leftLp.setMargins(dp(4), 0, dp(7), 0);
-        LinearLayout.LayoutParams rightLp = new LinearLayout.LayoutParams(0, -1, 0.88f);
-        rightLp.setMargins(dp(7), 0, dp(4), 0);
+        LinearLayout.LayoutParams leftLp = new LinearLayout.LayoutParams(0, -1, 1.10f);
+        leftLp.setMargins(dp(3), 0, dp(6), 0);
+        LinearLayout.LayoutParams rightLp = new LinearLayout.LayoutParams(0, -1, 0.90f);
+        rightLp.setMargins(dp(6), 0, dp(3), 0);
         content.addView(left, leftLp);
         content.addView(right, rightLp);
 
-        versionSpinner = addChoice(left, "⚄", "Game version", new String[]{
-                "Backgammon / Sheish Beish",
-                "Mahbouseh",
-                "Tawla 31"
+        versionChoice = addChoice(left, "⚄", "Game version", new String[]{
+                "Backgammon / Sheish Beish", "Mahbouseh", "Tawla 31"
+        });
+        versionChoice.setOnChangedListener(index -> {
+            updateMatchLengthForVariant(index);
+            updateRules();
         });
 
         if (!GameActivity.MODE_TWO_PLAYER.equals(mode)) {
-            difficultySpinner = addChoice(left, "▥", "Difficulty", new String[]{"Easy", "Normal", "Hard"});
-            difficultySpinner.setSelection(1);
+            difficultyChoice = addChoice(left, "▥", "Difficulty", new String[]{"Easy", "Normal", "Hard"});
+            difficultyChoice.setIndex(1, false);
         }
 
-        directionSpinner = addChoice(left, "↺", "Player 1 direction", new String[]{
-                "Counter-clockwise", "Clockwise"
-        });
-        colourSpinner = addChoice(left, "◐", "Player 1 colour", new String[]{"Light", "Dark"});
-        matchSpinner = addChoice(left, "♛", "Match length", new String[]{
+        directionChoice = addChoice(left, "↺",
+                GameActivity.MODE_TWO_PLAYER.equals(mode) ? "Player 1 direction" : "Your direction",
+                new String[]{"Counter-clockwise", "Clockwise"});
+
+        opponentColourChoice = addChoice(left, "◐",
+                GameActivity.MODE_TWO_PLAYER.equals(mode) ? "Player 2 colour" : "Bot colour",
+                new String[]{"Auto", "Light", "Dark"});
+        opponentColourLabel = opponentColourChoice.labelView;
+
+        matchChoice = addChoice(left, "♛", "Match length", new String[]{
                 "1 Match", "First to 3", "First to 5", "First to 7"
         });
-        hintsSpinner = addChoice(left, "?", "Hints", new String[]{"On", "Off"});
 
-        TextView rulesTitle = text("MATCH RULES", 18, true);
+        hintsChoice = addChoice(left, "?", "Hints", new String[]{"On", "Off"});
+
+        TextView rulesTitle = text("MATCH RULES", 17, true);
         rulesTitle.setGravity(Gravity.CENTER);
-        rulesTitle.setLetterSpacing(0.04f);
-        right.addView(rulesTitle, new LinearLayout.LayoutParams(-1, dp(36)));
+        rulesTitle.setLetterSpacing(0.045f);
+        rulesTitle.setShadowLayer(dp(2), 0f, dp(1), Color.argb(150, 0, 0, 0));
+        right.addView(rulesTitle, new LinearLayout.LayoutParams(-1, dp(33)));
         addDivider(right);
 
-        addRule(right, "↔", "Player 2 automatically travels in the opposite direction.");
-        addRule(right, "◐", "Checker colour is visual only and does not change movement rules.");
-        addRule(right, "⚄", "Opening roll: each side rolls one die; ties reroll; the higher die starts using both opening dice.");
-        addRule(right, "▲", "Mahbouseh pins a lone opposing checker instead of hitting it. Tawla 31 is a no-hit blocking race with all 15 checkers starting together.");
-        addRule(right, "★", "XP and Gold are earned after every completed game, including losses. Using hints reduces bonus rewards, never the protected participation reward.");
-
-        View flex = new View(this);
-        right.addView(flex, new LinearLayout.LayoutParams(-1, 0, 1f));
+        rulesContainer = new LinearLayout(this);
+        rulesContainer.setOrientation(LinearLayout.VERTICAL);
+        right.addView(rulesContainer, new LinearLayout.LayoutParams(-1, 0, 1f));
 
         Button start = new Button(this);
         start.setText("START MATCH");
         start.setAllCaps(false);
         start.setTextColor(Color.rgb(255, 240, 207));
-        start.setTextSize(17);
+        start.setTextSize(18);
         start.setTypeface(Typeface.SERIF, Typeface.BOLD);
-        start.setBackgroundResource(R.drawable.button_green);
+        start.setBackgroundResource(R.drawable.setup_start_button_selector);
+        start.setShadowLayer(dp(2), 0f, dp(1), Color.argb(150, 0, 0, 0));
+        start.setElevation(dp(5));
         start.setStateListAnimator(null);
         start.setOnClickListener(v -> startMatch());
-        LinearLayout.LayoutParams startLp = new LinearLayout.LayoutParams(-1, dp(48));
-        startLp.topMargin = dp(6);
+        LinearLayout.LayoutParams startLp = new LinearLayout.LayoutParams(-1, dp(45));
+        startLp.topMargin = dp(5);
         right.addView(start, startLp);
 
         return root;
     }
 
-    private Spinner addChoice(LinearLayout parent, String icon, String label, String[] choices) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(8), dp(2), dp(8), dp(2));
-
-        TextView badge = text(icon, 21, true);
-        badge.setGravity(Gravity.CENTER);
-        badge.setTextColor(GOLD);
-        badge.setBackgroundResource(R.drawable.profile_avatar_bg);
-        row.addView(badge, new LinearLayout.LayoutParams(dp(36), dp(36)));
-
-        LinearLayout middle = new LinearLayout(this);
-        middle.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams middleLp = new LinearLayout.LayoutParams(0, -2, 1f);
-        middleLp.leftMargin = dp(12);
-        row.addView(middle, middleLp);
-
-        TextView l = text(label, 11, true);
-        l.setTextColor(CREAM);
-        middle.addView(l, new LinearLayout.LayoutParams(-1, dp(17)));
-
-        Spinner spinner = new Spinner(this, Spinner.MODE_DROPDOWN);
-        spinner.setAdapter(new PremiumSpinnerAdapter(choices));
-        spinner.setBackgroundResource(R.drawable.premium_tab_selected);
-        spinner.setPadding(dp(12), 0, dp(8), 0);
-        middle.addView(spinner, new LinearLayout.LayoutParams(-1, dp(31)));
-
-        parent.addView(row, new LinearLayout.LayoutParams(-1, dp(51)));
-        addDivider(parent);
-        return spinner;
-    }
-
-    private void addRule(LinearLayout parent, String icon, String rule) {
+    /** One clean row: icon, label, then an animated left/right selector. */
+    private SlidingChoice addChoice(LinearLayout parent, String icon, String label, String[] choices) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(7), dp(2), dp(7), dp(2));
 
         TextView badge = text(icon, 19, true);
-        badge.setTextColor(GOLD);
         badge.setGravity(Gravity.CENTER);
-        badge.setBackgroundResource(R.drawable.profile_avatar_bg);
+        badge.setTextColor(GOLD);
+        badge.setBackgroundResource(R.drawable.setup_icon_badge);
+        badge.setShadowLayer(dp(1), 0f, dp(1), Color.argb(140, 0, 0, 0));
         row.addView(badge, new LinearLayout.LayoutParams(dp(36), dp(36)));
 
-        TextView body = text(rule, 10, false);
+        TextView l = text(label, 11, true);
+        l.setTextColor(CREAM);
+        l.setGravity(Gravity.CENTER_VERTICAL);
+        l.setShadowLayer(dp(1), 0f, dp(1), Color.argb(125, 0, 0, 0));
+        LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(dp(118), -1);
+        labelLp.leftMargin = dp(10);
+        row.addView(l, labelLp);
+
+        SlidingChoice selector = new SlidingChoice(choices, l);
+        LinearLayout.LayoutParams selectorLp = new LinearLayout.LayoutParams(0, dp(36), 1f);
+        selectorLp.leftMargin = dp(6);
+        row.addView(selector, selectorLp);
+
+        parent.addView(row, new LinearLayout.LayoutParams(-1, dp(46)));
+        addDivider(parent);
+        return selector;
+    }
+
+    private void updateMatchLengthForVariant(int variantIndex) {
+        if (matchChoice == null) return;
+        if (variantIndex == 2) {
+            matchChoice.setValues(new String[]{"31 Points"});
+        } else {
+            int old = matchChoice.getIndex();
+            matchChoice.setValues(new String[]{"1 Match", "First to 3", "First to 5", "First to 7"});
+            matchChoice.setIndex(Math.min(old, 3), false);
+        }
+    }
+
+    /** Rules text is variant-specific rather than displaying all variants at once. */
+    private void updateRules() {
+        if (rulesContainer == null || versionChoice == null) return;
+        rulesContainer.removeAllViews();
+        int v = versionChoice.getIndex();
+
+        addRule(rulesContainer, "↔", "The two sides always travel in opposite directions.");
+        if (v == 0) {
+            addRule(rulesContainer, "⚄", "Standard opening roll: each side rolls one die; ties reroll and the higher die starts.");
+            addRule(rulesContainer, "●", "A lone opposing checker can be hit and sent to the bar. Bar checkers must re-enter first.");
+            addRule(rulesContainer, "⌂", "Bear off once all of your remaining checkers are in your home board.");
+        } else if (v == 1) {
+            addRule(rulesContainer, "●", "All 15 checkers begin together on the starting point.");
+            addRule(rulesContainer, "⊙", "Landing on one lone opposing checker pins it instead of sending it to the bar.");
+            addRule(rulesContainer, "⌂", "There is no standard bar-hit cycle; race, block, pin, then bear off to win.");
+        } else {
+            addRule(rulesContainer, "●", "All 15 checkers begin together and opposing occupied points are blocked.");
+            addRule(rulesContainer, "↝", "No hitting: the opening runner must be released before the rest of that side can advance.");
+            addRule(rulesContainer, "31", "The match target is fixed at 31 points for Tawla 31.");
+        }
+        addRule(rulesContainer, "★", "XP and Gold are earned after every completed game. Hints reduce bonus rewards, not the protected participation reward.");
+    }
+
+    private void addRule(LinearLayout parent, String icon, String rule) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(6), dp(2), dp(6), dp(2));
+
+        TextView badge = text(icon, icon.length() > 1 ? 11 : 17, true);
+        badge.setTextColor(GOLD);
+        badge.setGravity(Gravity.CENTER);
+        badge.setBackgroundResource(R.drawable.setup_icon_badge);
+        badge.setShadowLayer(dp(1), 0f, dp(1), Color.argb(140, 0, 0, 0));
+        row.addView(badge, new LinearLayout.LayoutParams(dp(33), dp(33)));
+
+        TextView body = text(rule, 9, false);
         body.setTextColor(MUTED);
         body.setGravity(Gravity.CENTER_VERTICAL);
+        body.setLineSpacing(0f, 1.04f);
+        body.setShadowLayer(dp(1), 0f, dp(1), Color.argb(105, 0, 0, 0));
         LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, -2, 1f);
-        bp.leftMargin = dp(11);
+        bp.leftMargin = dp(9);
         row.addView(body, bp);
-        parent.addView(row, new LinearLayout.LayoutParams(-1, dp(44)));
+        parent.addView(row, new LinearLayout.LayoutParams(-1, 0, 1f));
         addDivider(parent);
     }
 
     private void addDivider(LinearLayout parent) {
         View line = new View(this);
-        line.setBackgroundColor(Color.argb(90, 196, 153, 79));
+        line.setBackgroundResource(R.drawable.setup_divider);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(1));
-        lp.leftMargin = dp(6);
-        lp.rightMargin = dp(6);
+        lp.leftMargin = dp(5);
+        lp.rightMargin = dp(5);
         parent.addView(line, lp);
     }
 
     private void startMatch() {
         Intent intent = new Intent(this, GameActivity.class);
         intent.putExtra(GameActivity.EXTRA_MODE, mode);
-        int direction = directionSpinner.getSelectedItemPosition();
+
+        int direction = directionChoice.getIndex();
         int p1Side = direction == 0 ? BackgammonGame.WHITE : BackgammonGame.BLACK;
         intent.putExtra(GameActivity.EXTRA_PLAYER_ONE_SIDE, p1Side);
-        intent.putExtra(GameActivity.EXTRA_PLAYER_ONE_LIGHT, colourSpinner.getSelectedItemPosition() == 0);
-        int variantIndex = versionSpinner.getSelectedItemPosition();
-        intent.putExtra(GameActivity.EXTRA_MATCH_TARGET, variantIndex == 2 ? 31 : matchTarget(matchSpinner.getSelectedItemPosition()));
+
+        // The user's checker side is a Customisation preference. Match Setup only decides the
+        // opponent side. Auto always chooses the opposite of the equipped player side.
+        SharedPreferences visuals = getSharedPreferences("backgammon_visuals", MODE_PRIVATE);
+        String equippedSide = visuals.getString("checker_side", CheckerTheme.SIDE_LIGHT);
+        boolean userIsLight = !CheckerTheme.SIDE_DARK.equals(equippedSide);
+        int opponentChoice = opponentColourChoice.getIndex(); // 0 auto, 1 light, 2 dark
+        if (opponentChoice == 1) userIsLight = false;          // opponent explicitly light
+        else if (opponentChoice == 2) userIsLight = true;      // opponent explicitly dark
+        intent.putExtra(GameActivity.EXTRA_PLAYER_ONE_LIGHT, userIsLight);
+
+        int variantIndex = versionChoice.getIndex();
+        intent.putExtra(GameActivity.EXTRA_MATCH_TARGET,
+                variantIndex == 2 ? 31 : matchTarget(matchChoice.getIndex()));
         intent.putExtra(GameActivity.EXTRA_GAME_VARIANT, variantIndex);
-        intent.putExtra(GameActivity.EXTRA_HINTS_ENABLED, hintsSpinner.getSelectedItemPosition() == 0);
-        if (difficultySpinner != null) {
-            intent.putExtra(GameActivity.EXTRA_DIFFICULTY, difficultySpinner.getSelectedItemPosition());
+        intent.putExtra(GameActivity.EXTRA_HINTS_ENABLED, hintsChoice.getIndex() == 0);
+        if (difficultyChoice != null) {
+            intent.putExtra(GameActivity.EXTRA_DIFFICULTY, difficultyChoice.getIndex());
         }
         startActivity(intent);
     }
@@ -225,8 +290,9 @@ public class MatchSetupActivity extends Activity {
     private LinearLayout panel() {
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setPadding(dp(12), dp(9), dp(12), dp(10));
-        panel.setBackgroundResource(R.drawable.premium_card);
+        panel.setPadding(dp(10), dp(8), dp(10), dp(9));
+        panel.setBackgroundResource(R.drawable.setup_panel);
+        panel.setElevation(dp(6));
         return panel;
     }
 
@@ -236,32 +302,110 @@ public class MatchSetupActivity extends Activity {
         v.setTextColor(CREAM);
         v.setTextSize(sp);
         v.setTypeface(Typeface.SERIF, bold ? Typeface.BOLD : Typeface.NORMAL);
+        v.setIncludeFontPadding(false);
         return v;
     }
 
-    private class PremiumSpinnerAdapter extends ArrayAdapter<String> {
-        PremiumSpinnerAdapter(String[] values) {
-            super(MatchSetupActivity.this, android.R.layout.simple_spinner_item, values);
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    /**
+     * Compact carousel selector. The selected value slides horizontally when a chevron is pressed,
+     * replacing the old Android Spinner/dropdown completely.
+     */
+    private final class SlidingChoice extends LinearLayout {
+        private String[] values;
+        private int index = 0;
+        private final TextView valueView;
+        private final TextView labelView;
+        private OnChangedListener changedListener;
+
+        SlidingChoice(String[] initialValues, TextView labelView) {
+            super(MatchSetupActivity.this);
+            this.values = initialValues;
+            this.labelView = labelView;
+            setOrientation(HORIZONTAL);
+            setGravity(Gravity.CENTER_VERTICAL);
+            setBackgroundResource(R.drawable.setup_selector);
+            setElevation(dp(3));
+            setPadding(dp(2), 0, dp(2), 0);
+            setClipChildren(true);
+
+            TextView left = arrow("‹");
+            valueView = text(initialValues[0], 12, false);
+            valueView.setGravity(Gravity.CENTER);
+            valueView.setTextColor(CREAM);
+            valueView.setShadowLayer(dp(1), 0f, dp(1), Color.argb(140, 0, 0, 0));
+            valueView.setSingleLine(true);
+            valueView.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            TextView right = arrow("›");
+
+            addView(left, new LayoutParams(dp(36), -1));
+            View leftDivider = new View(MatchSetupActivity.this);
+            leftDivider.setBackgroundResource(R.drawable.setup_separator_vertical);
+            addView(leftDivider, new LayoutParams(dp(1), dp(25)));
+            addView(valueView, new LayoutParams(0, -1, 1f));
+            View rightDivider = new View(MatchSetupActivity.this);
+            rightDivider.setBackgroundResource(R.drawable.setup_separator_vertical);
+            addView(rightDivider, new LayoutParams(dp(1), dp(25)));
+            addView(right, new LayoutParams(dp(36), -1));
+
+            left.setOnClickListener(v -> cycle(-1));
+            right.setOnClickListener(v -> cycle(1));
+            valueView.setOnClickListener(v -> cycle(1));
         }
 
-        private TextView style(TextView view, boolean dropdown) {
-            view.setTextColor(dropdown ? Color.rgb(35, 22, 14) : Color.rgb(255, 239, 205));
-            view.setTextSize(dropdown ? 15 : 14);
-            view.setTypeface(Typeface.SERIF, Typeface.NORMAL);
-            view.setGravity(Gravity.CENTER_VERTICAL);
-            if (!dropdown) view.setPadding(dp(2), 0, dp(4), 0);
-            return view;
+        private TextView arrow(String glyph) {
+            TextView v = text(glyph, 23, true);
+            v.setGravity(Gravity.CENTER);
+            v.setTextColor(GOLD);
+            v.setClickable(true);
+            v.setBackgroundResource(R.drawable.setup_selector_arrow);
+            v.setShadowLayer(dp(1), 0f, dp(1), Color.argb(140, 0, 0, 0));
+            return v;
         }
 
-        @Override public View getView(int position, View convertView, ViewGroup parent) {
-            return style((TextView) super.getView(position, convertView, parent), false);
+        void cycle(int direction) {
+            if (values.length <= 1) return;
+            final float distance = dp(24) * (direction > 0 ? -1f : 1f);
+            valueView.animate().cancel();
+            setBackgroundResource(R.drawable.setup_selector_pressed);
+            valueView.animate()
+                    .translationX(distance)
+                    .alpha(0f)
+                    .setDuration(85)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .withEndAction(() -> {
+                        index = (index + direction + values.length) % values.length;
+                        valueView.setText(values[index]);
+                        valueView.setTranslationX(-distance);
+                        valueView.animate()
+                                .translationX(0f)
+                                .alpha(1f)
+                                .setDuration(125)
+                                .setInterpolator(new DecelerateInterpolator())
+                                .withEndAction(() -> setBackgroundResource(R.drawable.setup_selector))
+                                .start();
+                        if (changedListener != null) changedListener.onChanged(index);
+                    }).start();
         }
 
-        @Override public View getDropDownView(int position, View convertView, ViewGroup parent) {
-            return style((TextView) super.getDropDownView(position, convertView, parent), true);
+        int getIndex() { return index; }
+
+        void setIndex(int newIndex, boolean notify) {
+            if (values.length == 0) return;
+            index = Math.max(0, Math.min(newIndex, values.length - 1));
+            valueView.setText(values[index]);
+            if (notify && changedListener != null) changedListener.onChanged(index);
         }
+
+        void setValues(String[] newValues) {
+            values = newValues;
+            index = 0;
+            valueView.setText(values.length == 0 ? "" : values[0]);
+        }
+
+        void setOnChangedListener(OnChangedListener listener) { changedListener = listener; }
     }
+
+    private interface OnChangedListener { void onChanged(int index); }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 

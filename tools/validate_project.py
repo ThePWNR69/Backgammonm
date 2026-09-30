@@ -1,52 +1,66 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import sys, xml.etree.ElementTree as ET
+from PIL import Image
 ROOT=Path(__file__).resolve().parents[1]
 errors=[]
+
 # XML sanity
 for xml in (ROOT/'app/src/main/res').rglob('*.xml'):
     try: ET.parse(xml)
     except Exception as e: errors.append(f'{xml.relative_to(ROOT)} invalid: {e}')
-java=(ROOT/'app/src/main/java/com/george/backgammon/ui/GameActivity.java').read_text()
-layout=(ROOT/'app/src/main/res/layout/activity_main.xml').read_text()
+
+setup=(ROOT/'app/src/main/java/com/george/backgammon/ui/MatchSetupActivity.java').read_text()
 for token in [
-    'final float REF_W = 1672f;','final float REF_H = 941f;',
-    'setFrameRef(menuButton,       108f, 22f,  88f,  86f, scale);',
-    'setFrameRef(playerOnePanel,   210f, 22f, 450f,  86f, scale);',
-    'setFrameRef(statusPanel,      670f, 18f, 342f,  92f, scale);',
-    'setFrameRef(playerTwoPanel,  1022f, 22f, 432f,  86f, scale);',
-    'setFrameRef(settingsButton,  1464f, 22f,  88f,  86f, scale);',
-    'setFrameRef(boardView,        104f, 118f, 1442f, 615f, scale);',
-    'setFrameRef(bottomControlBar, 108f, 752f, 1435f, 126f, scale);',
+    'v1.19 premium pre-match setup.',
+    'R.drawable.setup_panel',
+    'R.drawable.setup_selector',
+    'R.drawable.setup_selector_pressed',
+    'R.drawable.setup_start_button_selector',
+    'R.drawable.setup_back_button_selector',
+    'new String[]{"Auto", "Light", "Dark"}',
+    'updateRules();',
+    'CheckerTheme.SIDE_LIGHT',
+    'CheckerTheme.SIDE_DARK',
+    '.translationX(distance)',
 ]:
-    if token not in java: errors.append('Missing layout token: '+token)
-for token in ['android:text=""','android:text="↶  UNDO"','android:text="✦  HINT"','android:fontFamily="sans-serif-medium"']:
-    if token not in layout: errors.append('Live-text layout token missing: '+token)
-# Layer assets
-asset_dir=ROOT/'app/src/main/res/drawable-nodpi'
+    if token not in setup: errors.append('Missing setup token: '+token)
+
+# 3D setup assets
+xhdpi=ROOT/'app/src/main/res/drawable-xxhdpi'
 for name in [
-    'premium_player_left.webp','premium_player_right.webp','premium_status.webp','premium_bottom_deck.webp',
-    'premium_square_normal.webp','premium_square_pressed.webp','premium_settings_normal.webp','premium_settings_pressed.webp',
-    'premium_primary_pressed.webp','premium_primary_disabled.webp','premium_secondary_pressed.webp','premium_secondary_disabled.webp',
-    'premium_hint_pressed.webp','premium_hint_disabled.webp','die_1.webp','die_2.webp','die_3.webp','die_4.webp','die_5.webp','die_6.webp']:
-    if not (asset_dir/name).exists(): errors.append('Missing layered asset: '+name)
-board=ROOT/'app/src/main/assets/cosmetics/boards/classic_burgundy/board.webp'
-if not board.exists(): errors.append('Missing Classic Burgundy board')
-try:
-    from PIL import Image
-    if board.exists() and Image.open(board).size!=(2048,977): errors.append('Board must remain 2048x977 for BoardMap projection')
-except Exception as e: errors.append('Image validation failed: '+str(e))
-# Theme wiring
-cat=(ROOT/'app/src/main/java/com/george/backgammon/cosmetics/UiThemeCatalog.java').read_text()
-for token in ['premium_hint_button_selector','premium_settings_button_selector','premium_square_button_selector']:
-    if token not in cat: errors.append('Theme not wired to '+token)
+    'setup_panel.9.png','setup_selector.9.png','setup_selector_pressed.9.png',
+    'setup_start_normal.9.png','setup_start_pressed.9.png',
+    'setup_icon_badge.png','setup_back_normal.png','setup_back_pressed.png']:
+    p=xhdpi/name
+    if not p.exists():
+        errors.append('Missing setup asset: '+name)
+        continue
+    try:
+        im=Image.open(p).convert('RGBA')
+        if name.endswith('.9.png'):
+            # NinePatch needs visible black stretch markers on top and left borders.
+            top=[im.getpixel((x,0)) for x in range(im.width)]
+            left=[im.getpixel((0,y)) for y in range(im.height)]
+            if not any(px[:3]==(0,0,0) and px[3]>200 for px in top): errors.append(name+' missing top stretch marker')
+            if not any(px[:3]==(0,0,0) and px[3]>200 for px in left): errors.append(name+' missing left stretch marker')
+    except Exception as e:
+        errors.append(f'{name} invalid image: {e}')
+
+# Selector / button XML wiring
+for name in ['setup_back_button_selector.xml','setup_start_button_selector.xml','setup_selector_arrow.xml','setup_divider.xml','setup_separator_vertical.xml']:
+    if not (ROOT/'app/src/main/res/drawable'/name).exists(): errors.append('Missing drawable '+name)
+
+# Checker metadata stays scalable for Auto / Light / Dark.
+checker=(ROOT/'app/src/main/java/com/george/backgammon/cosmetics/CheckerTheme.java').read_text()
+for token in ['SIDE_LIGHT = "LIGHT"','SIDE_DARK = "DARK"','lightSideTag','darkSideTag']:
+    if token not in checker: errors.append('Checker metadata missing '+token)
+
 # Version / workflow
 build=(ROOT/'app/build.gradle.kts').read_text(); wf=(ROOT/'.github/workflows/build-apk.yml').read_text()
-if 'versionCode = 34' not in build or 'versionName = "1.16.0"' not in build: errors.append('Version is not 1.16.0 / code 34')
-if 'Backgammon-Legacy-v1.16.0.apk' not in wf: errors.append('GitHub APK filename not v1.16.0')
-# Design references
-for name in ['CLASSIC_BURGUNDY_APPROVED.png','CLASSIC_BURGUNDY_LAYERED_ASSETS.png','CLASSIC_BURGUNDY_TEXT_SPEC.png']:
-    if not (ROOT/'design/reference'/name).exists(): errors.append('Missing design reference '+name)
+if 'versionCode = 37' not in build or 'versionName = "1.19.0"' not in build: errors.append('Version is not 1.19.0 / code 37')
+if 'Backgammon-Legacy-v1.19.0.apk' not in wf or 'Backgammon-Legacy-v1.19.0-APK' not in wf: errors.append('GitHub APK naming not v1.19.0')
+
 if errors:
     print('\n'.join('ERROR: '+e for e in errors)); sys.exit(1)
-print('Project validation passed: v1.16.0 layered image + live text UI is wired.')
+print('Project validation passed: v1.19.0 polished 3D setup UI + sliding selectors + dynamic rules + Auto opponent side.')

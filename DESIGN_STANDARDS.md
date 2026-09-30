@@ -225,3 +225,15 @@ Classic Burgundy detail requirements:
 - no neon glow or oversized ornamentation.
 
 The board remains the hero. Additional detail should come from material treatment, depth, fine trim, typography and icon polish rather than increasing chrome size.
+
+## Checker side metadata (v1.18+)
+Every checker theme must define a paired LIGHT and DARK gameplay side. The art does not need to be literally light/dark coloured. Match Setup Auto opponent selection reads the user's equipped `checker_side` and assigns the opposite tagged side. New checker sets must preserve this metadata convention.
+
+## Match Setup visual lock — v1.19.0
+- Keep the v1.18 setup geometry and sliding-selector layout unchanged unless explicitly requested.
+- Approved finish reference: `design/reference/MATCH_SETUP_3D_FINISH_APPROVED.png`.
+- Setup chrome uses layered 3D assets: burgundy leather panels, emerald selector rails, multi-stage gold bevels, subtle texture, recessed shadows, specular highlights, and dimensional medallions.
+- All option labels, selected values, rules text, and Start Match text remain live Android text; they are never baked into the art.
+- Game Version changes the Match Rules content dynamically.
+- VS Bot uses `Bot colour: Auto / Light / Dark`; 2 Player uses `Player 2 colour: Auto / Light / Dark`.
+- Auto must use checker metadata `LIGHT` / `DARK` pairing, never image colour inference.

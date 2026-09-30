@@ -33,17 +33,20 @@ public final class CosmeticCatalog {
     public static final CheckerTheme IVORY_WALNUT = new CheckerTheme(
             "checkers_ivory_walnut", "Ivory & Walnut",
             0xFFF2E6CC, 0xFFBDAA87, 0xFF4B2619, 0xFF8F5938,
-            "checkers/ivory_walnut/light.webp", "checkers/ivory_walnut/dark.webp");
+            "checkers/ivory_walnut/light.webp", "checkers/ivory_walnut/dark.webp",
+            CheckerTheme.SIDE_LIGHT, CheckerTheme.SIDE_DARK);
 
     public static final CheckerTheme MARBLE_BRONZE = new CheckerTheme(
             "checkers_marble_bronze", "Marble & Bronze",
             0xFFF6F2E9, 0xFFCABDA4, 0xFF8D512C, 0xFFD09A56,
-            "checkers/marble_bronze/light.webp", "checkers/marble_bronze/dark.webp");
+            "checkers/marble_bronze/light.webp", "checkers/marble_bronze/dark.webp",
+            CheckerTheme.SIDE_LIGHT, CheckerTheme.SIDE_DARK);
 
     public static final CheckerTheme OBSIDIAN_GOLD = new CheckerTheme(
             "checkers_obsidian_gold", "Obsidian & Gold",
             0xFFE7D8AF, 0xFFC59A47, 0xFF151414, 0xFFB4873C,
-            "checkers/obsidian_gold/light.webp", "checkers/obsidian_gold/dark.webp");
+            "checkers/obsidian_gold/light.webp", "checkers/obsidian_gold/dark.webp",
+            CheckerTheme.SIDE_LIGHT, CheckerTheme.SIDE_DARK);
 
     public static final DiceTheme IVORY_DICE = new DiceTheme(
             "dice_ivory", "Ivory Dice", 0xFFF4E8CE, 0xFF17110E, 0xFFC8B895,

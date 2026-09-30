@@ -467,17 +467,18 @@ public class GameActivity extends Activity {
     }
 
     /**
-     * v1.16.0 layered-image composition.
+     * v1.17+ layered-image composition.
      *
-     * The approved 1672 x 941 design is the master coordinate system. Every visual layer is
-     * placed in that coordinate system and the entire canvas scales uniformly. Individual
-     * board/HUD/button assets are never independently repositioned to "fit" a device.
+     * The original art was authored on a 1672 x 941 sheet, but only 860 vertical units contain
+     * gameplay chrome. The unused top/bottom art margins are trimmed from the runtime master
+     * frame so extra-wide phones scale the whole composition ~9% larger without stretching
+     * any individual board/HUD/button asset.
      */
     private void applyReferenceComposition() {
         if (gameplayRoot == null || gameplayCanvas == null || boardView == null) return;
 
         final float REF_W = 1672f;
-        final float REF_H = 941f;
+        final float REF_H = 860f;
 
         int rootW = gameplayRoot.getWidth();
         int rootH = gameplayRoot.getHeight();
@@ -510,28 +511,28 @@ public class GameActivity extends Activity {
         gameplayCanvas.setLayoutParams(canvasLp);
 
         // Top HUD — exact approved reference placement.
-        setFrameRef(menuButton,       108f, 22f,  88f,  86f, scale);
-        setFrameRef(playerOnePanel,   210f, 22f, 450f,  86f, scale);
-        setFrameRef(statusPanel,      670f, 18f, 342f,  92f, scale);
-        setFrameRef(playerTwoPanel,  1022f, 22f, 432f,  86f, scale);
-        setFrameRef(settingsButton,  1464f, 22f,  88f,  86f, scale);
+        setFrameRef(menuButton,       108f,  4f,  88f,  86f, scale);
+        setFrameRef(playerOnePanel,   210f,  4f, 450f,  86f, scale);
+        setFrameRef(statusPanel,      670f,  0f, 342f,  92f, scale);
+        setFrameRef(playerTwoPanel,  1022f,  4f, 432f,  86f, scale);
+        setFrameRef(settingsButton,  1464f,  4f,  88f,  86f, scale);
 
         // Board skin. Dynamic checkers/highlights are rendered by BackgammonBoardView on top.
-        setFrameRef(boardView,        104f, 118f, 1442f, 615f, scale);
+        setFrameRef(boardView,        104f, 100f, 1442f, 615f, scale);
 
         // Bottom deck — background, then live dice and independently stateful buttons.
-        setFrameRef(bottomControlBar, 108f, 752f, 1435f, 126f, scale);
-        setFrameRef(dieOneView,       223f, 786f,   80f,  78f, scale);
-        setFrameRef(dieTwoView,       331f, 786f,   81f,  78f, scale);
-        setFrameRef(mainActionButton, 571f, 780f,  451f,  87f, scale);
-        setFrameRef(undoButton,      1090f, 782f,  197f,  82f, scale);
-        setFrameRef(hintButton,      1309f, 782f,  195f,  82f, scale);
+        setFrameRef(bottomControlBar, 108f, 734f, 1435f, 126f, scale);
+        setFrameRef(dieOneView,       223f, 768f,   80f,  78f, scale);
+        setFrameRef(dieTwoView,       331f, 768f,   81f,  78f, scale);
+        setFrameRef(mainActionButton, 571f, 762f,  451f,  87f, scale);
+        setFrameRef(undoButton,      1090f, 764f,  197f,  82f, scale);
+        setFrameRef(hintButton,      1309f, 764f,  195f,  82f, scale);
 
         gameplayUiScale = scale;
 
         // Player plaque internals: avatar/robot art is part of the image asset, so invisible
         // spacer views reserve those exact areas while all text remains live Android text.
-        int icon = Math.max(1, Math.round(82f * scale));
+        int icon = Math.max(1, Math.round(96f * scale));
         int score = Math.max(1, Math.round(92f * scale));
         int sidePad = Math.max(1, Math.round(5f * scale));
         int iconGap = Math.max(1, Math.round(6f * scale));

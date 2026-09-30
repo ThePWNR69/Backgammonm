@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.george.backgammon.R;
 import com.george.backgammon.cosmetics.CosmeticCatalog;
+import com.george.backgammon.cosmetics.CheckerTheme;
 import com.george.backgammon.cosmetics.PlayerLoadout;
 import com.george.backgammon.rendering.CosmeticPreviewView;
 
@@ -24,6 +25,9 @@ public class CustomiseActivity extends Activity {
     private View boardContent;
     private View checkerContent;
     private View animationContent;
+    private TextView checkerSideLight;
+    private TextView checkerSideDark;
+    private String checkerSide = CheckerTheme.SIDE_LIGHT;
 
     private final View[] boardCards = new View[3];
     private final View[] checkerCards = new View[3];
@@ -49,6 +53,8 @@ public class CustomiseActivity extends Activity {
         boardContent = findViewById(R.id.boardContent);
         checkerContent = findViewById(R.id.checkerContent);
         animationContent = findViewById(R.id.animationContent);
+        checkerSideLight = findViewById(R.id.checkerSideLight);
+        checkerSideDark = findViewById(R.id.checkerSideDark);
 
         boardCards[0] = findViewById(R.id.boardCard0);
         boardCards[1] = findViewById(R.id.boardCard1);
@@ -95,6 +101,9 @@ public class CustomiseActivity extends Activity {
         tabCheckers.setOnClickListener(v -> showTab(1));
         tabAnimation.setOnClickListener(v -> showTab(2));
 
+        checkerSideLight.setOnClickListener(v -> setCheckerSide(CheckerTheme.SIDE_LIGHT));
+        checkerSideDark.setOnClickListener(v -> setCheckerSide(CheckerTheme.SIDE_DARK));
+
         for (int i = 0; i < 3; i++) {
             final int index = i;
             boardCards[i].setOnClickListener(v -> equipBoard(index));
@@ -104,6 +113,7 @@ public class CustomiseActivity extends Activity {
 
         showTab(0);
         refreshSelections();
+        refreshCheckerSide();
     }
 
     private void showTab(int tab) {
@@ -119,7 +129,7 @@ public class CustomiseActivity extends Activity {
         tabAnimation.setTextColor(tab == 2 ? 0xFFF8E5B5 : 0xFFCDBA92);
 
         if (tab == 0) sectionDescription.setText("Choose the board that sets the tone of your table");
-        else if (tab == 1) sectionDescription.setText("Choose the checker set you want to play with");
+        else if (tab == 1) sectionDescription.setText("Choose your checker set and preferred Light/Dark gameplay side");
         else sectionDescription.setText("Choose how your checkers travel across the board");
     }
 
@@ -144,6 +154,22 @@ public class CustomiseActivity extends Activity {
         Toast.makeText(this, loadout.moveAnimation.displayName() + " equipped", Toast.LENGTH_SHORT).show();
     }
 
+    private void setCheckerSide(String side) {
+        checkerSide = CheckerTheme.SIDE_DARK.equals(side) ? CheckerTheme.SIDE_DARK : CheckerTheme.SIDE_LIGHT;
+        prefs.edit().putString("checker_side", checkerSide).apply();
+        refreshCheckerSide();
+        Toast.makeText(this, "Your checker side: " + (CheckerTheme.SIDE_DARK.equals(checkerSide) ? "Dark" : "Light"), Toast.LENGTH_SHORT).show();
+    }
+
+    private void refreshCheckerSide() {
+        if (checkerSideLight == null || checkerSideDark == null) return;
+        boolean light = !CheckerTheme.SIDE_DARK.equals(checkerSide);
+        checkerSideLight.setBackgroundResource(light ? R.drawable.premium_tab_selected : R.drawable.premium_tab);
+        checkerSideDark.setBackgroundResource(light ? R.drawable.premium_tab : R.drawable.premium_tab_selected);
+        checkerSideLight.setTextColor(light ? 0xFFFFF0D2 : 0xFFCDBA92);
+        checkerSideDark.setTextColor(light ? 0xFFCDBA92 : 0xFFFFF0D2);
+    }
+
     private void refreshSelections() {
         for (int i = 0; i < 3; i++) {
             boolean selectedBoard = CosmeticCatalog.BOARD_THEMES.get(i).id.equals(loadout.board.id);
@@ -165,12 +191,14 @@ public class CustomiseActivity extends Activity {
         loadout.checkers = CosmeticCatalog.checkersById(prefs.getString("checkers", loadout.checkers.id));
         loadout.moveAnimation = CosmeticCatalog.animationById(
                 prefs.getString("animation", loadout.moveAnimation.id()));
+        checkerSide = prefs.getString("checker_side", CheckerTheme.SIDE_LIGHT);
     }
 
     @Override protected void onResume() {
         super.onResume();
         restore();
         if (boardCards[0] != null) refreshSelections();
+        refreshCheckerSide();
         enterImmersiveMode();
     }
 
