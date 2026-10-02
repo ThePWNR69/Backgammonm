@@ -56,7 +56,7 @@ final class AssetTextureRepository {
         for (int y = 0; y < h; y++) {
             int row = y * w;
             for (int x = 0; x < w; x++) {
-                if (((pixels[row + x] >>> 24) & 0xFF) > 12) {
+                if (((pixels[row + x] >>> 24) & 0xFF) > 48) {
                     if (x < left) left = x;
                     if (x > right) right = x;
                     if (y < top) top = y;

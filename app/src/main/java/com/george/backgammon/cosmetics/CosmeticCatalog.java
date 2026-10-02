@@ -16,7 +16,12 @@ public final class CosmeticCatalog {
             0xFF5A2E17, 0xFF7D4624, 0xFF211813,
             0xFFF0E2C2, 0xFF771B29, 0xFFC79243, 0xFFB77B3E,
             "boards/classic_burgundy/board.webp",
-            null, null, null, null);
+            null, null, null, null,
+            "boards/classic_burgundy/materials/wood.webp",
+            "boards/classic_burgundy/materials/field_black.webp",
+            "boards/classic_burgundy/materials/tray_burgundy.webp",
+            null,
+            null);
 
     public static final BoardTheme GREEK_MARBLE = new BoardTheme(
             "board_greek_marble", "Aegean Marble",
@@ -31,9 +36,10 @@ public final class CosmeticCatalog {
             "boards/modern_teal/board.webp", null, null, null, null);
 
     public static final CheckerTheme IVORY_WALNUT = new CheckerTheme(
-            "checkers_ivory_walnut", "Ivory & Walnut",
-            0xFFF2E6CC, 0xFFBDAA87, 0xFF4B2619, 0xFF8F5938,
-            "checkers/ivory_walnut/light.webp", "checkers/ivory_walnut/dark.webp",
+            "checkers_ivory_walnut", "Classic Wood",
+            0xFFF1D59D, 0xFFC59355, 0xFF6A351B, 0xFF9B5A31,
+            "checkers/ivory_walnut/light.png", "checkers/ivory_walnut/dark.png",
+            "checkers/ivory_walnut/light_side.png", "checkers/ivory_walnut/dark_side.png",
             CheckerTheme.SIDE_LIGHT, CheckerTheme.SIDE_DARK);
 
     public static final CheckerTheme MARBLE_BRONZE = new CheckerTheme(

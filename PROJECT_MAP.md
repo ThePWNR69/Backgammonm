@@ -61,3 +61,54 @@ For visual-only gameplay updates, normally edit only `cosmetics/`, `ui/GameActiv
 - 3D setup raster assets: `app/src/main/res/drawable-xxhdpi/setup_*`
 - Setup selectors/dividers: `app/src/main/res/drawable/setup_*`
 - Layout geometry remains the approved v1.18 programmatic setup layout.
+
+## v1.20 geometry + blend files
+- Board map calibration: `app/src/main/java/com/george/backgammon/rendering/BoardMap.java`
+- Checker rendering: `app/src/main/java/com/george/backgammon/rendering/BackgammonBoardView.java`
+- Clean Classic checker sprites: `app/src/main/assets/cosmetics/checkers/ivory_walnut/light.png`, `dark.png`
+- Gameplay HUD chrome: `app/src/main/res/drawable-nodpi/premium_player_left.webp`, `premium_player_right.webp`, `premium_status.webp`, `premium_square_*`, `premium_settings_*`
+- Gameplay composition / live icon sizing: `app/src/main/java/com/george/backgammon/ui/GameActivity.java`
+
+
+## v1.21.0 polished gameplay visual pass
+- `assets/cosmetics/boards/classic_burgundy/board.webp`: exact BoardMap-aligned polished board skin.
+- `assets/cosmetics/checkers/ivory_walnut/{light,dark}.png`: clean polished production checker sprites.
+- `res/drawable-nodpi/premium_*`: gameplay HUD/deck/button chrome.
+- `res/drawable-nodpi/die_*.webp`: bottom-deck dice artwork.
+- `res/drawable/hud_avatar_ring*.xml`: live identity icon rings.
+- Live text and gameplay state remain code-driven; artwork contains no dynamic text.
+
+
+### v1.22.0 rendering lock
+- `StaticBoardRenderer.drawGeometryLockedPlayfield()` repaints Classic Burgundy field/points from BoardMap after the material board bitmap.
+- Dice-well placement lives in `GameActivity.layoutGameplayForSize()` and is asset-derived.
+
+
+## v1.23 Geometry rule
+- Classic Burgundy board asset is FRAME/MATERIAL ONLY: no baked point triangles.
+- BoardMap field/bar boundaries generate all 12 top and 12 bottom point bases at runtime.
+- Point bases partition each side into six exact columns and cannot enter trays/bar.
+- Checkers and hit regions derive from the same generated point geometry.
+
+
+## v1.24 realistic material pipeline
+- Board geometry remains owned only by `rendering/BoardMap.java`.
+- Material paths live on `cosmetics/BoardTheme.java`.
+- Runtime material clipping/rendering lives in `rendering/StaticBoardRenderer.java`.
+- Classic Burgundy material assets: `app/src/main/assets/cosmetics/boards/classic_burgundy/materials/`.
+- Never bake point geometry into material textures. Materials tile inside BoardMap-defined shapes.
+
+
+## v1.25.0 Classic Wood starter
+- Default checker set id remains `checkers_ivory_walnut` for save compatibility; display name is now **Classic Wood**.
+- Top-down assets: `assets/cosmetics/checkers/ivory_walnut/light.png` and `dark.png`.
+- Bear-off side assets: `light_side.png` and `dark_side.png`.
+- LIGHT/DARK side metadata remains the source for Auto opponent colour selection.
+- App-wide tabletop: `res/drawable/tabletop.webp` is now the clean emerald cloth reference with no decorative objects.
+- v1.23 BoardMap / point-grid geometry is unchanged.
+
+## v1.26 starter cleanup
+- `tools/build_classic_wood_checkers.py` rebuilds the paired starter top-down/side-view checker assets with shared geometry.
+- `cosmetics/CosmeticCatalog.java`: Classic Burgundy leaves light/dark point texture assets null so starter points render as simple gradients.
+- `rendering/StaticBoardRenderer.java`: simple point fallback; no starter diamond/pattern treatment.
+- `ui/GameActivity.java`: bottom main/Undo/Hint frames are snapped to the exact `premium_bottom_deck.webp` wells.

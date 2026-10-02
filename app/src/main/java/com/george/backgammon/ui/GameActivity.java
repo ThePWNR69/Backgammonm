@@ -151,8 +151,8 @@ public class GameActivity extends Activity {
         dieOneView = findViewById(R.id.dieOneView);
         dieTwoView = findViewById(R.id.dieTwoView);
         applyUiTheme();
-        if (playerOneCheckerIcon != null) playerOneCheckerIcon.setVisibility(View.INVISIBLE);
-        if (playerTwoCheckerIcon != null) playerTwoCheckerIcon.setVisibility(View.INVISIBLE);
+        if (playerOneCheckerIcon != null) playerOneCheckerIcon.setVisibility(View.VISIBLE);
+        if (playerTwoCheckerIcon != null) playerTwoCheckerIcon.setVisibility(View.VISIBLE);
         if (statusLeftOrnament != null) statusLeftOrnament.setVisibility(View.GONE);
         if (statusRightOrnament != null) statusRightOrnament.setVisibility(View.GONE);
 
@@ -521,21 +521,25 @@ public class GameActivity extends Activity {
         setFrameRef(boardView,        104f, 100f, 1442f, 615f, scale);
 
         // Bottom deck — background, then live dice and independently stateful buttons.
+        // v1.22.0 dice rectangles are derived from the exact well rectangles in the 1820x158 deck asset,
+        // so both dice are centred in their wells at every uniform screen scale.
         setFrameRef(bottomControlBar, 108f, 734f, 1435f, 126f, scale);
-        setFrameRef(dieOneView,       223f, 768f,   80f,  78f, scale);
-        setFrameRef(dieTwoView,       331f, 768f,   81f,  78f, scale);
-        setFrameRef(mainActionButton, 571f, 762f,  451f,  87f, scale);
-        setFrameRef(undoButton,      1090f, 764f,  197f,  82f, scale);
-        setFrameRef(hintButton,      1309f, 764f,  195f,  82f, scale);
+        setFrameRef(dieOneView,       222.33f, 761.11f, 70.96f, 71.77f, scale);
+        setFrameRef(dieTwoView,       328.77f, 761.11f, 70.96f, 71.77f, scale);
+        // v1.26.0: buttons now match the actual wells drawn into premium_bottom_deck.webp.
+        // This removes the floating / vertically low look seen on-device.
+        setFrameRef(mainActionButton, 568.46f, 746.76f, 458.88f, 101.28f, scale);
+        setFrameRef(undoButton,      1096.73f, 746.76f, 192.38f, 101.28f, scale);
+        setFrameRef(hintButton,      1304.88f, 746.76f, 199.48f, 101.28f, scale);
 
         gameplayUiScale = scale;
 
-        // Player plaque internals: avatar/robot art is part of the image asset, so invisible
-        // spacer views reserve those exact areas while all text remains live Android text.
-        int icon = Math.max(1, Math.round(96f * scale));
-        int score = Math.max(1, Math.round(92f * scale));
-        int sidePad = Math.max(1, Math.round(5f * scale));
-        int iconGap = Math.max(1, Math.round(6f * scale));
+        // Player plaque internals: v1.20 uses clean background art and live identity icons so
+        // the avatar/robot can never be clipped by a bitmap crop.
+        int icon = Math.max(1, Math.round(62f * scale));
+        int score = Math.max(1, Math.round(84f * scale));
+        int sidePad = Math.max(1, Math.round(8f * scale));
+        int iconGap = Math.max(1, Math.round(9f * scale));
         int dividerH = Math.max(1, Math.round(50f * scale));
         int dividerGap = Math.max(1, Math.round(4f * scale));
         applyHorizontalPanelMetrics((LinearLayout) playerOnePanel, true, icon, score,
@@ -543,10 +547,12 @@ public class GameActivity extends Activity {
         applyHorizontalPanelMetrics((LinearLayout) playerTwoPanel, false, icon, score,
                 sidePad, iconGap, dividerH, dividerGap);
 
-        setTextPx(playerOneName, 30f * scale);
-        setTextPx(playerTwoName, 28f * scale);
-        setTextPx(playerOneScoreText, 32f * scale);
-        setTextPx(playerTwoScoreText, 32f * scale);
+        setTextPx(playerOneName, 29f * scale);
+        setTextPx(playerTwoName, 25f * scale);
+        setTextPx(playerOneScoreText, 31f * scale);
+        setTextPx(playerTwoScoreText, 31f * scale);
+        playerOneName.setLetterSpacing(0.01f);
+        playerTwoName.setLetterSpacing(0.01f);
         setStatusTextSizeForCurrentMessage(scale);
 
         setTextPx(mainActionButton, 31f * scale);

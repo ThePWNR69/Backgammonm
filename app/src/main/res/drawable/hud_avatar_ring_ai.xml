@@ -1,4 +1,19 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item><shape android:shape="oval"><gradient android:angle="270" android:startColor="#68C7FF" android:endColor="#245E91"/></shape></item>
-    <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp"><shape android:shape="oval"><gradient android:angle="270" android:startColor="#142333" android:endColor="#07101A"/><stroke android:width="0.8dp" android:color="#8BD8FF"/></shape></item>
+    <item>
+        <shape android:shape="oval">
+            <gradient android:angle="270" android:startColor="#A6E3FF" android:centerColor="#4EB7F2" android:endColor="#1C4E82" />
+        </shape>
+    </item>
+    <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp">
+        <shape android:shape="oval">
+            <gradient android:angle="270" android:startColor="#17314B" android:endColor="#07101A" />
+            <stroke android:width="1dp" android:color="#8FDCFF" />
+        </shape>
+    </item>
+    <item android:left="5dp" android:top="5dp" android:right="5dp" android:bottom="5dp">
+        <shape android:shape="oval">
+            <solid android:color="#00000000" />
+            <stroke android:width="0.6dp" android:color="#2D6B96" />
+        </shape>
+    </item>
 </layer-list>

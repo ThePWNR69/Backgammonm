@@ -97,9 +97,10 @@ The approved premium gameplay reference is the production target for Classic Wal
 
 1. Use a 512×512 transparent canvas.
 2. Centre the visible disc to the standard bounds.
-3. Export `light.webp` and `dark.webp`.
-4. Register the set in `CosmeticCatalog`.
-5. Confirm it renders the same diameter as every existing set.
+3. Export top-down `light.png` and `dark.png` (transparent 512×512 source canvas).
+4. When the set supports bear-off presentation, also export `light_side.png` and `dark_side.png` as transparent horizontal edge-view assets.
+5. Register all supplied assets plus LIGHT / DARK gameplay-side metadata in `CosmeticCatalog`.
+6. Confirm top-down art renders the same diameter as every existing set and side art fits the common bear-off tray slot geometry.
 
 ## 10. GitHub browser upload limit
 
@@ -237,3 +238,42 @@ Every checker theme must define a paired LIGHT and DARK gameplay side. The art d
 - Game Version changes the Match Rules content dynamically.
 - VS Bot uses `Bot colour: Auto / Light / Dark`; 2 Player uses `Player 2 colour: Auto / Light / Dark`.
 - Auto must use checker metadata `LIGHT` / `DARK` pairing, never image colour inference.
+
+## v1.20 geometry + compositing lock
+- Checker anchors must be measured from the current production board artwork, not inherited from an older board skin.
+- `BoardMap` v1.20 coordinates are measured from `classic_burgundy/board.webp` at 2048 x 977.
+- Light/dark checker art for the Classic set uses clean transparent PNG sprites; no baked rectangular background or rough cut-out halo is allowed.
+- Player plaques contain only chrome and score bays. Player/AI identity icons are live Android `ImageView`s so they cannot be clipped by a bitmap crop.
+- Menu and settings buttons use separate complete assets; neither may reuse a partially cropped source image.
+- The centre status plaque must have complete left and right ends with transparent breathing room.
+
+## v1.21.0 Gameplay polish lock
+The approved gameplay finish is defined by `design/reference/APPROVED_GAMEPLAY_POLISH_REFERENCE.png` and the alternate approved reference beside it. Future gameplay themes must preserve the locked BoardMap and live text/dynamic pieces while matching the same level of material depth: polished walnut, dark leather, burgundy leather, layered brass/gold bevels, soft integrated shadows, complete anti-aliased edges, and clean checker/dice sprites. UI assets must not contain dynamic names, scores, turn text, dice values, or checker positions.
+
+## v1.22 geometry source-of-truth lock
+- The 24 playable point triangles are runtime geometry, not trusted baked board artwork.
+- BoardMap is the single source for point edges, checker centres, hit regions and animation endpoints.
+- Classic Burgundy board art supplies physical frame/tray/bar material underneath this geometry layer.
+- Bottom-deck dice views must be derived from the actual well rectangles in the deck asset; never hand-offset by eye.
+
+
+### Realistic material standard (v1.24+)
+- Realism is achieved with tileable material textures clipped into the locked BoardMap, not by regenerating full board artwork with new triangle geometry.
+- Point textures must never define their own triangle edges. `BoardMap` defines all edges.
+- Texture improvements may change grain, leather pores, wood figure, gloss, shadows and highlights only.
+- The Classic Burgundy baseline uses approved-reference material samples for black leather, cream leather, burgundy leather and walnut.
+
+
+## v1.25.0 tabletop + checker asset lock
+- The default tabletop is a clean dark emerald cloth/felt image with subtle texture only. No plants, dice bowls, cases, props, or decorative objects are baked into the background.
+- Background art is independent from board/checker cosmetics so a future Background cosmetic category can replace it without touching BoardMap.
+- The starting checker set is **Classic Wood**: pale maple LIGHT and dark walnut DARK.
+- Each checker theme may carry independent top-down and side-view artwork. Top-down art is used on points/bar; side-view art is used for borne-off pieces in the right end-zone tray.
+- `Auto / Light / Dark` opponent selection continues to use `lightSideTag` / `darkSideTag`; it never infers gameplay side from pixel colour.
+
+## v1.26 starter simplicity + checker parity lock
+- The default Classic Burgundy starter board uses simple cream/burgundy points. Do not add repeating motifs, diamonds, embossed symbols or decorative cut-outs to starter points.
+- Starter points may use a restrained gradient and single seam only. Premium themes can add richer material detail later without changing BoardMap geometry.
+- Classic Wood LIGHT and DARK top-down sprites must share the same canvas size and visible bounds; only wood colour/grain changes.
+- Classic Wood side-view bear-off sprites must likewise share identical geometry.
+- Bottom action/utility button frames are measured from the actual wells in `premium_bottom_deck.webp`; do not hand-offset them independently.

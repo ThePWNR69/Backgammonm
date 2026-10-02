@@ -15,7 +15,7 @@ android {
         applicationId = "com.george.backgammon"
         minSdk = 24
         targetSdk = 35
-        versionCode = 37
-        versionName = "1.19.0"
+        versionCode = 44
+        versionName = "1.26.0"
     }
 }

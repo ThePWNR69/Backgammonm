@@ -1,9 +1,11 @@
 package com.george.backgammon.rendering;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
@@ -40,6 +42,16 @@ final class StaticBoardRenderer {
             paint.clearShadowLayer();
             paint.setColor(Color.WHITE);
             c.drawBitmap(fullBoard, null, outer, paint);
+
+            // v1.23.0 geometry lock: the production bitmap now supplies only the physical
+            // board/frame material.  The playable field and all 24 points are repainted from
+            // BoardMap so visual point geometry and checker/touch geometry can never drift apart.
+            // This is intentionally enabled for the Classic Burgundy baseline first; future
+            // board themes can opt into the same pipeline once their material layers are ready.
+            if ("board_classic_walnut".equals(theme.id)) {
+                drawRealisticTrayMaterial(c, g, theme);
+                drawGeometryLockedPlayfield(c, g, theme);
+            }
             return;
         }
         drawBoardShell(c, g, theme);
@@ -49,6 +61,60 @@ final class StaticBoardRenderer {
         drawSideTrayBackground(c, g.leftTrayLeft, g.leftTrayRight, g, theme, false);
         drawSideTrayBackground(c, g.offLeft, g.offRight, g, theme, true);
         drawThemeDetails(c, g, theme);
+    }
+
+
+    /**
+     * Covers any baked point artwork inside the two playable halves and redraws the field and
+     * points from the canonical BoardMap.  The wood frame, side trays and centre bar remain from
+     * the selected board bitmap, preserving the premium material art while making gameplay
+     * geometry the only source of truth for points/checkers.
+     */
+    private void drawGeometryLockedPlayfield(Canvas c, BoardGeometry g, BoardTheme theme) {
+        RectF leftField = new RectF(g.fieldLeft, g.fieldTop, g.barLeft, g.fieldBottom);
+        RectF rightField = new RectF(g.barRight, g.fieldTop, g.fieldRight, g.fieldBottom);
+
+        Bitmap fieldTexture = textures.get(theme.fieldTextureAsset);
+        paint.setStyle(Paint.Style.FILL);
+        if (fieldTexture != null) {
+            setRepeatingTexture(fieldTexture, Math.max(72f, g.colWidth * 1.35f));
+            c.drawRect(leftField, paint);
+            c.drawRect(rightField, paint);
+            paint.setShader(null);
+        } else {
+            LinearGradient leather = new LinearGradient(
+                    0f, g.fieldTop, 0f, g.fieldBottom,
+                    new int[]{lighten(theme.leather, .07f), theme.leather, darken(theme.leather, .22f)},
+                    new float[]{0f, .48f, 1f}, Shader.TileMode.CLAMP);
+            paint.setShader(leather);
+            c.drawRect(leftField, paint);
+            c.drawRect(rightField, paint);
+            paint.setShader(null);
+        }
+
+        // Physical depth: very subtle top light and lower falloff over the real leather texture.
+        paint.setStyle(Paint.Style.FILL);
+        paint.setShader(new LinearGradient(0f, g.fieldTop, 0f, g.fieldBottom,
+                new int[]{0x12FFFFFF, 0x00000000, 0x1E000000},
+                new float[]{0f, .47f, 1f}, Shader.TileMode.CLAMP));
+        c.drawRect(leftField, paint);
+        c.drawRect(rightField, paint);
+        paint.setShader(null);
+
+        // The exact same BoardMap edges used by checker placement now paint every visible point.
+        drawPoints(c, g, theme);
+
+        // Re-establish the inset boundary so the repainted field still sits physically inside the
+        // wooden case rather than reading as a flat rectangle pasted over it.
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1.1f, g.frame * .06f));
+        paint.setColor(withAlpha(theme.trim, 150));
+        c.drawRect(leftField.left, leftField.top, leftField.right, leftField.bottom, paint);
+        c.drawRect(rightField.left, rightField.top, rightField.right, rightField.bottom, paint);
+        paint.setStrokeWidth(Math.max(3f, g.frame * .16f));
+        paint.setColor(0x3A000000);
+        c.drawRect(leftField.left + 1f, leftField.top + 1f, leftField.right - 1f, leftField.bottom - 1f, paint);
+        c.drawRect(rightField.left + 1f, rightField.top + 1f, rightField.right - 1f, rightField.bottom - 1f, paint);
     }
 
     private void drawBoardShell(Canvas c, BoardGeometry g, BoardTheme theme) {
@@ -127,12 +193,16 @@ final class StaticBoardRenderer {
             boolean even = (i % 2 == 0);
             int topPoint = 13 + i;
             int bottomPoint = 12 - i;
-            drawTriangleExact(c, g, topPoint, even ? theme.lightPoint : theme.darkPoint);
-            drawTriangleExact(c, g, bottomPoint, even ? theme.darkPoint : theme.lightPoint);
+            int topColor = even ? theme.lightPoint : theme.darkPoint;
+            int bottomColor = even ? theme.darkPoint : theme.lightPoint;
+            String topTexture = even ? theme.lightPointTextureAsset : theme.darkPointTextureAsset;
+            String bottomTexture = even ? theme.darkPointTextureAsset : theme.lightPointTextureAsset;
+            drawTriangleExact(c, g, topPoint, topColor, topTexture);
+            drawTriangleExact(c, g, bottomPoint, bottomColor, bottomTexture);
         }
     }
 
-    private void drawTriangleExact(Canvas c, BoardGeometry g, int point, int baseColor) {
+    private void drawTriangleExact(Canvas c, BoardGeometry g, int point, int baseColor, String textureAsset) {
         float[] left = g.pointBaseLeft(point);
         float[] right = g.pointBaseRight(point);
         float[] apex = g.pointApex(point);
@@ -141,18 +211,85 @@ final class StaticBoardRenderer {
         path.lineTo(right[0], right[1]);
         path.lineTo(apex[0], apex[1]);
         path.close();
-        int lighter = lighten(baseColor, .13f);
-        int darker = darken(baseColor, .18f);
-        boolean down = point >= 13;
-        paint.setShader(new LinearGradient(0, left[1], 0, apex[1],
-                down ? lighter : darker, down ? darker : lighter, Shader.TileMode.CLAMP));
+
+        Bitmap material = textures.get(textureAsset);
         paint.setStyle(Paint.Style.FILL);
-        c.drawPath(path, paint);
-        paint.setShader(null);
+        boolean down = point >= 13;
+        if (material != null) {
+            setRepeatingTexture(material, Math.max(58f, g.colWidth * 1.05f));
+            c.drawPath(path, paint);
+            paint.setShader(null);
+
+            // Textured premium themes may use a very restrained directional light pass.
+            paint.setShader(new LinearGradient(0, left[1], 0, apex[1],
+                    down ? 0x0CFFFFFF : 0x12000000,
+                    down ? 0x12000000 : 0x0CFFFFFF, Shader.TileMode.CLAMP));
+            c.drawPath(path, paint);
+            paint.setShader(null);
+        } else {
+            // v1.26 starter board: intentionally simple. No repeated point texture, embossed
+            // diamond pattern or decorative inset. Just a subtle leather-like colour falloff.
+            int lighter = lighten(baseColor, .055f);
+            int darker = darken(baseColor, .075f);
+            paint.setShader(new LinearGradient(0, left[1], 0, apex[1],
+                    down ? lighter : darker, down ? darker : lighter, Shader.TileMode.CLAMP));
+            c.drawPath(path, paint);
+            paint.setShader(null);
+        }
+
+        // One quiet seam only. The starter points should read as clean shapes, not patterned art.
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(1.05f);
-        paint.setColor(darken(baseColor, .23f));
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeWidth(Math.max(.8f, g.frame * .026f));
+        paint.setColor(withAlpha(darken(baseColor, .34f), 145));
         c.drawPath(path, paint);
+        paint.setStrokeJoin(Paint.Join.MITER);
+    }
+
+    private void drawRealisticTrayMaterial(Canvas c, BoardGeometry g, BoardTheme theme) {
+        Bitmap tray = textures.get(theme.trayTextureAsset);
+        if (tray == null) return;
+
+        float inset = Math.max(3f, g.frame * .12f);
+        RectF left = new RectF(g.leftTrayLeft + inset, g.fieldTop + inset,
+                g.leftTrayRight - inset, g.fieldBottom - inset);
+        RectF right = new RectF(g.offLeft + inset, g.fieldTop + inset,
+                g.offRight - inset, g.fieldBottom - inset);
+
+        paint.setStyle(Paint.Style.FILL);
+        setRepeatingTexture(tray, Math.max(78f, g.colWidth * 1.2f));
+        c.drawRoundRect(left, Math.max(7f, g.frame * .22f), Math.max(7f, g.frame * .22f), paint);
+        c.drawRoundRect(right, Math.max(7f, g.frame * .22f), Math.max(7f, g.frame * .22f), paint);
+        paint.setShader(null);
+
+        // Inset shadows make the trays read as recessed leather wells.
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(2.2f, g.frame * .09f));
+        paint.setColor(0x5A000000);
+        c.drawRoundRect(left, Math.max(7f, g.frame * .22f), Math.max(7f, g.frame * .22f), paint);
+        c.drawRoundRect(right, Math.max(7f, g.frame * .22f), Math.max(7f, g.frame * .22f), paint);
+        paint.setStrokeWidth(Math.max(.8f, g.frame * .028f));
+        paint.setColor(withAlpha(theme.trim, 185));
+        c.drawRoundRect(left, Math.max(7f, g.frame * .22f), Math.max(7f, g.frame * .22f), paint);
+        c.drawRoundRect(right, Math.max(7f, g.frame * .22f), Math.max(7f, g.frame * .22f), paint);
+
+        float mid = (g.fieldTop + g.fieldBottom) * .5f;
+        float lineHalf = Math.min((g.leftTrayRight - g.leftTrayLeft) * .28f, g.frame * 1.4f);
+        paint.setStrokeWidth(Math.max(1f, g.frame * .035f));
+        paint.setColor(withAlpha(theme.metalAccent, 220));
+        float lcx = (g.leftTrayLeft + g.leftTrayRight) * .5f;
+        float rcx = (g.offLeft + g.offRight) * .5f;
+        c.drawLine(lcx - lineHalf, mid, lcx + lineHalf, mid, paint);
+        c.drawLine(rcx - lineHalf, mid, rcx + lineHalf, mid, paint);
+    }
+
+    private void setRepeatingTexture(Bitmap bitmap, float tileSizePx) {
+        BitmapShader shader = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+        Matrix matrix = new Matrix();
+        float scale = Math.max(0.05f, tileSizePx / Math.max(1f, bitmap.getWidth()));
+        matrix.setScale(scale, scale);
+        shader.setLocalMatrix(matrix);
+        paint.setShader(shader);
     }
 
     private void drawCentralBar(Canvas c, BoardGeometry g, BoardTheme theme) {

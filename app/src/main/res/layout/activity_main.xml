@@ -30,7 +30,7 @@
 
             <ImageView
                 android:id="@+id/playerOneCheckerIcon"
-                android:visibility="invisible"
+                android:visibility="visible"
                 android:layout_width="1px"
                 android:layout_height="1px"
                 android:padding="5dp"
@@ -170,7 +170,7 @@
 
             <ImageView
                 android:id="@+id/playerTwoCheckerIcon"
-                android:visibility="invisible"
+                android:visibility="visible"
                 android:layout_width="1px"
                 android:layout_height="1px"
                 android:padding="5dp"

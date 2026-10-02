@@ -334,28 +334,44 @@ public class BackgammonBoardView extends View {
         float centerY = (fieldTop + fieldBottom) * 0.5f;
         float halfH = trayH * 0.47f;
         float gap = Math.max(1f, trayH * 0.004f);
-        float segmentH = Math.min(checkerRadius() * 0.34f, (halfH - gap * 14f) / 15f);
+        float segmentH = Math.min(checkerRadius() * 0.30f, (halfH - gap * 14f) / 15f);
         float segmentW = Math.min(trayW * 0.72f, checkerRadius() * 1.18f);
         float cx = (offLeft + offRight) * 0.5f;
         float radius = segmentH * 0.48f;
+
+        boolean lightVisual = white ^ swapCheckerColors;
+        String sidePath = lightVisual ? loadout.checkers.lightSideAsset : loadout.checkers.darkSideAsset;
+        Bitmap sideArtwork = textures.get(sidePath);
+        Rect sideSrc = sideArtwork == null ? null : new Rect(0, 0, sideArtwork.getWidth(), sideArtwork.getHeight());
+
         for (int i = 0; i < visible; i++) {
             float cy = white
                     ? fieldTop + segmentH * 0.5f + i * (segmentH + gap)
                     : fieldBottom - segmentH * 0.5f - i * (segmentH + gap);
             if (white && cy + segmentH * 0.5f >= centerY) break;
             if (!white && cy - segmentH * 0.5f <= centerY) break;
-            paint.setShader(new LinearGradient(cx - segmentW/2f, cy, cx + segmentW/2f, cy,
-                    white ? 0xFFF8E8CB : 0xFF111111,
-                    white ? 0xFFCDAF82 : 0xFF343434, Shader.TileMode.CLAMP));
+
+            RectF dst = new RectF(cx-segmentW/2f, cy-segmentH/2f, cx+segmentW/2f, cy+segmentH/2f);
             paint.setStyle(Paint.Style.FILL);
-            paint.setShadowLayer(Math.max(1f, segmentH * .28f), 0, segmentH * .16f, 0x88000000);
-            c.drawRoundRect(new RectF(cx-segmentW/2f, cy-segmentH/2f, cx+segmentW/2f, cy+segmentH/2f), radius, radius, paint);
+            paint.setColor(0x65000000);
+            paint.setShadowLayer(Math.max(1f, segmentH * .26f), 0f, segmentH * .18f, 0x82000000);
+            c.drawRoundRect(dst, radius, radius, paint);
             paint.clearShadowLayer();
-            paint.setShader(null);
+
+            if (sideArtwork != null && sideSrc != null) {
+                c.drawBitmap(sideArtwork, sideSrc, dst, spritePaint);
+            } else {
+                paint.setShader(new LinearGradient(cx - segmentW/2f, cy, cx + segmentW/2f, cy,
+                        lightVisual ? 0xFFF0D39A : 0xFF6C371E,
+                        lightVisual ? 0xFFC28D4C : 0xFF2E160C, Shader.TileMode.CLAMP));
+                c.drawRoundRect(dst, radius, radius, paint);
+                paint.setShader(null);
+            }
+
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(Math.max(1f, segmentH * .08f));
-            paint.setColor(white ? 0xFFD7BA88 : 0xFF090909);
-            c.drawRoundRect(new RectF(cx-segmentW/2f, cy-segmentH/2f, cx+segmentW/2f, cy+segmentH/2f), radius, radius, paint);
+            paint.setStrokeWidth(Math.max(.7f, segmentH * .07f));
+            paint.setColor(lightVisual ? 0x80F7DCAB : 0x806F3E22);
+            c.drawRoundRect(dst, radius, radius, paint);
         }
         paint.setShader(null);
         paint.setStyle(Paint.Style.FILL);
