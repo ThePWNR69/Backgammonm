@@ -76,6 +76,9 @@ final class StaticBoardRenderer {
 
         Bitmap fieldTexture = textures.get(theme.fieldTextureAsset);
         paint.setStyle(Paint.Style.FILL);
+        // v1.29.0: the shared Paint still carries the translucent gold line colour from the tray
+        // pass, and a Paint's alpha multiplies shader output. Reset it before any shader fill.
+        paint.setColor(Color.WHITE);
         if (fieldTexture != null) {
             setRepeatingTexture(fieldTexture, Math.max(72f, g.colWidth * 1.35f));
             c.drawRect(leftField, paint);
@@ -214,6 +217,9 @@ final class StaticBoardRenderer {
 
         Bitmap material = textures.get(textureAsset);
         paint.setStyle(Paint.Style.FILL);
+        // v1.29.0: the previous point's seam stroke left a 57%-alpha colour on the shared Paint,
+        // which silently faded every following point fill. Always fill at full opacity.
+        paint.setColor(Color.WHITE);
         boolean down = point >= 13;
         if (material != null) {
             setRepeatingTexture(material, Math.max(58f, g.colWidth * 1.05f));
@@ -257,6 +263,7 @@ final class StaticBoardRenderer {
                 g.offRight - inset, g.fieldBottom - inset);
 
         paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.WHITE);
         setRepeatingTexture(tray, Math.max(78f, g.colWidth * 1.2f));
         c.drawRoundRect(left, Math.max(7f, g.frame * .22f), Math.max(7f, g.frame * .22f), paint);
         c.drawRoundRect(right, Math.max(7f, g.frame * .22f), Math.max(7f, g.frame * .22f), paint);

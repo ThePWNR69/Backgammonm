@@ -70,19 +70,19 @@ for rel in ['app/src/main/assets/cosmetics/checkers/ivory_walnut/light.png','app
     else:
         try:
             im=Image.open(pth).convert('RGBA')
-            if im.size != (512,512): errors.append(rel+' must be 512x512')
+            if im.width < 1024 or im.height < 1024: errors.append(rel+' must be at least 1024x1024 in v1.27')
             if im.getpixel((0,0))[3] != 0: errors.append(rel+' corner must be transparent')
         except Exception as e: errors.append(rel+' invalid: '+str(e))
 # v1.26 starter checker pair must share exactly the same visible geometry.
 try:
     light_im=Image.open(ROOT/'app/src/main/assets/cosmetics/checkers/ivory_walnut/light.png').convert('RGBA')
     dark_im=Image.open(ROOT/'app/src/main/assets/cosmetics/checkers/ivory_walnut/dark.png').convert('RGBA')
-    if light_im.getbbox() != dark_im.getbbox(): errors.append('Classic Wood light/dark top-down visible bounds differ')
+    if light_im.getbbox() != dark_im.getbbox(): errors.append('Classic Ivory light/dark top-down visible bounds differ')
     light_side_im=Image.open(ROOT/'app/src/main/assets/cosmetics/checkers/ivory_walnut/light_side.png').convert('RGBA')
     dark_side_im=Image.open(ROOT/'app/src/main/assets/cosmetics/checkers/ivory_walnut/dark_side.png').convert('RGBA')
-    if light_side_im.getbbox() != dark_side_im.getbbox(): errors.append('Classic Wood light/dark side visible bounds differ')
+    if light_side_im.getbbox() != dark_side_im.getbbox(): errors.append('Classic Ivory light/dark side visible bounds differ')
 except Exception as e:
-    errors.append('Classic Wood geometry validation failed: '+str(e))
+    errors.append('Classic Ivory geometry validation failed: '+str(e))
 
 layout=(ROOT/'app/src/main/res/layout/activity_main.xml').read_text()
 if layout.count('android:visibility="visible"') < 2: errors.append('Gameplay identity icons are not live/visible')
@@ -139,14 +139,14 @@ catalog=(ROOT/'app/src/main/java/com/george/backgammon/cosmetics/CosmeticCatalog
 if '"boards/classic_burgundy/materials/tray_burgundy.webp",\n            null,\n            null);' not in catalog:
     errors.append('Classic Burgundy starter points must not use repeating point textures')
 game_activity=(ROOT/'app/src/main/java/com/george/backgammon/ui/GameActivity.java').read_text()
-for token in ['568.46f, 746.76f, 458.88f, 101.28f','1096.73f, 746.76f, 192.38f, 101.28f','1304.88f, 746.76f, 199.48f, 101.28f']:
-    if token not in game_activity: errors.append('Bottom control well alignment missing '+token)
+for token in ['585f, 754f, 430f,  84f','1111f, 755f, 169f,  82f','1321f, 755f, 172f,  82f','animateDiceViewsThrow()','boardView.setElevation','statusPanel.setPadding(statusPadX']:
+    if token not in game_activity: errors.append('v1.27 gameplay polish missing '+token)
 
 # Version / workflow
 build=(ROOT/'app/build.gradle.kts').read_text(); wf=(ROOT/'.github/workflows/build-apk.yml').read_text()
-if 'versionCode = 44' not in build or 'versionName = "1.26.0"' not in build: errors.append('Version is not 1.26.0 / code 44')
-if 'Backgammon-Legacy-v1.26.0.apk' not in wf or 'Backgammon-Legacy-v1.26.0-APK' not in wf: errors.append('GitHub APK naming not v1.26.0')
+if 'versionCode = 47' not in build or 'versionName = "1.29.0"' not in build: errors.append('Version is not 1.29.0 / code 47')
+if 'Backgammon-Legacy-v1.29.0.apk' not in wf or 'Backgammon-Legacy-v1.29.0-APK' not in wf: errors.append('GitHub APK naming not v1.29.0')
 
 if errors:
     print('\n'.join('ERROR: '+e for e in errors)); sys.exit(1)
-print('Project validation passed: v1.26.0 uniform Classic Wood checkers + simple starter points + snapped bottom controls + v1.23 geometry lock.')
+print('Project validation passed: v1.29.0 board seating shadow + compact controls + fitted status plaque + smooth throw/return dice + high-res Classic Ivory (gold-rim) + enlarged bear-off pieces + v1.23 geometry lock.')

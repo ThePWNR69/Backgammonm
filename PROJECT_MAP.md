@@ -112,3 +112,22 @@ For visual-only gameplay updates, normally edit only `cosmetics/`, `ui/GameActiv
 - `cosmetics/CosmeticCatalog.java`: Classic Burgundy leaves light/dark point texture assets null so starter points render as simple gradients.
 - `rendering/StaticBoardRenderer.java`: simple point fallback; no starter diamond/pattern treatment.
 - `ui/GameActivity.java`: bottom main/Undo/Hint frames are snapped to the exact `premium_bottom_deck.webp` wells.
+
+## v1.27 Gameplay Presentation
+- `ui/GameActivity.java`: HUD sizing, compact bottom controls, board elevation, status safe area, dice throw/return animation.
+- `rendering/BackgammonBoardView.java`: high-readability borne-off side-checker overlap and dice-roll timing.
+- `assets/cosmetics/checkers/ivory_walnut/`: 1024px top-down starter checkers plus 1024x256 side-view bear-off assets.
+
+## v1.28 bottom control composition lock
+- `premium_bottom_deck.webp` is background chrome only: leather strip, perimeter, dice wells and separators.
+- Action-button shapes must never be baked into the deck again.
+- `mainActionButton`, `undoButton`, and `hintButton` are the sole visible button layers and use their own state assets.
+
+
+## v1.29 graphics fix
+- Target look: `design/reference/CLASSIC_BURGUNDY_REALISM_TARGET.png`.
+- `rendering/StaticBoardRenderer.java`: `paint.setColor(Color.WHITE)` before every shader fill (points, field, trays). See the Paint-state rule in DESIGN_STANDARDS.md.
+- `res/drawable-nodpi/premium_status.webp`: opaque gold title plate (`tools/fix_status_plaque.py`).
+- `assets/cosmetics/checkers/ivory_walnut/*`: gold-rim ivory/dark set (`tools/build_gold_ring_checkers.py`); `tools/build_classic_wood_checkers.py` is the legacy wood generator and is no longer used.
+- `assets/cosmetics/boards/classic_burgundy/board.webp`: frame walnut graded once (`tools/grade_board_frame.py`).
+- `cosmetics/CosmeticCatalog.java`: Classic Burgundy point colours `0xFFEED2A8` / `0xFF781B21`; checker set display name "Classic Ivory".

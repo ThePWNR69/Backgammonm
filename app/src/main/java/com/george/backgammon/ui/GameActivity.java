@@ -2,6 +2,12 @@ package com.george.backgammon.ui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.Keyframe;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,7 +18,9 @@ import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.graphics.Rect;
+import android.graphics.Outline;
 import android.os.Build;
 import android.util.TypedValue;
 import android.widget.FrameLayout;
@@ -21,6 +29,7 @@ import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.view.animation.DecelerateInterpolator;
 
 
 import com.george.backgammon.R;
@@ -103,6 +112,7 @@ public class GameActivity extends Activity {
     private boolean openingResultVisible = false;
     private String openingResultText = "";
     private float gameplayUiScale = 1f;
+    private AnimatorSet diceThrowAnimator;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -221,6 +231,7 @@ public class GameActivity extends Activity {
         openingResultText = "";
         boardView.setOpeningPresentationActive(true);
         boardView.clearSelection();
+        animateDiceViewsThrow();
         boardView.animateDiceRoll(d1, d2, () -> {
             openingResultText = buildOpeningResultText();
             openingResultVisible = true;
@@ -247,6 +258,7 @@ public class GameActivity extends Activity {
     private void beginHumanDiceRoll() {
         game.rollDice();
         boardView.clearSelection();
+        animateDiceViewsThrow();
         boardView.animateDiceRoll(game.getDieOne(), game.getDieTwo(), this::refreshUi);
         refreshUi();
     }
@@ -278,6 +290,7 @@ public class GameActivity extends Activity {
             return;
         }
         game.rollDice();
+        animateDiceViewsThrow();
         boardView.animateDiceRoll(game.getDieOne(), game.getDieTwo(), () -> {
             refreshUi();
             handler.postDelayed(this::playNextAiMove, 360L);
@@ -511,11 +524,11 @@ public class GameActivity extends Activity {
         gameplayCanvas.setLayoutParams(canvasLp);
 
         // Top HUD — exact approved reference placement.
-        setFrameRef(menuButton,       108f,  4f,  88f,  86f, scale);
-        setFrameRef(playerOnePanel,   210f,  4f, 450f,  86f, scale);
-        setFrameRef(statusPanel,      670f,  0f, 342f,  92f, scale);
-        setFrameRef(playerTwoPanel,  1022f,  4f, 432f,  86f, scale);
-        setFrameRef(settingsButton,  1464f,  4f,  88f,  86f, scale);
+        setFrameRef(menuButton,       108f,  5f,  84f,  82f, scale);
+        setFrameRef(playerOnePanel,   202f,  5f, 430f,  82f, scale);
+        setFrameRef(statusPanel,      642f,  2f, 390f,  88f, scale);
+        setFrameRef(playerTwoPanel,  1042f,  5f, 414f,  82f, scale);
+        setFrameRef(settingsButton,  1466f,  5f,  84f,  82f, scale);
 
         // Board skin. Dynamic checkers/highlights are rendered by BackgammonBoardView on top.
         setFrameRef(boardView,        104f, 100f, 1442f, 615f, scale);
@@ -528,9 +541,27 @@ public class GameActivity extends Activity {
         setFrameRef(dieTwoView,       328.77f, 761.11f, 70.96f, 71.77f, scale);
         // v1.26.0: buttons now match the actual wells drawn into premium_bottom_deck.webp.
         // This removes the floating / vertically low look seen on-device.
-        setFrameRef(mainActionButton, 568.46f, 746.76f, 458.88f, 101.28f, scale);
-        setFrameRef(undoButton,      1096.73f, 746.76f, 192.38f, 101.28f, scale);
-        setFrameRef(hintButton,      1304.88f, 746.76f, 199.48f, 101.28f, scale);
+        setFrameRef(mainActionButton, 585f, 754f, 430f,  84f, scale);
+        setFrameRef(undoButton,      1111f, 755f, 169f,  82f, scale);
+        setFrameRef(hintButton,      1321f, 755f, 172f,  82f, scale);
+
+        // v1.27: physically seat the board on the felt with a real Android elevation shadow.
+        if (Build.VERSION.SDK_INT >= 21) {
+            boardView.setOutlineProvider(new ViewOutlineProvider() {
+                @Override public void getOutline(View view, Outline outline) {
+                    float radius = Math.max(1f, 13f * gameplayUiScale);
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
+                }
+            });
+            boardView.setElevation(Math.max(1f, 16f * scale));
+            bottomControlBar.setElevation(Math.max(1f, 3f * scale));
+            statusPanel.setElevation(Math.max(1f, 4f * scale));
+        }
+
+        // Keep long status messages inside the recessed centre of the plaque, not on its tips.
+        int statusPadX = Math.max(1, Math.round(66f * scale));
+        int statusPadY = Math.max(0, Math.round(10f * scale));
+        statusPanel.setPadding(statusPadX, statusPadY, statusPadX, statusPadY);
 
         gameplayUiScale = scale;
 
@@ -555,9 +586,9 @@ public class GameActivity extends Activity {
         playerTwoName.setLetterSpacing(0.01f);
         setStatusTextSizeForCurrentMessage(scale);
 
-        setTextPx(mainActionButton, 31f * scale);
-        setTextPx(undoButton, 22f * scale);
-        setTextPx(hintButton, 22f * scale);
+        setTextPx(mainActionButton, 28f * scale);
+        setTextPx(undoButton, 20f * scale);
+        setTextPx(hintButton, 20f * scale);
 
         gameplayCanvas.requestLayout();
         boardView.requestLayout();
@@ -628,9 +659,10 @@ public class GameActivity extends Activity {
     private void setStatusTextSizeForCurrentMessage(float scale) {
         if (statusTitle == null) return;
         String text = String.valueOf(statusTitle.getText());
-        float designPx = 27f;
-        if (text.length() > 20) designPx = 21f;
-        else if (text.length() > 16) designPx = 24f;
+        float designPx = 26f;
+        if (text.length() > 20) designPx = 18f;
+        else if (text.length() > 16) designPx = 20f;
+        else if (text.length() > 12) designPx = 23f;
         setTextPx(statusTitle, designPx * scale);
         statusTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
     }
@@ -802,6 +834,72 @@ public class GameActivity extends Activity {
         d2 = Math.max(1, Math.min(6, d2));
         dieOneView.setImageResource(faces[d1]);
         dieTwoView.setImageResource(faces[d2]);
+    }
+
+    /**
+     * v1.27 dice presentation: both bottom-left dice launch onto the board, tumble,
+     * then follow a smooth return arc to their fixed wells. Face changes remain driven
+     * by BackgammonBoardView so animation timing and game state stay deterministic.
+     */
+    private void animateDiceViewsThrow() {
+        if (dieOneView == null || dieTwoView == null) return;
+        if (diceThrowAnimator != null) diceThrowAnimator.cancel();
+
+        final float s = Math.max(0.01f, gameplayUiScale);
+        resetDiceViewTransform(dieOneView);
+        resetDiceViewTransform(dieTwoView);
+        dieOneView.bringToFront();
+        dieTwoView.bringToFront();
+
+        ObjectAnimator d1 = ObjectAnimator.ofPropertyValuesHolder(dieOneView,
+                keyed("translationX", 0f, 70f*s, 345f*s, 300f*s, 120f*s, 0f),
+                keyed("translationY", 0f, -105f*s, -300f*s, -215f*s, -70f*s, 0f),
+                keyed("rotation", 0f, 180f, 560f, 900f, 1260f, 1440f),
+                keyed("scaleX", 1f, 1.07f, .96f, 1.03f, 1.01f, 1f),
+                keyed("scaleY", 1f, 1.07f, .96f, 1.03f, 1.01f, 1f));
+        ObjectAnimator d2 = ObjectAnimator.ofPropertyValuesHolder(dieTwoView,
+                keyed("translationX", 0f, 95f*s, 420f*s, 350f*s, 145f*s, 0f),
+                keyed("translationY", 0f, -85f*s, -255f*s, -185f*s, -58f*s, 0f),
+                keyed("rotation", 0f, -220f, -620f, -980f, -1280f, -1440f),
+                keyed("scaleX", 1f, 1.05f, .97f, 1.04f, 1.01f, 1f),
+                keyed("scaleY", 1f, 1.05f, .97f, 1.04f, 1.01f, 1f));
+
+        d1.setDuration(1080L);
+        d2.setDuration(1080L);
+        d1.setInterpolator(new DecelerateInterpolator(1.15f));
+        d2.setInterpolator(new DecelerateInterpolator(1.15f));
+
+        diceThrowAnimator = new AnimatorSet();
+        diceThrowAnimator.playTogether(d1, d2);
+        diceThrowAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(Animator animation) {
+                resetDiceViewTransform(dieOneView);
+                resetDiceViewTransform(dieTwoView);
+            }
+            @Override public void onAnimationCancel(Animator animation) {
+                resetDiceViewTransform(dieOneView);
+                resetDiceViewTransform(dieTwoView);
+            }
+        });
+        diceThrowAnimator.start();
+    }
+
+    private PropertyValuesHolder keyed(String property, float... values) {
+        Keyframe[] frames = new Keyframe[values.length];
+        for (int i = 0; i < values.length; i++) {
+            float fraction = values.length <= 1 ? 1f : (float)i / (float)(values.length - 1);
+            frames[i] = Keyframe.ofFloat(fraction, values[i]);
+        }
+        return PropertyValuesHolder.ofKeyframe(property, frames);
+    }
+
+    private void resetDiceViewTransform(View v) {
+        if (v == null) return;
+        v.setTranslationX(0f);
+        v.setTranslationY(0f);
+        v.setRotation(0f);
+        v.setScaleX(1f);
+        v.setScaleY(1f);
     }
 
     private String displayName(int player) {

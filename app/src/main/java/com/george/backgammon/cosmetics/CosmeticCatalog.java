@@ -14,7 +14,7 @@ public final class CosmeticCatalog {
     public static final BoardTheme CLASSIC_WALNUT = new BoardTheme(
             "board_classic_walnut", "Classic Burgundy",
             0xFF5A2E17, 0xFF7D4624, 0xFF211813,
-            0xFFF0E2C2, 0xFF771B29, 0xFFC79243, 0xFFB77B3E,
+            0xFFEED2A8, 0xFF781B21, 0xFFC79243, 0xFFB77B3E,
             "boards/classic_burgundy/board.webp",
             null, null, null, null,
             "boards/classic_burgundy/materials/wood.webp",
@@ -36,8 +36,8 @@ public final class CosmeticCatalog {
             "boards/modern_teal/board.webp", null, null, null, null);
 
     public static final CheckerTheme IVORY_WALNUT = new CheckerTheme(
-            "checkers_ivory_walnut", "Classic Wood",
-            0xFFF1D59D, 0xFFC59355, 0xFF6A351B, 0xFF9B5A31,
+            "checkers_ivory_walnut", "Classic Ivory",
+            0xFFEFE6D2, 0xFFB8A57C, 0xFF4A2616, 0xFF24110A,
             "checkers/ivory_walnut/light.png", "checkers/ivory_walnut/dark.png",
             "checkers/ivory_walnut/light_side.png", "checkers/ivory_walnut/dark_side.png",
             CheckerTheme.SIDE_LIGHT, CheckerTheme.SIDE_DARK);

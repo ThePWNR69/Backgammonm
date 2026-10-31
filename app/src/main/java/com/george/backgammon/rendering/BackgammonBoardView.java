@@ -190,7 +190,7 @@ public class BackgammonBoardView extends View {
         if (listener != null) listener.onGameChanged();
 
         diceAnimator = ValueAnimator.ofFloat(0f, 1f);
-        diceAnimator.setDuration(920L);
+        diceAnimator.setDuration(1080L);
         diceAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         diceAnimator.addUpdateListener(a -> {
             diceRollProgress = (float)a.getAnimatedValue();
@@ -333,21 +333,23 @@ public class BackgammonBoardView extends View {
         float trayH = fieldBottom - fieldTop;
         float centerY = (fieldTop + fieldBottom) * 0.5f;
         float halfH = trayH * 0.47f;
-        float gap = Math.max(1f, trayH * 0.004f);
-        float segmentH = Math.min(checkerRadius() * 0.30f, (halfH - gap * 14f) / 15f);
-        float segmentW = Math.min(trayW * 0.72f, checkerRadius() * 1.18f);
+        // v1.27: show the dedicated side-view checker artwork at a readable size.
+        // All 15 pieces still fit by overlapping slightly, matching a physical bear-off tray.
+        float segmentH = Math.min(checkerRadius() * 0.56f, trayH * 0.062f);
+        float pitch = visible <= 1 ? 0f : Math.min(segmentH * 0.62f, (halfH - segmentH) / 14f);
+        float segmentW = Math.min(trayW * 0.88f, checkerRadius() * 1.52f);
         float cx = (offLeft + offRight) * 0.5f;
-        float radius = segmentH * 0.48f;
+        float radius = segmentH * 0.44f;
 
         boolean lightVisual = white ^ swapCheckerColors;
         String sidePath = lightVisual ? loadout.checkers.lightSideAsset : loadout.checkers.darkSideAsset;
         Bitmap sideArtwork = textures.get(sidePath);
-        Rect sideSrc = sideArtwork == null ? null : new Rect(0, 0, sideArtwork.getWidth(), sideArtwork.getHeight());
+        Rect sideSrc = sideArtwork == null ? null : textures.visibleBounds(sideArtwork);
 
         for (int i = 0; i < visible; i++) {
             float cy = white
-                    ? fieldTop + segmentH * 0.5f + i * (segmentH + gap)
-                    : fieldBottom - segmentH * 0.5f - i * (segmentH + gap);
+                    ? fieldTop + segmentH * 0.5f + i * pitch
+                    : fieldBottom - segmentH * 0.5f - i * pitch;
             if (white && cy + segmentH * 0.5f >= centerY) break;
             if (!white && cy - segmentH * 0.5f <= centerY) break;
 

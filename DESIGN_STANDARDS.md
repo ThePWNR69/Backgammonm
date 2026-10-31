@@ -277,3 +277,22 @@ The approved gameplay finish is defined by `design/reference/APPROVED_GAMEPLAY_P
 - Classic Wood LIGHT and DARK top-down sprites must share the same canvas size and visible bounds; only wood colour/grain changes.
 - Classic Wood side-view bear-off sprites must likewise share identical geometry.
 - Bottom action/utility button frames are measured from the actual wells in `premium_bottom_deck.webp`; do not hand-offset them independently.
+
+## v1.27 Gameplay Presentation Lock
+- Keep the v1.23 BoardMap point-grid geometry unchanged.
+- Physical board sits above the tabletop with a soft Android elevation/contact shadow; do not bake table objects into the background.
+- The centre status plaque uses a protected inner text-safe area. Long messages must shrink within that inner area rather than overlap the plaque tips.
+- Undo and Hint are compact controls inset inside their bottom-deck wells; they must not fill the entire well.
+- Dice launch from their bottom-left wells, tumble across the board, then return smoothly to those same wells. Dice faces remain live game-state assets.
+- Classic Wood starter checkers use identical light/dark geometry at high resolution plus dedicated side-view bear-off artwork.
+- Borne-off pieces may overlap vertically so each edge-on checker remains readable while all 15 still fit in its half of the tray.
+
+## Bottom control layer rule (v1.28+)
+The bottom control-deck image must not contain baked Roll/End Turn, Undo or Hint button frames. It may contain only the deck material, perimeter trim, dice wells and separators. Interactive buttons are separate layers with normal/pressed/disabled states.
+
+## v1.29 Paint-state rule (rendering)
+`StaticBoardRenderer` and `BackgammonBoardView` share one `Paint` instance. A Paint's alpha **multiplies** whatever a shader draws, so a translucent `setColor(...)` from a previous stroke silently fades the next gradient/texture fill. Always call `paint.setColor(Color.WHITE)` (opaque) before drawing with a shader. Do not tune theme colours to compensate for faded points - check this first.
+
+## v1.29 checker + plaque lock
+- Default checkers (Classic Ivory) are glossy ivory + dark chocolate with a thin gold rim, per `CLASSIC_BURGUNDY_REALISM_TARGET.png`. This supersedes the v1.25/v1.26 "Classic Wood" maple/walnut description. Light/dark top-down sprites must keep identical canvas size and visible bounds; side-view sprites likewise.
+- The centre status plaque title window must be fully opaque (no transparent holes) and wide enough that the longest status message sits entirely on it.
